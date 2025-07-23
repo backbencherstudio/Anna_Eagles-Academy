@@ -107,7 +107,7 @@ export default function LoginPage() {
                             </div>
                         </div>
                         <div className="flex justify-end">
-                            <a href="#" className="text-xs text-[#F1C27D] hover:underline">Forgot password?</a>
+                            <Link href="/forgot-password" className="text-xs text-[#F1C27D] hover:underline">Forgot password?</Link>
                         </div>
                         <Button disabled={isLoading} type="submit" className="w-full py-6 cursor-pointer transition-all duration-300 bg-[#F1C27D] hover:bg-[#F1C27D]/90 text-white font-semibold rounded-xl mt-2 text-lg">
                             {isLoading ? <Loader2 className="animate-spin" /> : 'Sign in'}

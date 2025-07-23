@@ -14,12 +14,16 @@ import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
+import { FaUser } from 'react-icons/fa'
 
 export default function SignUp() {
-    const { register, handleSubmit, formState: { errors } } = useForm();
+    const { register, handleSubmit, formState: { errors }, watch } = useForm();
 
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    const password = watch('password');
 
     // setTimeout to simulate login
     const onSubmit = (data: any) => {
@@ -40,7 +44,7 @@ export default function SignUp() {
                             <Logo />
                             <h2 className="text-xl font-bold text-[#1D1F2C] font-sans">The White <br /> Eagles Academy</h2>
                         </div>
-                        <p className=" text-center text-lg mt-4 font-medium font-sans">Let’s sign in to your account</p>
+                        <p className=" text-center text-lg mt-4 font-medium font-sans">Let’s get started with filling the form below</p>
                     </div>
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                         <Button
@@ -64,6 +68,23 @@ export default function SignUp() {
                             <span className="mx-2 text-gray-400 text-lg">or sign in with email</span>
                             <div className="flex-grow h-px bg-gray-200" />
                         </div>
+                        {/* Name input with icon */}
+                        <div>
+                            <div className="relative">
+                                <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 text-xl">
+                                    <FaUser />
+                                </span>
+                                <Input
+                                    type="text"
+                                    placeholder="Name"
+                                    {...register('name', { required: 'Name is required' })}
+                                    className="pl-10 pr-4 py-5 xl:py-6 text-base"
+                                />
+                            </div>
+                            <div className="min-h-[20px]">
+                                {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message as string}</p>}
+                            </div>
+                        </div>
                         {/* Email input with icon */}
                         <div>
                             <div className="relative">
@@ -74,7 +95,7 @@ export default function SignUp() {
                                     type="email"
                                     placeholder="Email"
                                     {...register('email', { required: 'Email is required' })}
-                                    className="pl-10 pr-4 h-12 text-base"
+                                    className="pl-10 pr-4 py-5 xl:py-6 text-base"
                                 />
                             </div>
                             <div className="min-h-[20px]">
@@ -91,7 +112,7 @@ export default function SignUp() {
                                     type={showPassword ? 'text' : 'password'}
                                     placeholder="Password"
                                     {...register('password', { required: 'Password is required' })}
-                                    className="pl-10 pr-10 h-12 text-base"
+                                    className="pl-10 pr-10 py-5 xl:py-6 text-base"
                                 />
                                 <button
                                     type="button"
@@ -106,15 +127,41 @@ export default function SignUp() {
                                 {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message as string}</p>}
                             </div>
                         </div>
-                        <div className="flex justify-end">
-                            <a href="#" className="text-xs text-[#F1C27D] hover:underline">Forgot password?</a>
+                        {/* Confirm Password input with icon and eye toggle */}
+                        <div>
+                            <div className="relative">
+                                <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 text-xl">
+                                    <FaLock />
+                                </span>
+                                <Input
+                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    placeholder="Confirm Password"
+                                    {...register('confirmPassword', {
+                                        required: 'Confirm Password is required',
+                                        validate: value => value === password || 'Passwords do not match'
+                                    })}
+                                    className="pl-10 pr-10 py-5 xl:py-6 text-base"
+                                />
+                                <button
+                                    type="button"
+                                    tabIndex={-1}
+                                    className="absolute inset-y-0 right-3 flex items-center text-gray-400 text-xl focus:outline-none"
+                                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                                >
+                                    {showConfirmPassword ? <FaRegEyeSlash /> : <FaRegEye />}
+                                </button>
+                            </div>
+                            <div className="min-h-[20px]">
+                                {errors.confirmPassword && <p className="text-xs text-red-500 mt-1">{errors.confirmPassword.message as string}</p>}
+                            </div>
                         </div>
+
                         <Button disabled={isLoading} type="submit" className="w-full py-6 cursor-pointer transition-all duration-300 bg-[#F1C27D] hover:bg-[#F1C27D]/90 text-white font-semibold rounded-xl mt-2 text-lg">
-                            {isLoading ? <Loader2 className="animate-spin" /> : 'Sign in'}
+                            {isLoading ? <Loader2 className="animate-spin" /> : 'Sign up'}
                         </Button>
                     </form>
                     <div className="flex justify-center items-center mt-4">
-                        <p className="text-sm text-gray-500">doesn’t have an account?<Link href="/sign-up" className="text-[#F1C27D] hover:underline font-medium ml-1"> Sign Up</Link></p>
+                        <p className="text-sm text-gray-500">already have an account?<Link href="/login" className="text-[#F1C27D] hover:underline font-medium ml-1"> Sign in</Link></p>
                     </div>
                 </div>
             </div>
