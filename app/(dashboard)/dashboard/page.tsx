@@ -1,5 +1,5 @@
 import React from 'react'
-import CommonDashboard from './_components/Dashboard/CommonDashboard'
+import CommonDashboard from '../../../components/Shared/CommonDashboard'
 
 export default function MainDashboard() {
     return (

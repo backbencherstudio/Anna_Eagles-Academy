@@ -1,8 +1,9 @@
 'use client'
+import AdminDashboard from '@/app/(dashboard)/_components/Admin/AdminDashboard';
+import StudentDashboard from '@/app/(dashboard)/_components/Student/StudentDashboard';
 import { useUserData } from '@/context/UserDataContext';
 import React from 'react'
-import StudentDashboard from '../Student/StudentDashboard';
-import AdminDashboard from '../Admin/AdminDashboard';
+
 
 
 export default function CommonDashboard() {

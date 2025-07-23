@@ -16,21 +16,21 @@ const studentMenuSections = [
         header: 'GENERAL',
         items: [
             { title: 'Dashboard', icon: MdDashboard, href: '/dashboard', role: 'student' },
-            { title: 'Calendar', icon: MdOutlineCalendarToday, href: '/dashboard/calendar', role: 'student' },
+            { title: 'Calendar', icon: MdOutlineCalendarToday, href: '/calendar', role: 'student' },
         ],
     },
     {
         header: 'COURSES',
         items: [
-            { title: 'Discover', icon: FiGlobe, href: '/dashboard/discover', role: 'student' },
-            { title: 'My Courses', icon: MdMenuBook, href: '/dashboard/my-courses', role: 'student' },
-            { title: 'Assignments', icon: MdAssignment, href: '/dashboard/assignments', role: 'student' },
+            { title: 'Discover', icon: FiGlobe, href: '/discover', role: 'student' },
+            { title: 'My Courses', icon: MdMenuBook, href: '/my-courses', role: 'student' },
+            { title: 'Assignments', icon: MdAssignment, href: '/assignments', role: 'student' },
         ],
     },
     {
         header: 'OTHER',
         items: [
-            { title: 'Setting', icon: FiSettings, href: '/dashboard/setting', role: 'student' },
+            { title: 'Setting', icon: FiSettings, href: '/setting', role: 'student' },
         ],
     },
 ];
