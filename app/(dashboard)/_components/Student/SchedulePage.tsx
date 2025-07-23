@@ -1,6 +1,7 @@
+'use client'
 import React, { useState, useEffect } from 'react';
 import { Calendar } from '@/components/ui/calendar';
-import MySchedule from './MySchedule';
+
 
 interface ScheduleItem {
     id: number;
@@ -22,7 +23,7 @@ interface CalanderPageProps {
     initialSelectedDate?: string;
 }
 
-export default function CalanderPage({ initialSelectedDate }: CalanderPageProps) {
+export default function SchedulePage({ initialSelectedDate }: CalanderPageProps) {
     const [scheduleData, setScheduleData] = useState<ScheduleItem[]>([]);
     const [selectedDate, setSelectedDate] = useState<string>(initialSelectedDate || '');
     const [calendarDate, setCalendarDate] = useState<Date | undefined>(undefined);
@@ -53,7 +54,7 @@ export default function CalanderPage({ initialSelectedDate }: CalanderPageProps)
 
     return (
         <div className="calendar-page-container rounded-2xl h-96">
-            <div className='bg-white rounded-2xl' style={{ height: 320, overflowY: 'auto' }}>
+            <div className='bg-white rounded-2xl' style={{ height: 350, overflowY: 'auto' }}>
                 <Calendar
                     mode="single"
                     selected={calendarDate}
@@ -61,9 +62,9 @@ export default function CalanderPage({ initialSelectedDate }: CalanderPageProps)
                     className="border-none w-full bg-transparent"
                 />
             </div>
-            <div style={{ marginTop: 24 }}>
+            {/* <div style={{ marginTop: 24 }}>
                 <MySchedule scheduleData={filteredSchedule} />
-            </div>
+            </div> */}
         </div>
     );
 }
