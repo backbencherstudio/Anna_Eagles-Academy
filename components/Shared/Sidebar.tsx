@@ -16,7 +16,7 @@ const studentMenuSections = [
         header: 'GENERAL',
         items: [
             { title: 'Dashboard', icon: MdDashboard, href: '/dashboard', role: 'student' },
-            { title: 'Calendar', icon: MdOutlineCalendarToday, href: '/calendar', role: 'student' },
+            { title: 'Schedule', icon: MdOutlineCalendarToday, href: '/schedule', role: 'student' },
         ],
     },
     {

@@ -4,6 +4,7 @@ import { FaRegUser } from "react-icons/fa";
 import { IoNotificationsOutline } from "react-icons/io5";
 import Image from 'next/image';
 import { useUserData } from '@/context/UserDataContext';
+import { usePathname } from 'next/navigation';
 
 interface NavbarProps {
     onMobileMenuToggle: () => void;
@@ -26,8 +27,19 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
             message: 'You have empty vibe check for tomorrow.',
             time: '01:55 pm',
         },
-        // Add more notifications as needed
+   
     ]);
+    // dynamic title show based on the page
+    const title = usePathname().split('/').pop();
+
+    const titleMap = {
+        'dashboard': 'Hi, ' + user?.name,
+        'schedule': 'My Schedule',
+        'discover': 'Discover',
+        'my-courses': 'My Courses',
+        'assignments': 'Assignments',
+        'setting': 'Setting',
+    }
 
 
 
@@ -40,7 +52,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
     };
 
     return (
-        <header className="bg-white border-b border-[#E9EAEC] z-10 ">
+        <header className="bg-white border-b border-[#E9EAEC] z-10 mx-6 mt-4 rounded-2xl">
             <div className="flex items-center justify-between py-4 px-6">
                 <div className="flex items-center gap-4">
                     <button
@@ -50,14 +62,22 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
                         <HiMenuAlt3 className="w-6 h-6" />
                     </button>
                     <div className='hidden sm:flex flex-col'>
-                        <h1 className="text-[24px] font-semibold text-[#111827]">Hi, {user?.name}</h1>
-                        {
-                            user?.role === 'student' ? (
-                                <p className="text-[14px] font-[500] text-[#687588]">Let’s boost your knowledge today and learn a new things</p>
-                            ) : (
-                                <></>
-                            )
-                        }
+                        {user ? (
+                            <>
+                                <h1 className="text-[24px] font-semibold text-[#111827]">
+                                    {title === 'dashboard'
+                                        ? `Hi, ${user.name}`
+                                        : titleMap[title as keyof typeof titleMap]}
+                                </h1>
+                                {title === 'dashboard' && user.role === 'student' && (
+                                    <span className="text-[16px] text-[#777980] mt-1">
+                                        Let’s boost your knowledge today and learn a new things
+                                    </span>
+                                )}
+                            </>
+                        ) : (
+                            <h1 className="text-[24px] font-semibold text-[#111827]">&nbsp;</h1>
+                        )}
                     </div>
                 </div>
 

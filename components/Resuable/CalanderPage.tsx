@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
 import MySchedule from './MySchedule';
 
 interface ScheduleItem {
