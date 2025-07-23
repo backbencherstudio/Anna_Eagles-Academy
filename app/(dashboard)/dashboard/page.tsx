@@ -1,9 +1,8 @@
 import React from 'react'
+import CommonDashboard from './_components/Dashboard/CommonDashboard'
 
-export default function Dashboard() {
+export default function MainDashboard() {
     return (
-        <div>
-            this is dashboard
-        </div>
+        <CommonDashboard />
     )
 }

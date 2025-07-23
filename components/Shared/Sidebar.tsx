@@ -3,23 +3,11 @@ import React, { useState } from 'react';
 import Link from "next/link";
 import { usePathname } from 'next/navigation';
 import { IoMdClose } from "react-icons/io";
-import { MdArrowForwardIos, MdDashboard, MdOutlineManageAccounts, MdOutlinePostAdd, MdOutlineTopic, MdOutlineCalendarToday, MdAssignment, MdMenuBook } from 'react-icons/md';
-import { FiLogOut, FiSettings, FiGlobe } from 'react-icons/fi';
-import { FaUsers, FaUserShield } from 'react-icons/fa';
+import { MdArrowForwardIos, MdDashboard, MdOutlineCalendarToday, MdAssignment, MdMenuBook, MdOutlineBarChart } from 'react-icons/md';
+import { FiLogOut, FiSettings, FiGlobe, FiUser } from 'react-icons/fi';
 import LoadingOverlay from '../Resuable/LoadingOverlay';
 import Logo from '../Icons/Logo';
-
-
-
-const adminMenuItems = [
-    { title: "Dashboard", icon: MdDashboard, href: "/dashboard", role: "admin" },
-    { title: "Manage Posts", icon: MdOutlinePostAdd, href: "/dashboard/manage-posts", role: "admin" },
-    { title: "User Management", icon: MdOutlineManageAccounts, href: "/dashboard/users-management", role: "admin" },
-    { title: "Topic Management", icon: MdOutlineTopic, href: "/dashboard/topics-management", role: "admin" },
-    { title: "Advanced Posse", icon: FaUserShield, href: "/dashboard/advanced-posse", role: "admin" },
-    { title: "Posse Management", icon: FaUsers, href: "/dashboard/posse-management", role: "admin" },
-    { title: "Settings", icon: FiSettings, href: "/dashboard/settings", role: "admin" },
-];
+import { useUserData } from '@/context/UserDataContext';
 
 
 // student menu items with sections
@@ -47,6 +35,32 @@ const studentMenuSections = [
     },
 ];
 
+// admin menu items with sections
+const adminMenuSections = [
+    {
+        header: 'GENERAL',
+        items: [
+            { title: 'Dashboard', icon: MdDashboard, href: '/dashboard', role: 'admin' },
+            { title: 'Calendar', icon: MdOutlineCalendarToday, href: '/dashboard/calendar', role: 'admin' },
+            { title: 'User Management', icon: FiUser, href: '/dashboard/users-management', role: 'admin' },
+        ],
+    },
+    {
+        header: 'COURSES',
+        items: [
+            { title: 'Course Management', icon: MdMenuBook, href: '/dashboard/course-management', role: 'admin' },
+            { title: 'Assignments', icon: MdAssignment, href: '/dashboard/assignments', role: 'admin' },
+        ],
+    },
+    {
+        header: 'OTHER',
+        items: [
+            { title: 'Reports', icon: MdOutlineBarChart, href: '/dashboard/reports', role: 'admin' },
+            { title: 'Setting', icon: FiSettings, href: '/dashboard/setting', role: 'admin' },
+        ],
+    },
+];
+
 interface SidebarProps {
     isMobileMenuOpen: boolean;
     onMobileMenuClose: () => void;
@@ -56,11 +70,7 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
     const pathname = usePathname();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const user = {
-        name: 'John Doe',
-        role: 'student',
-        avatar_url: '',
-    }
+    const user = useUserData();
     const toggleCollapse = () => {
         setIsCollapsed(!isCollapsed);
     };
@@ -71,7 +81,7 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
         { title: "Logout", icon: FiLogOut, onClick: () => { } },
     ];
 
-    type MenuItem = typeof adminMenuItems[0] | typeof bottomMenuItems[0] | (typeof studentMenuSections[0]['items'][0]);
+    type MenuItem = typeof adminMenuSections[0]['items'][0] | typeof bottomMenuItems[0] | (typeof studentMenuSections[0]['items'][0]);
     const NavLink = ({ item }: { item: MenuItem }) => {
         const isActive = 'href' in item ? pathname === item.href : false;
 
@@ -187,8 +197,15 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
                 {/* Top Menu Items */}
                 <nav className={`flex-1 p-4  space-y-2 ${isCollapsed ? 'px-2' : ''}`}>
                     {user?.role === 'admin' ? (
-                        adminMenuItems.map((item, index) => (
-                            <NavLink key={index} item={item} />
+                        adminMenuSections.map((section: { header: string; items: any[] }, sIdx: number) => (
+                            <div key={sIdx} className="mb-5">
+                                <div className={`text-xs font-semibold uppercase tracking-wider mb-1 ${isCollapsed ? 'hidden' : 'text-gray-400'}`}>{section.header}</div>
+                                <p className='space-y-2 text-sm'>
+                                    {section.items.map((item: any, iIdx: number) => (
+                                        <NavLink key={iIdx} item={item} />
+                                    ))}
+                                </p>
+                            </div>
                         ))
                     ) : (
                         studentMenuSections.map((section, sIdx) => (

@@ -3,6 +3,7 @@ import { HiMenuAlt3 } from "react-icons/hi";
 import { FaRegUser } from "react-icons/fa";
 import { IoNotificationsOutline } from "react-icons/io5";
 import Image from 'next/image';
+import { useUserData } from '@/context/UserDataContext';
 
 interface NavbarProps {
     onMobileMenuToggle: () => void;
@@ -17,13 +18,8 @@ interface NotificationItem {
 }
 
 export default function Navbar({ onMobileMenuToggle, notificationCount }: NavbarProps) {
-    const [greeting, setGreeting] = useState<string>("");
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-    const user = {
-        name: 'John Doe',
-        role: 'Admin',
-        avatar_url: '',
-    }
+    const user = useUserData();
     const [notifications, setNotifications] = useState<NotificationItem[]>([
         {
             id: '1',
@@ -55,7 +51,13 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
                     </button>
                     <div className='hidden sm:flex flex-col'>
                         <h1 className="text-[24px] font-semibold text-[#111827]">Hi, {user?.name}</h1>
-                        <p className="text-[14px] font-[500] text-[#687588]">Good Morning!</p>
+                        {
+                            user?.role === 'student' ? (
+                                <p className="text-[14px] font-[500] text-[#687588]">Let’s boost your knowledge today and learn a new things</p>
+                            ) : (
+                                <></>
+                            )
+                        }
                     </div>
                 </div>
 

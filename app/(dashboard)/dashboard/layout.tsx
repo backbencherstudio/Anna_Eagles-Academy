@@ -1,4 +1,5 @@
 import { MainLayout } from '@/components/Layout/MainLayout';
+import { UserDataProvider } from '@/context/UserDataContext';
 import React from 'react'
 
 
@@ -8,10 +9,11 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
     return (
-
-        <MainLayout>
-            {children}
-        </MainLayout>
+        <UserDataProvider>
+            <MainLayout>
+                {children}
+            </MainLayout>
+        </UserDataProvider>
 
     )
 }
