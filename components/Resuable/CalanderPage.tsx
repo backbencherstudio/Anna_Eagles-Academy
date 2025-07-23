@@ -53,7 +53,7 @@ export default function CalanderPage({ initialSelectedDate }: CalanderPageProps)
 
     return (
         <div className="calendar-page-container rounded-2xl h-96">
-            <div className='bg-white rounded-2xl' style={{ height: 320, overflowY: 'auto' }}>
+            <div className='bg-white rounded-2xl' style={{ height: 350, overflowY: 'auto' }}>
                 <Calendar
                     mode="single"
                     selected={calendarDate}

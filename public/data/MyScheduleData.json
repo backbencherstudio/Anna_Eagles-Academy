@@ -15,9 +15,26 @@
     },
     {
         "id": 3,
-        "task": "Spiritual Growth and Financial Insights",
+        "task": "Live Session",
+        "link": "googlemeet.com/1234567890",
         "subject": "Christian Theology",
-        "date": "2025-07-25",
+        "date": "2025-07-22",
         "time": "10:00 AM - 12:00 PM"
+    },
+    {
+        "id": 4,
+        "task": "Live Session",
+        "link": "googlemeet.com/1234567890",
+        "subject": "Christian Theology",
+        "date": "2025-07-22",
+        "time": "11:00 AM - 12:00 PM"
+    },
+    {
+        "id": 5,
+        "task": "Bible Study Group Meeting ",
+        "link": "googlemeet.com/1234567890",
+        "subject": "Christian Theology",
+        "date": "2025-07-22",
+        "time": "12:00 AM - 1:00 PM"
     }
 ]
