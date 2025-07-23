@@ -75,6 +75,10 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
         setIsCollapsed(!isCollapsed);
     };
 
+    // Prevent hydration mismatch: don't render until user role is known
+    if (!user?.role) {
+        return null; // or <LoadingOverlay loadingText="Loading..." />
+    }
 
 
     const bottomMenuItems = [
