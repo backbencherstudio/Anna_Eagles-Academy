@@ -7,16 +7,14 @@ import { MdEmail } from 'react-icons/md';
 import Image from 'next/image';
 import { Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import OtpVerifyPage from './OtpVerify';
 
 export default function ForgotPassword() {
     const [email, setEmail] = useState('');
     const [step, setStep] = useState<'email' | 'otp'>('email');
     const [error, setError] = useState('');
-    const [otp, setOtp] = useState(['', '', '', '', '', '']);
-    const [otpError, setOtpError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [isVerifying, setIsVerifying] = useState(false);
-    const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
 
     const handleEmailSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -34,44 +32,9 @@ export default function ForgotPassword() {
 
     };
 
-    const handleOtpChange = (index: number, value: string) => {
-        if (!/^[0-9]?$/.test(value)) return;
-        const newOtp = [...otp];
-        newOtp[index] = value;
-        setOtp(newOtp);
-        if (value && index < 5) {
-            inputRefs.current[index + 1]?.focus();
-        }
-    };
-
-    const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Backspace' && !otp[index] && index > 0) {
-            inputRefs.current[index - 1]?.focus();
-        }
-    };
-
-    const handleOtpSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (otp.some(digit => digit === '')) {
-            setOtpError('Please enter the complete OTP');
-            return;
-        }
-        setOtpError('');
-        setIsVerifying(true);
-        setTimeout(() => {
-            setIsVerifying(false);
-            toast.success('OTP verified successfully');
-
-        }, 2000);
-    };
-
-    const handleResendOtp = () => {
-    };
-
     const handleBackToEmail = () => {
         setStep('email');
-        setOtp(['', '', '', '', '', '']);
-        setOtpError('');
+
     };
 
     return (
@@ -84,8 +47,17 @@ export default function ForgotPassword() {
                             <Logo />
                             <h2 className="text-xl font-bold text-[#1D1F2C] font-sans">The White <br /> Eagles Academy</h2>
                         </div>
-                        <p className="text-center text-lg mt-4 font-medium font-sans">Forgot your password?</p>
-                        <p className="text-center text-sm text-gray-500 mt-2">Enter your email address and we'll send you a link to reset your password.</p>
+                        {step === 'email' ? (
+                            <>
+                                <p className="text-center text-lg mt-4 font-medium font-sans">Forgot your password?</p>
+                                <p className="text-center text-sm text-gray-500 mt-2">Enter your email address and we'll send you a link to reset your password.</p>
+                            </>
+                        ) : (
+                            <>
+                                <p className="text-center text-lg mt-4 font-medium font-sans">Check your email</p>
+                                <p className="text-center text-sm text-gray-500 mt-2">Enter the 6-digit code sent to your email address.</p>
+                            </>
+                        )}
                     </div>
                     {step === 'email' && (
                         <form onSubmit={handleEmailSubmit} className="space-y-4">
@@ -112,41 +84,10 @@ export default function ForgotPassword() {
                         </form>
                     )}
                     {step === 'otp' && (
-                        <form onSubmit={handleOtpSubmit} className="space-y-6">
-                            <div className="flex flex-col items-center">
-                                <p className="text-center text-base text-gray-700 mb-4">Enter the 6-digit code sent to <span className="font-semibold">{email}</span></p>
-                                <div className="flex gap-2 justify-center mb-2">
-                                    {otp.map((digit, idx) => (
-                                        <Input
-                                            key={idx}
-                                            type="text"
-                                            inputMode="numeric"
-                                            maxLength={1}
-                                            value={digit}
-                                            onChange={e => handleOtpChange(idx, e.target.value)}
-                                            onKeyDown={e => handleOtpKeyDown(idx, e)}
-                                            ref={el => { inputRefs.current[idx] = el; }}
-                                            className="w-12 h-12 text-center text-xl border-gray-300 focus:border-[#F1C27D] focus:ring-[#F1C27D] rounded-md"
-                                        />
-                                    ))}
-                                </div>
-                                <div className="min-h-[20px]">
-                                    {otpError && <p className="text-xs text-red-500 mt-1">{otpError}</p>}
-                                </div>
-                                <Button type="submit" disabled={isVerifying} className="w-full py-6 mt-2 cursor-pointer transition-all duration-300 bg-[#F1C27D] hover:bg-[#F1C27D]/80 text-white font-semibold rounded-xl text-lg">
-                                    {isVerifying ? <Loader2 className="animate-spin" /> : 'Verify OTP'}
-                                </Button>
-                                <div className="flex w-full gap-3 mt-4">
-                                    <Button type="button" variant="outline" onClick={handleBackToEmail} className="flex-1 cursor-pointer text-base border-gray-300 font-medium">
-                                        Back
-                                    </Button>
-                                    <Button type="button" variant="ghost" onClick={handleResendOtp} className="flex-1 cursor-pointer text-[#F1C27D] hover:underline text-sm font-medium border border-gray-200">
-                                        Resend OTP
-                                    </Button>
-
-                                </div>
-                            </div>
-                        </form>
+                        <OtpVerifyPage
+                            email={email}
+                            onBack={handleBackToEmail}
+                        />
                     )}
                 </div>
             </div>
