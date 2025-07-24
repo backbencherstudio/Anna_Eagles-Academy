@@ -24,18 +24,8 @@ const TIME_SLOTS = [
     "05:00 PM",
 ];
 
-const COLOR_MAP: Record<string, string> = {
-    "Faith and Finances": "#FFE9E1",
-    "Foundations of Faith": "#FFF7E6",
-    "Understanding the Book of Genesis": "#E6F7EC",
-    "Bible Study Session": "#FFF7E6",
-};
-const DOT_COLOR: Record<string, string> = {
-    "Faith and Finances": "#FF5C1A",
-    "Foundations of Faith": "#FFD59A",
-    "Understanding the Book of Genesis": "#2ECC40",
-    "Bible Study Session": "#FFD600",
-};
+
+
 
 function getWeekDates(baseDate: Date): Date[] {
     const monday = new Date(baseDate);
@@ -89,6 +79,21 @@ function getTaskColorMap(scheduleData: { task: string }[]) {
     return taskColorMap;
 }
 
+// Helper to get the slot index for a given time
+function getSlotIndex(time: string | null): number {
+    if (!time) return -1;
+    return TIME_SLOTS.findIndex(slot => slot === formatTimeToSlot(time));
+}
+
+// Helper to get the number of slots an event spans
+function getSlotSpan(start: string | null, end: string | null): number {
+    if (!start || !end) return 1;
+    const startIdx = getSlotIndex(start);
+    const endIdx = getSlotIndex(end);
+    if (startIdx === -1 || endIdx === -1) return 1;
+    return Math.max(1, endIdx - startIdx);
+}
+
 export default function ScheduleStudy() {
     const [events, setEvents] = useState<ScheduleItem[]>([]);
     const [baseDate, setBaseDate] = useState<Date>(() => {
@@ -129,11 +134,16 @@ export default function ScheduleStudy() {
             return (aStart || "00:00 AM").localeCompare(bStart || "00:00 AM");
         });
 
-    const slotEvents: ScheduleItem[][] = TIME_SLOTS.map((slot) => {
-        return eventsForSelectedDate.filter((ev) => {
-            const [start] = formatTimeRange(ev.time);
-            return formatTimeToSlot(start) === slot;
-        });
+    // Build a map: slot index -> event to render (only at start slot), using only eventsForSelectedDate
+    const slotEventMap: (ScheduleItem & { slotSpan: number })[] = Array(TIME_SLOTS.length).fill(null);
+    eventsForSelectedDate.forEach(ev => {
+        if (!ev.time) return;
+        const [start, end] = formatTimeRange(ev.time);
+        const startIdx = getSlotIndex(start);
+        const slotSpan = getSlotSpan(start, end);
+        if (startIdx !== -1) {
+            slotEventMap[startIdx] = { ...ev, slotSpan };
+        }
     });
 
 
@@ -218,44 +228,57 @@ export default function ScheduleStudy() {
                 {TIME_SLOTS.map((slot, idx) => (
                     <div key={slot} style={{ display: "flex", alignItems: "flex-start", minHeight: 64, borderBottom: "1px solid #F3F4F6" }}>
                         <div style={{ width: 60, color: "#bbb", fontSize: 14, paddingTop: 18 }}>{slot}</div>
-                        <div style={{ flex: 1, minHeight: 64, display: "flex", alignItems: "center", flexDirection: "column" }}>
-                            {slotEvents[idx].map((event) => (
+                        <div  style={{ flex: 1, minHeight: 64, display: "flex", alignItems: "center", flexDirection: "column", position: 'relative' }}>
+                            {slotEventMap[idx] && (
                                 <div
-                                    key={event.id}
+                                
+                                    key={slotEventMap[idx].id}
                                     style={{
-                                        background: COLOR_MAP[event.task] || "#f7f8fa",
+                                        background: "#f7f8fa",
                                         borderRadius: 14,
-                                        padding: "14px 18px 14px 16px",
+                                        padding: "12px 20px 12px 18px",
                                         minWidth: 260,
+                                        minHeight: Math.max(64, 56 * slotEventMap[idx].slotSpan),
                                         boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
                                         display: "flex",
                                         flexDirection: "column",
-                                        gap: 2,
+                                        gap: 6,
                                         marginBottom: 8,
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        // Remove fixed height, let card grow as needed
+                                        zIndex: 2,
                                     }}
                                 >
-                                    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 2 }}>
+                                    <div style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 7,
+                                        marginBottom: 2,
+                                        // Remove dynamic padding from title
+                                    }}>
                                         {/* Color dot like CategoriesOverview */}
                                         <span
                                             style={{
                                                 width: 12,
                                                 height: 12,
                                                 borderRadius: 3,
-                                                background: taskColorMap[event.task] || '#ccc',
+                                                background: taskColorMap[slotEventMap[idx].task] || '#ccc',
                                                 display: 'inline-block',
                                                 marginRight: 6,
                                             }}
                                         />
-                                        <span style={{ fontWeight: 700, fontSize: 14 }}>{event.task}</span>
+                                        <span style={{ fontWeight: 700, fontSize: 14 }}>{slotEventMap[idx].task}</span>
                                     </div>
-                                    {event.subject && (
-                                        <div style={{ fontWeight: 500, fontSize: 13 }}>{event.subject}</div>
+                                    {slotEventMap[idx].subject && (
+                                        <div style={{ fontWeight: 500, fontSize: 13 }}>{slotEventMap[idx].subject}</div>
                                     )}
-                                    {event.time && (
-                                        <div style={{ fontWeight: 400, fontSize: 12, color: "#888" }}>{event.time}</div>
+                                    {slotEventMap[idx].time && (
+                                        <div style={{ fontWeight: 400, fontSize: 12, color: "#888" }}>{slotEventMap[idx].time}</div>
                                     )}
                                 </div>
-                            ))}
+                            )}
                         </div>
                     </div>
                 ))}
