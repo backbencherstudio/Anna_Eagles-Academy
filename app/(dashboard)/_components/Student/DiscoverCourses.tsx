@@ -150,7 +150,7 @@ export default function DiscoverCourses() {
                     </div>
                     <button disabled={isLoading} onClick={handleBuyNow} className="w-full cursor-pointer bg-[#F1C27D] hover:bg-[#F1C27D]/80 text-white font-bold py-2 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed items-center justify-center flex gap-2">
                         {isLoading ? <Loader2 className="animate-spin" /> : "Buy Now"}
-                    </button>
+                    </button> 
                 </div>
                 {/* Modules List */}
                 <div className="bg-white rounded-2xl shadow p-6">

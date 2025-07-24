@@ -171,117 +171,124 @@ export default function ScheduleStudy() {
             style={{ borderRadius: 16, background: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,0.04)", padding: 24 }}
         >
             {/* Header */}
-            <div style={{ display: "flex", alignItems: "center", marginBottom: 18 }}>
-                <span style={{ fontWeight: 700, fontSize: 18 }}>Schedule Study</span>
-                <span style={{ color: "#F5A623", fontWeight: 600, fontSize: 16, marginLeft: 12 }}>
-                    <span className="text-gray-400">|</span> Week {weekOfMonth} of {monthYear}
+            <div className="schedule-header flex items-center mb-4 flex-col sm:flex-row sm:mb-6 gap-2 sm:gap-0 w-full">
+                <span className="font-bold text-lg">Schedule Study</span>
+                <span className="text-[#F5A623] font-semibold text-base sm:ml-3">
+                    <span className="text-gray-400 hidden sm:inline">|</span> Week {weekOfMonth} of {monthYear}
                 </span>
-                <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+                <div className="schedule-header-nav flex gap-2 sm:ml-auto mt-2 sm:mt-0">
                     <button
                         onClick={handlePrevWeek}
-                        style={{ border: "1px solid #D1D5DB", borderRadius: 6, background: "#fff", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                        className="border border-gray-300 rounded-md bg-white w-7 h-7 flex items-center justify-center cursor-pointer"
                         aria-label="Previous week"
                     >
                         <MdKeyboardArrowLeft />
                     </button>
                     <button
                         onClick={handleNextWeek}
-                        style={{ border: "1px solid #D1D5DB", borderRadius: 6, background: "#fff", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                        className="border border-gray-300 rounded-md bg-white w-7 h-7 flex items-center justify-center cursor-pointer"
                         aria-label="Next week"
                     >
                         <MdKeyboardArrowRight />
                     </button>
                 </div>
             </div>
-            {/* Days Row */}
-            <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: 8, marginLeft: 2, fontWeight: 500, fontSize: 15 }}>
-                <div style={{ width: 60, color: "#bbb" }}>Time</div>
-                {weekDates.map((d, idx) => {
-                    const isSelected =
-                        d.getDate() === selectedDate.getDate() &&
-                        d.getMonth() === selectedDate.getMonth() &&
-                        d.getFullYear() === selectedDate.getFullYear();
-                    return (
-                        <div
-                            key={idx}
-                            onClick={() => setSelectedDate(d)}
-                            style={{
-                                flex: 1,
-                                color: isSelected ? "#F5A623" : "#222",
-                                fontWeight: isSelected ? 700 : 500,
-                                background: isSelected ? "#FFF7E6" : "none",
-                                borderRadius: isSelected ? 8 : 0,
-                                padding: isSelected ? "2px 0" : "2px 0",
-                                textAlign: "center",
-                                cursor: "pointer",
-                                transition: "background 0.2s, color 0.2s",
-                            }}
-                        >
-                            <div style={{ fontSize: 16 }}>{d.getDate()}</div>
-                            <div style={{ fontSize: 13, color: isSelected ? "#F5A623" : "#888" }}>{WEEK_DAYS[idx]}</div>
-                        </div>
-                    );
-                })}
-            </div>
-            {/* Time slots and events */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 0, marginTop: 8 }}>
-                {TIME_SLOTS.map((slot, idx) => (
-                    <div key={slot} style={{ display: "flex", alignItems: "flex-start", minHeight: 64, borderBottom: "1px solid #F3F4F6" }}>
-                        <div style={{ width: 60, color: "#bbb", fontSize: 14, paddingTop: 18 }}>{slot}</div>
-                        <div  style={{ flex: 1, minHeight: 64, display: "flex", alignItems: "center", flexDirection: "column", position: 'relative' }}>
-                            {slotEventMap[idx] && (
+           
+            <div style={{ width: '100%', overflowX: 'auto' }}>
+                <div style={{ minWidth: 760, margin: '0 auto' }}>
+                    {/* Days Row */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: 8, marginLeft: 2, fontWeight: 500, fontSize: 15 }}>
+                        <div style={{ width: 60, color: "#bbb" }}>Time</div>
+                        {weekDates.map((d, idx) => {
+                            const isSelected =
+                                d.getDate() === selectedDate.getDate() &&
+                                d.getMonth() === selectedDate.getMonth() &&
+                                d.getFullYear() === selectedDate.getFullYear();
+                            return (
                                 <div
-                                
-                                    key={slotEventMap[idx].id}
+                                    key={idx}
+                                    onClick={() => setSelectedDate(d)}
                                     style={{
-                                        background: "#f7f8fa",
-                                        borderRadius: 14,
-                                        padding: "12px 20px 12px 18px",
-                                        minWidth: 260,
-                                        minHeight: Math.max(64, 56 * slotEventMap[idx].slotSpan),
-                                        boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        gap: 6,
-                                        marginBottom: 8,
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        // Remove fixed height, let card grow as needed
-                                        zIndex: 2,
+                                        flex: 1,
+                                        color: isSelected ? "#F5A623" : "#222",
+                                        fontWeight: isSelected ? 700 : 500,
+                                        background: isSelected ? "#FFF7E6" : "none",
+                                        borderRadius: isSelected ? 8 : 0,
+                                        padding: isSelected ? "2px 0" : "2px 0",
+                                        textAlign: "center",
+                                        cursor: "pointer",
+                                        transition: "background 0.2s, color 0.2s",
                                     }}
                                 >
-                                    <div style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: 7,
-                                        marginBottom: 2,
-                                        // Remove dynamic padding from title
-                                    }}>
-                                        {/* Color dot like CategoriesOverview */}
-                                        <span
+                                    <div style={{ fontSize: 16 }}>{d.getDate()}</div>
+                                    <div style={{ fontSize: 13, color: isSelected ? "#F5A623" : "#888" }}>{WEEK_DAYS[idx]}</div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    {/* Time slots and events */}
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 0,
+                            marginTop: 8,
+                        }}
+                    >
+                        {TIME_SLOTS.map((slot, idx) => (
+                            <div key={slot} style={{ display: "flex", alignItems: "flex-start", minHeight: 64, borderBottom: "1px solid #F3F4F6" }}>
+                                <div style={{ width: 60, color: "#bbb", fontSize: 14, paddingTop: 18, textAlign: 'center' }}>{slot}</div>
+                                <div style={{ flex: 1, minHeight: 64, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", position: 'relative' }}>
+                                    {slotEventMap[idx] && (
+                                        <div
+                                            key={slotEventMap[idx].id}
                                             style={{
-                                                width: 12,
-                                                height: 12,
-                                                borderRadius: 3,
-                                                background: taskColorMap[slotEventMap[idx].task] || '#ccc',
-                                                display: 'inline-block',
-                                                marginRight: 6,
+                                                background: "#f7f8fa",
+                                                borderRadius: 14,
+                                                padding: "12px 20px 12px 18px",
+                                                minWidth: 260,
+                                                minHeight: Math.max(64, 56 * slotEventMap[idx].slotSpan),
+                                                boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                gap: 6,
+                                                marginBottom: 8,
+                                                // Removed position: 'absolute', top, left, marginLeft, marginRight
+                                                zIndex: 2,
                                             }}
-                                        />
-                                        <span style={{ fontWeight: 700, fontSize: 14 }}>{slotEventMap[idx].task}</span>
-                                    </div>
-                                    {slotEventMap[idx].subject && (
-                                        <div style={{ fontWeight: 500, fontSize: 13 }}>{slotEventMap[idx].subject}</div>
-                                    )}
-                                    {slotEventMap[idx].time && (
-                                        <div style={{ fontWeight: 400, fontSize: 12, color: "#888" }}>{slotEventMap[idx].time}</div>
+                                        >
+                                            <div style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: 7,
+                                                marginBottom: 2,
+                                            }}>
+                                                {/* Color dot like CategoriesOverview */}
+                                                <span
+                                                    style={{
+                                                        width: 12,
+                                                        height: 12,
+                                                        borderRadius: 3,
+                                                        background: taskColorMap[slotEventMap[idx].task] || '#ccc',
+                                                        display: 'inline-block',
+                                                        marginRight: 6,
+                                                    }}
+                                                />
+                                                <span style={{ fontWeight: 700, fontSize: 14 }}>{slotEventMap[idx].task}</span>
+                                            </div>
+                                            {slotEventMap[idx].subject && (
+                                                <div style={{ fontWeight: 500, fontSize: 13 }}>{slotEventMap[idx].subject}</div>
+                                            )}
+                                            {slotEventMap[idx].time && (
+                                                <div style={{ fontWeight: 400, fontSize: 12, color: "#888" }}>{slotEventMap[idx].time}</div>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        ))}
                     </div>
-                ))}
+                </div>
             </div>
         </div>
     );
