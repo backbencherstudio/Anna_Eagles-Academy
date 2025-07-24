@@ -41,6 +41,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
         'my-courses': 'My Courses',
         'assignments': 'Assignments',
         'setting': 'Setting',
+        'payment-success': 'Payment Success',
     }
 
 

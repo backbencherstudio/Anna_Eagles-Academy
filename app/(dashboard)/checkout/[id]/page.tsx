@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 
 interface Course {
     course_id: string;
@@ -32,7 +34,11 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
     const [couponInput, setCouponInput] = useState('');
     const [appliedCoupon, setAppliedCoupon] = useState('');
     const [couponError, setCouponError] = useState('');
-
+    const { register } = useForm();
+    const router = useRouter();
+    const [loading, setLoading] = useState(false);
+    const [couponLoading, setCouponLoading] = useState(false);
+    const [payLoading, setPayLoading] = useState(false);
     useEffect(() => {
         fetch('/data/CourseData.json')
             .then((res) => res.json())
@@ -43,8 +49,29 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
             });
     }, [id]);
 
-    const { register } = useForm();
+    const handlePay = () => {
+        setPayLoading(true);
+        setTimeout(() => {
+            router.push('/payment-success');
+            setPayLoading(false);
+        }, 2000);
+    }
 
+
+
+
+    const handleCoupon = () => {
+        setCouponLoading(true);
+        setTimeout(() => {
+            if (couponInput.trim().toUpperCase() === 'SUNDAY60URSE%') {
+                setAppliedCoupon('SUNDAY60URSE%');
+                setCouponError('');
+            } else {
+                setCouponError('Invalid coupon code');
+            }
+            setCouponLoading(false);
+        }, 2000);
+    }
     return (
         <div className="flex flex-col md:flex-row gap-8 w-full  mx-auto ">
             {/* Payment Methods */}
@@ -137,15 +164,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
                                 </>
                             ) : (
                                 <form
-                                    onSubmit={e => {
-                                        e.preventDefault();
-                                        if (couponInput.trim().toUpperCase() === 'SUNDAY60URSE%') {
-                                            setAppliedCoupon('SUNDAY60URSE%');
-                                            setCouponError('');
-                                        } else {
-                                            setCouponError('Invalid coupon code');
-                                        }
-                                    }}
+                                    onSubmit={e => { e.preventDefault(); handleCoupon(); }}
                                     className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 border border-gray-200 focus-within:border-yellow-400 transition-all"
                                 >
                                     <Input
@@ -157,15 +176,18 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
                                     />
                                     <Button
                                         type="submit"
-                                        className="ml-2 px-3 py-1 text-xs rounded bg-yellow-400 hover:bg-yellow-500 text-black font-semibold shadow-sm transition-all duration-150"
+                                        className="ml-2 px-3 cursor-pointer py-1 text-xs rounded bg-[#F1C27D] hover:bg-[#F1C27D]/80 text-white font-semibold shadow-sm transition-all duration-150"
                                         style={{ minWidth: '60px' }}
-                                        disabled={!!appliedCoupon}
+                                        disabled={!!appliedCoupon || couponLoading || couponInput.trim() === ""}
                                     >
-                                        Apply
+                                        {couponLoading ? <div className='flex items-center gap-2'>
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            <span>Applying...</span>
+                                        </div> : 'Apply'}
                                     </Button>
                                     {couponError && <span className="text-xs text-red-500 ml-2 font-medium">{couponError}</span>}
                                 </form>
-                            )}
+                            )}  
                         </div>
                         {/* sub total */}
                         <div className="flex flex-col gap-2 bg-white shadow rounded-xl p-5">
@@ -200,7 +222,12 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
                                 <Link href="#" className="font-semibold text-[#F1C27D] ml-1 hover:underline" style={{ textDecoration: 'none' }}>Privacy Policy</Link>.
                             </label>
                         </div>
-                        <Button className="w-full cursor-pointer mt-6 py-6 bg-[#F1C27D] hover:bg-[#F1C27D]/80 text-white font-semibold text-lg">Pay</Button>
+                        <Button className="w-full cursor-pointer mt-6 py-6 bg-[#F1C27D] hover:bg-[#F1C27D]/80 text-white font-semibold text-lg" onClick={handlePay} disabled={payLoading}>
+                            {payLoading ? <div className='flex items-center gap-2'>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <span>Processing...</span>
+                            </div> : 'Pay'}
+                        </Button>
                     </div>
                 ) : (
                     <div className="animate-pulse space-y-6">
