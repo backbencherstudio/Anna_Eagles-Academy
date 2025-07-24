@@ -60,7 +60,7 @@ export default function SchedulePage({ initialSelectedDate }: CalanderPageProps)
           mode="single"
           selected={calendarDate}
           onSelect={handleDateSelect}
-          className="border-none w-full bg-transparent"
+          className="border-none w-full bg-white"
         />
       </div>
       <div style={{ marginTop: 24 }}>

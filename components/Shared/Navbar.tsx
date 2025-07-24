@@ -27,7 +27,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
             message: 'You have empty vibe check for tomorrow.',
             time: '01:55 pm',
         },
-   
+
     ]);
     // dynamic title show based on the page
     const title = usePathname().split('/').pop();
@@ -36,6 +36,8 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
         'dashboard': 'Hi, ' + user?.name,
         'schedule': 'My Schedule',
         'discover': 'Discover Courses',
+        // id wise this page so route to checkout page
+        'checkout': 'Checkout',
         'my-courses': 'My Courses',
         'assignments': 'Assignments',
         'setting': 'Setting',
