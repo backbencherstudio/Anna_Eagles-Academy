@@ -1,4 +1,5 @@
 "use client"
+import { Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -62,6 +63,7 @@ function CourseSkeleton() {
 export default function DiscoverCourses() {
     const [course, setCourse] = useState<any>(null);
     const router = useRouter();
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         fetch("/data/CourseData.json")
@@ -79,9 +81,13 @@ export default function DiscoverCourses() {
         return <CourseSkeleton />;
     }
 
-    // handle buy now button
+    // handle buy now button time out
     const handleBuyNow = () => {
-        router.push(`/checkout/${course?.course_id}`);
+        setIsLoading(true);
+        setTimeout(() => {
+            router.push(`/checkout/${course?.course_id}`);
+            setIsLoading(false);
+        }, 1000);
     }
 
     return (
@@ -142,8 +148,8 @@ export default function DiscoverCourses() {
                         <span className="text-gray-500">Price</span>
                         <span className="text-[#F1C27D] text-xl font-bold">${course?.course_price.toFixed(2)}</span>
                     </div>
-                    <button onClick={handleBuyNow} className="w-full cursor-pointer bg-[#F1C27D] hover:bg-[#F1C27D]/80 text-white font-bold py-2 rounded-xl transition">
-                        Buy Now
+                    <button disabled={isLoading} onClick={handleBuyNow} className="w-full cursor-pointer bg-[#F1C27D] hover:bg-[#F1C27D]/80 text-white font-bold py-2 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed items-center justify-center flex gap-2">
+                        {isLoading ? <Loader2 className="animate-spin" /> : "Buy Now"}
                     </button>
                 </div>
                 {/* Modules List */}
