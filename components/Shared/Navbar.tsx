@@ -35,7 +35,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
     const titleMap = {
         'dashboard': 'Hi, ' + user?.name,
         'schedule': 'My Schedule',
-        'discover': 'Discover',
+        'discover': 'Discover Courses',
         'my-courses': 'My Courses',
         'assignments': 'Assignments',
         'setting': 'Setting',
@@ -52,7 +52,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
     };
 
     return (
-        <header className="bg-white border-b border-[#E9EAEC] z-10 mx-6 mt-4 rounded-2xl">
+        <header className="bg-white border-b border-[#E9EAEC] z-10 mx-2 md:mx-6 mt-4 rounded-2xl">
             <div className="flex items-center justify-between py-4 px-6">
                 <div className="flex items-center gap-4">
                     <button

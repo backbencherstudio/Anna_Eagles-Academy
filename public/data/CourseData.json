@@ -1,0 +1,106 @@
+{
+    "course": {
+        "course_id": "course_001",
+        "course_title": "Biblical Studies and Faith Application",
+        "course_description": "Welcome to the Master Class: Biblical Studies and Faith Application! 📖 This enriching course is designed to deepen your understanding of the Scriptures and their relevance in today's world. Whether you're a lifelong believer or new to the faith, this course will illuminate the teachings of the Bible and their application in everyday life. 🙏 Engage in interactive discussions and practical exercises that will enhance your spiritual journey. From exploring the historical context of biblical texts to applying their wisdom in modern scenarios, this class offers a thorough examination of the principles that guide Christian living. 🌟 By the end of this course, you'll be empowered to integrate biblical teachings into your daily decisions and interactions. Join us on this transformative journey and unlock the profound insights of the Bible in your life. Let's study, reflect, and grow in faith together!",
+        "course_price": 100,
+        "total_modules": 5,
+        "total_videos": 8,
+        "publish_date": "2025-07-24",
+        "end_date": "2025-12-31",
+        "course_thumbnail": "/images/discover/course.png",
+        "modules": [
+            {
+                "module_id": "module_001",
+                "module_title": "HTML & CSS",
+                "module_description": "Build the structure and style of web pages using HTML5 and CSS3.",
+                "videos": [
+                    {
+                        "video_id": "video_001",
+                        "video_title": "Learn HTML & CSS – Full Course for Beginners",
+                        "video_url": "https://www.youtube.com/watch?v=a_iQb1lnAEQ",
+                        "thumbnail": "https://img.youtube.com/vi/a_iQb1lnAEQ/0.jpg",
+                        "video_duration": "6:18:00"
+                    }
+                ]
+            },
+            {
+                "module_id": "module_002",
+                "module_title": "React JS",
+                "module_description": "Master React fundamentals and build dynamic UIs.",
+                "videos": [
+                    {
+                        "video_id": "video_002",
+                        "video_title": "React Full Course for free ⚛️ (2024)",
+                        "video_url": "https://www.youtube.com/watch?v=CgkZ7MvWUAA",
+                        "thumbnail": "https://img.youtube.com/vi/CgkZ7MvWUAA/0.jpg",
+                        "video_duration": "3:00:00"
+                    }
+                ]
+            },
+            {
+                "module_id": "module_003",
+                "module_title": "JavaScript Basics",
+                "module_description": "Learn the fundamentals of JavaScript and start building interactive web pages.",
+                "videos": [
+                    {
+                        "video_id": "video_003",
+                        "video_title": "JavaScript Basics – Full Course for Beginners",
+                        "video_url": "https://www.youtube.com/watch?v=W6NZfCO5SIk",
+                        "thumbnail": "https://img.youtube.com/vi/W6NZfCO5SIk/0.jpg",
+                        "video_duration": "6:30:00"
+                    }
+                ]
+            },
+            {
+                "module_id": "module_004",
+                "module_title": "CSS Flexbox",
+                "module_description": "Master Flexbox and build responsive layouts.",
+                "videos": [
+                    {
+                        "video_id": "video_004",
+                        "video_title": "CSS Flexbox – Full Guide",
+                        "video_url": "https://www.youtube.com/watch?v=JJSoEo8JSnc",
+                        "thumbnail": "https://img.youtube.com/vi/JJSoEo8JSnc/0.jpg",
+                        "video_duration": "2:15:00"
+                    }
+                ]
+            },
+            {
+                "module_id": "module_005",
+                "module_title": "Advanced JavaScript",
+                "module_description": "Dive deeper into advanced JavaScript concepts such as closures, promises, and async/await.",
+                "videos": [
+                    {
+                        "video_id": "video_005",
+                        "video_title": "Advanced JavaScript Concepts",
+                        "video_url": "https://www.youtube.com/watch?v=5o-p9zJcQfY",
+                        "thumbnail": "https://img.youtube.com/vi/5o-p9zJcQfY/0.jpg",
+                        "video_duration": "3:40:00"
+                    },
+                    {
+                        "video_id": "video_005",
+                        "video_title": "Advanced JavaScript Concepts",
+                        "video_url": "https://www.youtube.com/watch?v=5o-p9zJcQfY",
+                        "thumbnail": "https://img.youtube.com/vi/5o-p9zJcQfY/0.jpg",
+                        "video_duration": "3:40:00"
+                    },
+                    {
+                        "video_id": "video_005",
+                        "video_title": "Advanced JavaScript Concepts",
+                        "video_url": "https://www.youtube.com/watch?v=5o-p9zJcQfY",
+                        "thumbnail": "https://img.youtube.com/vi/5o-p9zJcQfY/0.jpg",
+                        "video_duration": "3:40:00"
+                    },
+                    {
+                        "video_id": "video_005",
+                        "video_title": "Advanced JavaScript Concepts",
+                        "video_url": "https://www.youtube.com/watch?v=5o-p9zJcQfY",
+                        "thumbnail": "https://img.youtube.com/vi/5o-p9zJcQfY/0.jpg",
+                        "video_duration": "3:40:00"
+                    }
+                ]
+            }
+        ]
+    }
+}

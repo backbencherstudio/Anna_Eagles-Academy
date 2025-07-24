@@ -28,7 +28,7 @@ export const MainLayout = ({ children }: LayoutProps) => {
                     isMobileMenuOpen={isMobileMenuOpen}
                     onMobileMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 />
-                <div className="flex-1 overflow-y-auto px-6 py-5 bg-[#F8F9FA]">
+                <div className="flex-1 overflow-y-auto px-2 md:px-6 py-5 bg-[#F8F9FA]">
                     {children}
                 </div>
             </div>
