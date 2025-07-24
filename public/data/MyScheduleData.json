@@ -3,6 +3,8 @@
         "id": 1,
         "task": "Spiritual Growth and Financial Insights",
         "subject": "Christian Theology",
+        "link": "",
+        "link_label": "",
         "date": "2025-07-23",
         "time": "10:00 AM - 12:00 PM"
     },
@@ -10,13 +12,16 @@
         "id": 2,
         "task": "Fundamental Beliefs and Values",
         "subject": "Christian Theology",
-        "date": "2025-07-24",
-        "time": "9:00 AM - 10:00 AM"
+        "link": "",
+        "link_label": "",
+        "date": "2025-07-23",
+        "time": "1:00 PM - 2:00 PM"
     },
     {
         "id": 3,
         "task": "Live Session",
         "link": "googlemeet.com/1234567890",
+        "link_label": "Live Link",
         "subject": "Christian Theology",
         "date": "2025-07-22",
         "time": "10:00 AM - 12:00 PM"
@@ -25,16 +30,18 @@
         "id": 4,
         "task": "Live Session",
         "link": "googlemeet.com/1234567890",
+        "link_label": "Live Link",
         "subject": "Christian Theology",
         "date": "2025-07-22",
-        "time": "11:00 AM - 12:00 PM"
+        "time": "4:00 PM - 5:00 PM"
     },
     {
         "id": 5,
         "task": "Bible Study Group Meeting ",
         "link": "googlemeet.com/1234567890",
+        "link_label": "Meeting Link",
         "subject": "Christian Theology",
-        "date": "2025-07-22",
-        "time": "12:00 AM - 1:00 PM"
+        "date": "2025-07-24",
+        "time": "12:00 PM - 1:00 PM"
     }
 ]

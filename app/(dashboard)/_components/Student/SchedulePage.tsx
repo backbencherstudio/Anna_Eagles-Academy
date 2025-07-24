@@ -54,7 +54,7 @@ export default function SchedulePage({ initialSelectedDate }: CalanderPageProps)
   const filteredSchedule = scheduleData.filter((item) => item.date === selectedDate);
 
   return (
-    <div className="calendar-page-container rounded-2xl h-96">
+    <div className=" rounded-2xl h-96">
       <div className='bg-white rounded-2xl' style={{ height: 350, overflowY: 'auto' }}>
         <Calendar
           mode="single"

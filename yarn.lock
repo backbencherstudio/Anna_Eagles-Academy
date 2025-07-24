@@ -152,7 +152,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fullcalendar/daygrid@npm:^6.1.18":
+"@fullcalendar/daygrid@npm:^6.1.18, @fullcalendar/daygrid@npm:~6.1.18":
   version: 6.1.18
   resolution: "@fullcalendar/daygrid@npm:6.1.18"
   peerDependencies:
@@ -178,6 +178,17 @@ __metadata:
     react: ^16.7.0 || ^17 || ^18 || ^19
     react-dom: ^16.7.0 || ^17 || ^18 || ^19
   checksum: 10c0/af011c803f88d329af904a6f1a11f41a05f5c48d70a7f0b9fd365c4c820b2220b5d8fd9b397c7f6ba7491a4a82e00d1436d90edd1af7d430e68f5de295cc643c
+  languageName: node
+  linkType: hard
+
+"@fullcalendar/timegrid@npm:^6.1.18":
+  version: 6.1.18
+  resolution: "@fullcalendar/timegrid@npm:6.1.18"
+  dependencies:
+    "@fullcalendar/daygrid": "npm:~6.1.18"
+  peerDependencies:
+    "@fullcalendar/core": ~6.1.18
+  checksum: 10c0/a0697b66288b18c44a7f5c4aaf60e3317b2ad64e1fc5b6edc210be66bd16bb245b8f1ccaeb825a4ca98ff4f6680066d8d5639736c75ab28e3ff3737c0c256b13
   languageName: node
   linkType: hard
 
@@ -1174,6 +1185,7 @@ __metadata:
     "@fullcalendar/daygrid": "npm:^6.1.18"
     "@fullcalendar/interaction": "npm:^6.1.18"
     "@fullcalendar/react": "npm:^6.1.18"
+    "@fullcalendar/timegrid": "npm:^6.1.18"
     "@radix-ui/react-slot": "npm:^1.2.3"
     "@tailwindcss/postcss": "npm:^4"
     "@types/node": "npm:^20"
@@ -2762,11 +2774,11 @@ __metadata:
   linkType: hard
 
 "jiti@npm:^2.4.2":
-  version: 2.4.2
-  resolution: "jiti@npm:2.4.2"
+  version: 2.5.0
+  resolution: "jiti@npm:2.5.0"
   bin:
     jiti: lib/jiti-cli.mjs
-  checksum: 10c0/4ceac133a08c8faff7eac84aabb917e85e8257f5ad659e843004ce76e981c457c390a220881748ac67ba1b940b9b729b30fb85cbaf6e7989f04b6002c94da331
+  checksum: 10c0/62fa20669dbe038bf20f65bb2aa4a2c78d3c1a9c12e669cc93b7c2e61b8d85fa7363a4c927fceda35bc07e85195421abc7f878dd67a9bf1368cfe55da702f54a
   languageName: node
   linkType: hard
 
@@ -3456,11 +3468,11 @@ __metadata:
   linkType: hard
 
 "react-hook-form@npm:^7.60.0":
-  version: 7.60.0
-  resolution: "react-hook-form@npm:7.60.0"
+  version: 7.61.0
+  resolution: "react-hook-form@npm:7.61.0"
   peerDependencies:
     react: ^16.8.0 || ^17 || ^18 || ^19
-  checksum: 10c0/eb8518d42a074d9e115d4b414bac18ae72708b2d047a9453dcc7588b00df300b32cebf6ecb7f2c8aa534808b3dc54bde4124af95c1e432b6691f9aba07c93b11
+  checksum: 10c0/cea31b922cb8010df180c25d8062e806aca2f01364517aedda1169816a15188b1f5252507cd69cc76543e2d33e44d3effa72dd1c47d2b588d27b43c3905ace63
   languageName: node
   linkType: hard
 
