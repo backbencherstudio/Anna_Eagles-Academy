@@ -72,28 +72,28 @@
                 "module_description": "Dive deeper into advanced JavaScript concepts such as closures, promises, and async/await.",
                 "videos": [
                     {
-                        "video_id": "video_005",
+                        "video_id": "video_006",
                         "video_title": "Advanced JavaScript Concepts",
                         "video_url": "https://www.youtube.com/watch?v=5o-p9zJcQfY",
                         "thumbnail": "https://img.youtube.com/vi/5o-p9zJcQfY/0.jpg",
                         "video_duration": "3:40:00"
                     },
                     {
-                        "video_id": "video_005",
+                        "video_id": "video_007",
                         "video_title": "Advanced JavaScript Concepts",
                         "video_url": "https://www.youtube.com/watch?v=5o-p9zJcQfY",
                         "thumbnail": "https://img.youtube.com/vi/5o-p9zJcQfY/0.jpg",
                         "video_duration": "3:40:00"
                     },
                     {
-                        "video_id": "video_005",
+                        "video_id": "video_008",
                         "video_title": "Advanced JavaScript Concepts",
                         "video_url": "https://www.youtube.com/watch?v=5o-p9zJcQfY",
                         "thumbnail": "https://img.youtube.com/vi/5o-p9zJcQfY/0.jpg",
                         "video_duration": "3:40:00"
                     },
                     {
-                        "video_id": "video_005",
+                        "video_id": "video_009",
                         "video_title": "Advanced JavaScript Concepts",
                         "video_url": "https://www.youtube.com/watch?v=5o-p9zJcQfY",
                         "thumbnail": "https://img.youtube.com/vi/5o-p9zJcQfY/0.jpg",
