@@ -18,7 +18,7 @@
                     {
                         "video_id": "video_001",
                         "video_title": "Learn HTML & CSS – Full Course for Beginners",
-                        "video_url": "https://www.w3schools.com/html/mov_bbb.mp4",
+                        "video_url": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
                         "thumbnail": "https://img.youtube.com/vi/a_iQb1lnAEQ/0.jpg",
                         "video_duration": "6:18:00"
                     }
@@ -32,7 +32,7 @@
                     {
                         "video_id": "video_002",
                         "video_title": "React Full Course for free ⚛️ (2024)",
-                        "video_url": "https://www.w3schools.com/tags/movie.mp4",
+                        "video_url": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
                         "thumbnail": "https://img.youtube.com/vi/CgkZ7MvWUAA/0.jpg",
                         "video_duration": "3:00:00"
                     }
@@ -46,7 +46,7 @@
                     {
                         "video_id": "video_003",
                         "video_title": "JavaScript Basics – Full Course for Beginners",
-                        "video_url": "https://www.w3schools.com/tags/movie.mp4",
+                        "video_url": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
                         "thumbnail": "https://img.youtube.com/vi/W6NZfCO5SIk/0.jpg",
                         "video_duration": "6:30:00"
                     }
@@ -60,7 +60,7 @@
                     {
                         "video_id": "video_004",
                         "video_title": "CSS Flexbox – Full Guide",
-                        "video_url": "https://www.w3schools.com/tags/movie.mp4",
+                        "video_url": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
                         "thumbnail": "https://img.youtube.com/vi/JJSoEo8JSnc/0.jpg",
                         "video_duration": "2:15:00"
                     }
@@ -74,28 +74,28 @@
                     {
                         "video_id": "video_006",
                         "video_title": "Advanced JavaScript Concepts",
-                        "video_url": "https://www.w3schools.com/tags/movie.mp4",
+                        "video_url": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
                         "thumbnail": "https://img.youtube.com/vi/5o-p9zJcQfY/0.jpg",
                         "video_duration": "3:40:00"
                     },
                     {
                         "video_id": "video_007",
                         "video_title": "Advanced JavaScript Concepts",
-                          "video_url": "https://www.w3schools.com/tags/movie.mp4",
+                          "video_url": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
                         "thumbnail": "https://img.youtube.com/vi/5o-p9zJcQfY/0.jpg",
                         "video_duration": "3:40:00"
                     },
                     {
                         "video_id": "video_008",
                         "video_title": "Advanced JavaScript Concepts",
-                          "video_url": "https://www.w3schools.com/tags/movie.mp4",
+                          "video_url": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4",
                         "thumbnail": "https://img.youtube.com/vi/5o-p9zJcQfY/0.jpg",
                         "video_duration": "3:40:00"
                     },
                     {
                         "video_id": "video_009",
                         "video_title": "Advanced JavaScript Concepts",
-                          "video_url": "https://www.w3schools.com/tags/movie.mp4",
+                          "video_url": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" ,
                         "thumbnail": "https://img.youtube.com/vi/5o-p9zJcQfY/0.jpg",
                         "video_duration": "3:40:00"
                     }

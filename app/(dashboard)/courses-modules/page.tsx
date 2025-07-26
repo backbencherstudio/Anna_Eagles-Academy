@@ -1,7 +1,38 @@
 "use client"
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import * as Accordion from '@radix-ui/react-accordion';
 import CustomVideoPlayer from "../../../components/Resuable/CustomVideoPlayer";
+import { FaCircleCheck } from "react-icons/fa6";
+// Throttle utility function
+const throttle = (func: Function, delay: number) => {
+  let lastCall = 0;
+  return (...args: any[]) => {
+    const now = Date.now();
+    if (now - lastCall >= delay) {
+      lastCall = now;
+      return func(...args);
+    }
+  };
+};
+
+// Video progress tracking functions
+const getVideoProgress = (videoId: string) => {
+  try {
+    const saved = localStorage.getItem(`video_progress_${videoId}`);
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (error) {
+    console.error('Error loading video progress:', error);
+  }
+  return null;
+};
+
+const formatTime = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+};
 
 export default function CoursesModulesPage() {
   const [course, setCourse] = useState<any>(null);
@@ -17,6 +48,105 @@ export default function CoursesModulesPage() {
 
   // Accordion state - track which modules are open
   const [openModules, setOpenModules] = useState<string[]>([]);
+
+  // Video progress state
+  const [videoProgress, setVideoProgress] = useState<{ [key: string]: any }>({});
+
+  // Load video progress for all videos
+  const loadAllVideoProgress = useCallback(() => {
+    if (!course) return;
+
+    const progress: { [key: string]: any } = {};
+    course.modules.forEach((mod: any) => {
+      mod.videos.forEach((vid: any) => {
+        const savedProgress = getVideoProgress(vid.video_id);
+        if (savedProgress) {
+          progress[vid.video_id] = savedProgress;
+        }
+      });
+    });
+    setVideoProgress(progress);
+  }, [course]);
+
+  // Throttled version of loadAllVideoProgress (max once every 2 seconds)
+  const throttledLoadProgress = useMemo(() =>
+    throttle(loadAllVideoProgress, 2000),
+    [loadAllVideoProgress]
+  );
+
+  // Get progress for a specific video
+  const getVideoProgressInfo = useCallback((videoId: string) => {
+    const progress = videoProgress[videoId];
+    if (!progress) return null;
+
+    const percentage = Math.round(progress.percentage);
+    const watchedTime = formatTime(progress.currentTime);
+    const totalTime = formatTime(progress.duration);
+
+    return {
+      percentage,
+      watchedTime,
+      totalTime,
+      isCompleted: percentage >= 95
+    };
+  }, [videoProgress]);
+
+  // Check if a video is unlocked (previous video is completed)
+  const isVideoUnlocked = useCallback((moduleIndex: number, videoIndex: number) => {
+    // First video is always unlocked
+    if (moduleIndex === 0 && videoIndex === 0) return true;
+
+    // Check if previous video in same module is completed
+    if (videoIndex > 0) {
+      const previousVideo = course.modules[moduleIndex].videos[videoIndex - 1];
+      const previousProgress = getVideoProgressInfo(previousVideo.video_id);
+      return previousProgress?.isCompleted || false;
+    }
+
+    // Check if last video of previous module is completed
+    if (moduleIndex > 0) {
+      const previousModule = course.modules[moduleIndex - 1];
+      const lastVideoOfPreviousModule = previousModule.videos[previousModule.videos.length - 1];
+      const previousProgress = getVideoProgressInfo(lastVideoOfPreviousModule.video_id);
+      return previousProgress?.isCompleted || false;
+    }
+
+    return false;
+  }, [course, getVideoProgressInfo]);
+
+  // Get unlock status for display
+  const getUnlockStatus = useCallback((moduleIndex: number, videoIndex: number) => {
+    const isUnlocked = isVideoUnlocked(moduleIndex, videoIndex);
+    const progressInfo = getVideoProgressInfo(course.modules[moduleIndex].videos[videoIndex].video_id);
+
+    if (isUnlocked) {
+      return {
+        isUnlocked: true,
+        isCompleted: progressInfo?.isCompleted || false,
+        message: progressInfo?.isCompleted ? "Completed" : "Available"
+      };
+    } else {
+      // Find which video needs to be completed
+      if (videoIndex > 0) {
+        const previousVideo = course.modules[moduleIndex].videos[videoIndex - 1];
+        return {
+          isUnlocked: false,
+          message: `Complete "${previousVideo.video_title}" first`
+        };
+      } else if (moduleIndex > 0) {
+        const previousModule = course.modules[moduleIndex - 1];
+        const lastVideo = previousModule.videos[previousModule.videos.length - 1];
+        return {
+          isUnlocked: false,
+          message: `Complete "${lastVideo.video_title}" first`
+        };
+      }
+      return {
+        isUnlocked: false,
+        message: "Locked"
+      };
+    }
+  }, [course, isVideoUnlocked, getVideoProgressInfo]);
 
   async function fetchCourseData() {
     const res = await fetch("/data/CourseData.json");
@@ -41,6 +171,22 @@ export default function CoursesModulesPage() {
     });
   }, []);
 
+  // Load progress when course data is available
+  useEffect(() => {
+    if (course) {
+      loadAllVideoProgress();
+    }
+  }, [course, loadAllVideoProgress]);
+
+  // Refresh progress periodically using throttled function
+  useEffect(() => {
+    const interval = setInterval(() => {
+      throttledLoadProgress();
+    }, 2000); // Check every 2 seconds, but throttle ensures max once per 2 seconds
+
+    return () => clearInterval(interval);
+  }, [throttledLoadProgress]);
+
   const handleVideoSelect = useCallback((video: any, moduleTitle: string, moduleIndex: number, videoIndex: number) => {
     setCurrentVideo({
       ...video,
@@ -60,38 +206,61 @@ export default function CoursesModulesPage() {
 
     // Check if there's a next video in the same module
     if (videoIndex < course.modules[moduleIndex].videos.length - 1) {
-      const currentModule = course.modules[moduleIndex];
-      const nextVideo = currentModule.videos[videoIndex + 1];
-      setCurrentVideo({
-        ...nextVideo,
-        module: currentModule.module_title,
-      });
-      setCurrentVideoIndex({ moduleIndex, videoIndex: videoIndex + 1 });
+      const nextVideoIndex = videoIndex + 1;
+      // Check if next video is unlocked
+      if (isVideoUnlocked(moduleIndex, nextVideoIndex)) {
+        const currentModule = course.modules[moduleIndex];
+        const nextVideo = currentModule.videos[nextVideoIndex];
+        setCurrentVideo({
+          ...nextVideo,
+          module: currentModule.module_title,
+        });
+        setCurrentVideoIndex({ moduleIndex, videoIndex: nextVideoIndex });
+      }
     } else {
       // Check if there's a next module
       if (moduleIndex < course.modules.length - 1) {
-        const nextModule = course.modules[moduleIndex + 1];
-        const nextVideo = nextModule.videos[0];
-        setCurrentVideo({
-          ...nextVideo,
-          module: nextModule.module_title,
-        });
-        setCurrentVideoIndex({ moduleIndex: moduleIndex + 1, videoIndex: 0 });
+        const nextModuleIndex = moduleIndex + 1;
+        // Check if first video of next module is unlocked
+        if (isVideoUnlocked(nextModuleIndex, 0)) {
+          const nextModule = course.modules[nextModuleIndex];
+          const nextVideo = nextModule.videos[0];
+          setCurrentVideo({
+            ...nextVideo,
+            module: nextModule.module_title,
+          });
+          setCurrentVideoIndex({ moduleIndex: nextModuleIndex, videoIndex: 0 });
 
-        // Automatically open the accordion for the new module
-        const moduleId = nextModule.module_id;
-        if (!openModules.includes(moduleId)) {
-          setOpenModules(prev => [...prev, moduleId]);
+          // Automatically open the accordion for the new module
+          const moduleId = nextModule.module_id;
+          if (!openModules.includes(moduleId)) {
+            setOpenModules(prev => [...prev, moduleId]);
+          }
         }
       }
     }
-  }, [currentVideoIndex, course, openModules]);
+  }, [currentVideoIndex, course, openModules, isVideoUnlocked]);
 
   const isLastVideo = useCallback(() => {
     const { moduleIndex, videoIndex } = currentVideoIndex;
     const currentModule = course.modules[moduleIndex];
-    return moduleIndex === course.modules.length - 1 && videoIndex === currentModule.videos.length - 1;
-  }, [currentVideoIndex, course]);
+
+    // Check if this is the last unlocked video
+    const isLastInModule = videoIndex === currentModule.videos.length - 1;
+    const isLastModule = moduleIndex === course.modules.length - 1;
+
+    if (isLastInModule && isLastModule) {
+      return true; // Last video of last module
+    }
+
+    if (isLastInModule && !isLastModule) {
+      // Check if first video of next module is unlocked
+      return !isVideoUnlocked(moduleIndex + 1, 0);
+    }
+
+    // Check if next video in same module is unlocked
+    return !isVideoUnlocked(moduleIndex, videoIndex + 1);
+  }, [currentVideoIndex, course, isVideoUnlocked]);
 
   const isFirstVideo = useCallback(() => {
     const { moduleIndex, videoIndex } = currentVideoIndex;
@@ -298,24 +467,89 @@ export default function CoursesModulesPage() {
                     const isActive =
                       currentVideo.video_id === vid.video_id &&
                       currentVideo.module === mod.module_title;
+                    const progressInfo = getVideoProgressInfo(vid.video_id);
+                    const unlockStatus = getUnlockStatus(modIdx, vidIdx);
                     return (
                       <button
                         key={vid.video_id}
-                        onClick={() => handleVideoSelect(vid, mod.module_title, modIdx, vidIdx)}
-                        className={`flex items-center  cursor-pointer gap-3 px-3 py-2 rounded-lg text-left transition font-medium text-sm w-full ${isActive
-                          ? "bg-[#F1C27D] text-white shadow"
-                          : "hover:bg-[#F1C27D]/30 text-gray-700 bg-[#FEF9F2]"
+                        onClick={() => {
+                          if (unlockStatus.isUnlocked) {
+                            handleVideoSelect(vid, mod.module_title, modIdx, vidIdx);
+                          }
+                        }}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-lg text-left transition font-medium text-sm w-full relative ${!unlockStatus.isUnlocked
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-60"
+                          : isActive
+                            ? "bg-[#F1C27D] text-white shadow cursor-pointer"
+                            : "hover:bg-[#F1C27D]/30 text-gray-700 bg-[#FEF9F2] cursor-pointer"
                           }`}
+                        disabled={!unlockStatus.isUnlocked}
                       >
-                        <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${isActive ? 'bg-white' : 'bg-gray-200'
+                        {/* Progress indicator */}
+                        {progressInfo && (
+                          <div className="absolute bottom-0 left-0 h-1 bg-gray-300 rounded-br-lg rounded-bl-lg overflow-hidden">
+                            <div
+                              className={`h-full transition-all duration-300 ${progressInfo.isCompleted ? 'bg-green-500' : 'bg-[#F1C27D]'}`}
+                              style={{ width: `${progressInfo.percentage}%` }}
+                            />
+                          </div>
+                        )}
+
+                        {/* Lock indicator */}
+                        {/* {!unlockStatus.isUnlocked && (
+                          <div className="absolute top-0 right-0 bg-red-500 text-white text-xs px-2 py-1 rounded-bl-lg rounded-tr-lg">
+                            {unlockStatus.message}
+                          </div>
+                        )} */}
+
+                        <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${!unlockStatus.isUnlocked
+                          ? 'bg-gray-300'
+                          : isActive
+                            ? 'bg-white'
+                            : 'bg-gray-200'
                           }`}>
-                          <svg width="18" height="18" viewBox="0 0 28 28" fill="none">
-                            <circle cx="14" cy="14" r="14" fill="#F1C27D" />
-                            <path d="M11 10V18L18 14L11 10Z" fill="#fff" />
-                          </svg>
+                          {!unlockStatus.isUnlocked ? (
+                            // Lock icon
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                              <circle cx="12" cy="16" r="1" />
+                              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                            </svg>
+                          ) : progressInfo && progressInfo.isCompleted ? (
+                            // Checkmark for completed
+
+                            <FaCircleCheck className="text-green-500 text-xl" />
+
+                          ) : (
+                            // Play icon for available
+                            <svg width="18" height="18" viewBox="0 0 28 28" fill="none">
+                              <circle cx="14" cy="14" r="14" fill="#F1C27D" />
+                              <path d="M11 10V18L18 14L11 10Z" fill="#fff" />
+                            </svg>
+                          )}
                         </span>
-                        <span className="flex-1 text-left">{vid.video_title}</span>
-                        <span className="text-xs text-gray-500">{vid.video_duration}</span>
+
+                        <div className="flex-1 text-left">
+                          <div className="font-medium">{vid.video_title}</div>
+                          {!unlockStatus.isUnlocked ? (
+                            <div className="text-xs text-gray-400 mt-1">
+                              {unlockStatus.message}
+                            </div>
+                          ) : progressInfo && !progressInfo.isCompleted && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              ({progressInfo.percentage}%)
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="text-right">
+                          {progressInfo && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              {progressInfo.totalTime} min
+                            </div>
+                          )}
+
+                        </div>
                       </button>
                     );
                   })}

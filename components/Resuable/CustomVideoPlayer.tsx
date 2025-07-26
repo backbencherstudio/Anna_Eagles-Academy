@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { MdOutlineReplay10, MdOutlineForward10 } from "react-icons/md";
 
 interface VideoData {
@@ -530,6 +530,54 @@ export default function CustomVideoPlayer({
         };
     }, [getNetworkStateMessage, onNetworkStateChange, playing, currentTime]);
 
+    // Throttle utility function
+    const throttle = (func: Function, delay: number) => {
+        let lastCall = 0;
+        return (...args: any[]) => {
+            const now = Date.now();
+            if (now - lastCall >= delay) {
+                lastCall = now;
+                return func(...args);
+            }
+        };
+    };
+
+    // Video progress tracking functions
+    const saveVideoProgress = useCallback((videoId: string, currentTime: number, duration: number) => {
+        if (duration > 0 && currentTime > 0) {
+            const progress = {
+                currentTime,
+                duration,
+                timestamp: Date.now(),
+                percentage: (currentTime / duration) * 100
+            };
+            localStorage.setItem(`video_progress_${videoId}`, JSON.stringify(progress));
+        }
+    }, []);
+
+    // Throttled version of saveVideoProgress (saves max once every 3 seconds)
+    const throttledSaveProgress = useMemo(() => 
+        throttle(saveVideoProgress, 3000), 
+        [saveVideoProgress]
+    );
+
+    const loadVideoProgress = useCallback((videoId: string) => {
+        try {
+            const saved = localStorage.getItem(`video_progress_${videoId}`);
+            if (saved) {
+                const progress = JSON.parse(saved);
+                return progress;
+            }
+        } catch (error) {
+            console.error('Error loading video progress:', error);
+        }
+        return null;
+    }, []);
+
+    const clearVideoProgress = useCallback((videoId: string) => {
+        localStorage.removeItem(`video_progress_${videoId}`);
+    }, []);
+
     // Custom video player functions
     const togglePlay = useCallback(() => {
         if (videoRef.current) {
@@ -564,11 +612,16 @@ export default function CustomVideoPlayer({
             setCurrentTime(time);
             onTimeUpdate?.(time, videoRef.current.duration);
 
+            // Save progress using throttled function (max once every 3 seconds)
+            if (time > 0 && videoRef.current.duration > 0) {
+                throttledSaveProgress(videoData.video_id, time, videoRef.current.duration);
+            }
+
             if (videoRef.current.buffered.length > 0) {
                 setBufferedRanges(videoRef.current.buffered);
             }
         }
-    }, [onTimeUpdate]);
+    }, [onTimeUpdate, throttledSaveProgress, videoData?.video_id]);
 
     const handleLoadedMetadata = useCallback(() => {
         if (videoRef.current) {
@@ -670,8 +723,12 @@ export default function CustomVideoPlayer({
 
     const handleVideoEnd = useCallback(() => {
         setPlaying(false);
+        // Clear progress when video is completed
+        if (videoData?.video_id) {
+            clearVideoProgress(videoData.video_id);
+        }
         onVideoEnd?.();
-    }, [onVideoEnd]);
+    }, [onVideoEnd, clearVideoProgress, videoData?.video_id]);
 
     const handlePlay = useCallback(() => {
         if (!isMountedRef.current) return;
@@ -852,6 +909,67 @@ export default function CustomVideoPlayer({
             });
         }
     }, [autoPlay, videoData.video_id]);
+
+    // Show loading immediately when videoData changes (video switch)
+    useEffect(() => {
+        setIsLoading(true);
+        setIsBuffering(false);
+        setVideoError(null);
+        setCurrentTime(0);
+        setDuration(0);
+        setPlaying(false);
+        setIsMuted(false);
+        setHasRestoredProgress(false); // Reset progress restoration flag
+    }, [videoData.video_id, videoData.video_url]);
+
+    // Video progress tracking state
+    const [savedProgress, setSavedProgress] = useState<number>(0);
+    const [hasRestoredProgress, setHasRestoredProgress] = useState(false);
+
+    // Save progress using throttled function (max once every 3 seconds)
+    useEffect(() => {
+        if (!videoData?.video_id || !duration || !currentTime) return;
+
+        const interval = setInterval(() => {
+            if (currentTime > 0 && duration > 0) {
+                throttledSaveProgress(videoData.video_id, currentTime, duration);
+            }
+        }, 3000); // Check every 3 seconds, but throttle ensures max once per 3 seconds
+
+        return () => clearInterval(interval);
+    }, [videoData?.video_id, currentTime, duration, throttledSaveProgress]);
+
+    // Restore video progress when video loads
+    useEffect(() => {
+        if (!videoData?.video_id || !videoRef.current || hasRestoredProgress) return;
+
+        const progress = loadVideoProgress(videoData.video_id);
+        if (progress && progress.currentTime > 0) {
+            // Only restore if progress is less than 95% (not near end)
+            if (progress.percentage < 95) {
+                setSavedProgress(progress.currentTime);
+                setHasRestoredProgress(true);
+                
+                // Set the video time after metadata is loaded
+                const setVideoTime = () => {
+                    if (videoRef.current && videoRef.current.readyState >= 1) {
+                        videoRef.current.currentTime = progress.currentTime;
+                        setCurrentTime(progress.currentTime);
+                    }
+                };
+
+                // Try to set time immediately if possible
+                setVideoTime();
+
+                // Also try when metadata is loaded
+                const handleMetadataLoaded = () => {
+                    setVideoTime();
+                    videoRef.current?.removeEventListener('loadedmetadata', handleMetadataLoaded);
+                };
+                videoRef.current.addEventListener('loadedmetadata', handleMetadataLoaded);
+            }
+        }
+    }, [videoData?.video_id, loadVideoProgress, hasRestoredProgress]);
 
     if (!videoData) {
         return (
