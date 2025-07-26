@@ -264,7 +264,7 @@ export default function CoursesModulesPage() {
       </div>
 
       {/* Sidebar: Modules and Videos - Show in theater mode at bottom */}
-      <div className={`bg-white rounded-2xl shadow transition-all duration-500 ease-in-out ${isTheaterMode ? 'w-full p-6' : 'w-full lg:w-96 p-6'
+      <div className={`bg-white overflow-y-auto max-h-[80vh] rounded-2xl shadow transition-all duration-500 ease-in-out ${isTheaterMode ? 'w-full p-6' : 'w-full lg:w-96 p-6'
         }`}>
         <div className="font-semibold text-lg mb-4">Modules</div>
         <Accordion.Root
