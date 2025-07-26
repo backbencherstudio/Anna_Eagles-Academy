@@ -576,6 +576,21 @@ export default function CustomVideoPlayer({
         }
     }, []);
 
+    const wasPlayingBeforeSeek = useRef(false);
+
+    const handleSeekMouseDown = useCallback(() => {
+        if (videoRef.current) {
+            wasPlayingBeforeSeek.current = !videoRef.current.paused;
+        }
+    }, []);
+
+    const handleSeekMouseUp = useCallback(() => {
+        if (videoRef.current && !wasPlayingBeforeSeek.current) {
+            videoRef.current.pause();
+            setPlaying(false);
+        }
+    }, []);
+
     const handleSeek = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const time = parseFloat(e.target.value);
         if (videoRef.current) {
@@ -827,6 +842,17 @@ export default function CustomVideoPlayer({
         };
     }, [playing]);
 
+    // Add useEffect to control initial playback
+    useEffect(() => {
+        if (autoPlay && videoRef.current) {
+            videoRef.current.play().then(() => {
+                setPlaying(true);
+            }).catch(() => {
+                setPlaying(false);
+            });
+        }
+    }, [autoPlay, videoData.video_id]);
+
     if (!videoData) {
         return (
             <div className="flex justify-center items-center h-96 bg-gray-100 rounded-xl">
@@ -839,8 +865,8 @@ export default function CustomVideoPlayer({
         <div className={`${className} ${isTheaterMode ? 'theater-mode' : ''}`} style={{ width, height }}>
             {/* Video Player */}
             <div
-                className={`video-player-container relative bg-black overflow-hidden group transition-all duration-500 ease-in-out ${isTheaterMode
-                    ? 'fixed top-0 left-0 w-full h-full z-[9999] rounded-none'
+                className={`video-player-container relative cursor-pointer bg-black overflow-hidden group transition-all duration-500 ease-in-out ${isTheaterMode
+                    ? 'fixed top-0 left-0 w-full max-h-[80vh] h-auto z-[9999] rounded-none flex items-center justify-center' // changed here
                     : 'w-full aspect-video'
                     }`}
                 onMouseEnter={handleMouseEnter}
@@ -855,7 +881,7 @@ export default function CustomVideoPlayer({
                             key={`video-${videoData.video_id}`}
                             ref={videoRef}
                             src={videoData.video_url}
-                            className="w-full h-full object-cover"
+                            className={`w-full h-full object-cover ${isTheaterMode ? 'max-h-[80vh] w-auto mx-auto' : ''}`}
                             preload={preload}
                             onError={(e) => {
                                 setVideoError('Failed to load video');
@@ -900,10 +926,8 @@ export default function CustomVideoPlayer({
                             onPlay={handlePlay}
                             onPause={handlePause}
                             onEnded={handleVideoEnd}
-
                             loop={isLooping}
                             muted={volume === 0}
-                            autoPlay={autoPlay}
                             style={{ pointerEvents: 'auto' }}
                             onClick={togglePlay}
                             onDoubleClick={toggleFullscreen}
@@ -1090,8 +1114,8 @@ export default function CustomVideoPlayer({
                                     max={duration || 0}
                                     value={currentTime}
                                     onChange={handleSeek}
-                                    onMouseDown={(e) => e.stopPropagation()}
-                                    onMouseUp={(e) => e.stopPropagation()}
+                                    onMouseDown={(e) => { e.stopPropagation(); handleSeekMouseDown(); }}
+                                    onMouseUp={(e) => { e.stopPropagation(); handleSeekMouseUp(); }}
                                     className="absolute top-0 left-0 w-full h-1.5 opacity-0 cursor-pointer z-10"
                                     style={{ pointerEvents: 'auto' }}
                                 />
