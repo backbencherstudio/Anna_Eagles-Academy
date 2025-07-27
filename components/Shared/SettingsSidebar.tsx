@@ -1,0 +1,134 @@
+'use client'
+import { UserIcon, LockIcon, BellIcon, CreditCardIcon, FileTextIcon } from 'lucide-react'
+import React from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+
+export default function SettingsSidebar() {
+    const pathname = usePathname()
+
+    const profileItems = [
+        {
+            label: 'Edit Profile',
+            icon: <UserIcon size={20} />,
+            href: '/setting/profile',
+            role: 'student, admin'
+            
+        },
+        {
+            label: 'Change Password',
+            icon: <LockIcon size={20} />,
+            href: '/setting/change-password',
+            role: 'student, admin'
+        },
+        {
+            label: 'Notification',
+            icon: <BellIcon size={20} />,
+            href: '/setting/notification',
+            role: 'student'
+        },
+        {
+            label: 'Payment Details',
+            icon: <CreditCardIcon size={20} />,
+            href: '/setting/payment',
+            role: 'student'
+        },
+    ]
+
+    const preferenceItems = [
+        {
+            label: 'Language',
+            icon: <FileTextIcon size={20} />,
+            href: '/setting/language',
+            role: 'student'
+        },
+    ]
+
+    const isActive = (href: string) => pathname === href
+
+    return (
+        <>
+            {/* Mobile Sidebar - Horizontal scrolling */}
+            <div className="lg:hidden w-full overflow-x-auto">
+                <div className="flex space-x-2 p-4 min-w-max">
+                    {/* Profile Items */}
+                    {profileItems.map((item) => (
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${isActive(item.href)
+                                ? 'bg-[#FEF9F2] text-[#F1C27D] border border-[#F1C27D]/30'
+                                : 'text-[#1D1F2C]/70 hover:bg-[#FEF9F2] bg-white'
+                                }`}
+                        >
+                            {item.icon}
+                            {item.label}
+                        </Link>
+                    ))}
+                    
+                    {/* Preference Items */}
+                    {preferenceItems.map((item) => (
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${isActive(item.href)
+                                ? 'bg-[#FEF9F2] text-[#F1C27D] border border-[#F1C27D]/30'
+                                : 'text-[#1D1F2C]/70 hover:bg-[#FEF9F2] bg-white'
+                                }`}
+                        >
+                            {item.icon}
+                            {item.label}
+                        </Link>
+                    ))}
+                </div>
+            </div>
+
+            {/* Desktop Sidebar - Vertical layout */}
+            <div className="hidden lg:block w-64 bg-white rounded-xl p-6">
+                {/* Profile Section */}
+                <div className="mb-8">
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
+                        Profile
+                    </h3>
+                    <div className="space-y-5">
+                        {profileItems.map((item) => (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive(item.href)
+                                    ? 'bg-[#FEF9F2] text-[#F1C27D] border border-[#F1C27D]/30'
+                                    : 'text-[#1D1F2C]/70 hover:bg-[#FEF9F2]'
+                                    }`}
+                            >
+                                {item.icon}
+                                {item.label}
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Preference Section */}
+                <div>
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
+                        Preference
+                    </h3>
+                    <div className="space-y-2">
+                        {preferenceItems.map((item) => (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive(item.href)
+                                    ? 'bg-[#FEF9F2] text-[#F1C27D] border border-[#F1C27D]/30'
+                                    : 'text-[#1D1F2C]/70 hover:bg-[#FEF9F2]'
+                                    }`}
+                            >
+                                {item.icon}
+                                {item.label}
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </>
+    )
+}

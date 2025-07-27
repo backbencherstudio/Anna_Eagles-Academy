@@ -30,7 +30,7 @@ const MyCoursePageSkeleton = () => {
                     <div className="w-6 h-6 bg-gray-200 rounded animate-pulse"></div>
                     <div className="h-6 bg-gray-200 rounded w-40 animate-pulse"></div>
                 </div>
-                
+
                 <div className="overflow-x-hidden">
                     <div className="flex gap-6">
                         {[1, 2, 3, 4].map((i) => (
@@ -96,10 +96,10 @@ export default function MyCoursePage() {
     const [loading, setLoading] = useState(true);
     const [continueWatchingVideos, setContinueWatchingVideos] = useState<any[]>([]);
     const router = useRouter();
-    
+
     // Use the video progress hook
     const { getContinueWatchingVideos, findVideoPosition, getCourseCompletion } = useVideoProgress();
-    
+
     const [emblaRef, emblaApi] = useEmblaCarousel({
         align: 'start',
         skipSnaps: false,
@@ -120,7 +120,7 @@ export default function MyCoursePage() {
         if (!course) return;
 
         const videosWithProgress = getContinueWatchingVideos(course, 8);
-        
+
         // Format videos for display
         const formattedVideos = videosWithProgress.map((vid: any) => ({
             ...vid,
@@ -157,7 +157,7 @@ export default function MyCoursePage() {
                 <h2 className="text-lg font-semibold mb-2 flex items-center gap-2">
                     <span className="text-yellow-500">⏸️</span> Continue Watching
                 </h2>
-                
+
                 {continueWatchingVideos.length > 0 ? (
                     <div className="overflow-x-hidden">
                         <div ref={emblaRef} className="embla">
@@ -180,7 +180,7 @@ export default function MyCoursePage() {
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-black/10 pointer-events-none rounded-xl" />
                                             {/* Always-visible Play Button with hover effect */}
                                             <div className="absolute inset-0 flex items-center justify-center">
-                                                <div className="bg-white/80 rounded-full p-2 flex items-center justify-center shadow-md transition-transform transition-shadow duration-200 group-hover:scale-110 group-hover:shadow-xl">
+                                                <div className="bg-white/80 rounded-full p-2 flex items-center justify-center shadow-md  transition-shadow duration-200 group-hover:scale-110 group-hover:shadow-xl">
                                                     <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="#F1C27D" /><path d="M11 10V18L18 14L11 10Z" fill="#fff" /></svg>
                                                 </div>
                                             </div>
@@ -231,7 +231,7 @@ export default function MyCoursePage() {
                 <h2 className="text-lg font-semibold mb-1">Enrolled Courses</h2>
                 <p className="text-gray-400 text-sm mb-4">Dive in, learn, and let your potential unfold!</p>
                 <div className="flex flex-col gap-4">
-                    <div 
+                    <div
                         className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-[#F8F9FA] rounded-xl p-4 cursor-pointer hover:bg-[#F0F1F2] transition-colors"
                         onClick={() => router.push('/courses-modules')}
                     >
