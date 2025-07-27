@@ -84,8 +84,9 @@ export default function DiscoverCourses() {
     // handle buy now button time out
     const handleBuyNow = () => {
         setIsLoading(true);
+
         setTimeout(() => {
-            router.push(`/checkout/${course?.course_id}`);
+            router.push(`/checkout/${course.course_id}`);
             setIsLoading(false);
         }, 1000);
     }
