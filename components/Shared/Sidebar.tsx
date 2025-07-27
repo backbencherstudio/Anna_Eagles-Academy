@@ -9,56 +9,58 @@ import LoadingOverlay from '../Resuable/LoadingOverlay';
 import Logo from '../Icons/Logo';
 import { useUserData } from '@/context/UserDataContext';
 
+const MENU_CONFIG = {
+    student: [
+        {
+            header: 'GENERAL',
+            items: [
+                { title: 'Dashboard', icon: MdDashboard, href: '/dashboard' },
+                { title: 'Schedule', icon: MdOutlineCalendarToday, href: '/schedule' },
+            ],
+        },
+        {
+            header: 'COURSES',
+            items: [
+                { title: 'Discover', icon: FiGlobe, href: '/discover' },
+                { title: 'My Courses', icon: MdMenuBook, href: '/my-courses' },
+                { title: 'Assignments', icon: MdAssignment, href: '/assignments' },
+            ],
+        },
+        {
+            header: 'OTHER',
+            items: [
+                { title: 'Setting', icon: FiSettings, href: '/setting/profile' },
+            ],
+        },
+    ],
+    admin: [
+        {
+            header: 'GENERAL',
+            items: [
+                { title: 'Dashboard', icon: MdDashboard, href: '/dashboard' },
+                { title: 'Calendar', icon: MdOutlineCalendarToday, href: '/dashboard/calendar' },
+                { title: 'User Management', icon: FiUser, href: '/dashboard/users-management' },
+            ],
+        },
+        {
+            header: 'COURSES',
+            items: [
+                { title: 'Course Management', icon: MdMenuBook, href: '/dashboard/course-management' },
+                { title: 'Assignments', icon: MdAssignment, href: '/dashboard/assignments' },
+            ],
+        },
+        {
+            header: 'OTHER',
+            items: [
+                { title: 'Reports', icon: MdOutlineBarChart, href: '/dashboard/reports' },
+                { title: 'Setting', icon: FiSettings, href: '/setting/profile' },
+            ],
+        },
+    ],
+};
 
-// student menu items with sections
-const studentMenuSections = [
-    {
-        header: 'GENERAL',
-        items: [
-            { title: 'Dashboard', icon: MdDashboard, href: '/dashboard', role: 'student' },
-            { title: 'Schedule', icon: MdOutlineCalendarToday, href: '/schedule', role: 'student' },
-        ],
-    },
-    {
-        header: 'COURSES',
-        items: [
-            { title: 'Discover', icon: FiGlobe, href: '/discover', role: 'student' },
-            { title: 'My Courses', icon: MdMenuBook, href: '/my-courses', role: 'student' },
-            { title: 'Assignments', icon: MdAssignment, href: '/assignments', role: 'student' },
-        ],
-    },
-    {
-        header: 'OTHER',
-        items: [
-            { title: 'Setting', icon: FiSettings, href: '/setting', role: 'student' },
-        ],
-    },
-];
-
-// admin menu items with sections
-const adminMenuSections = [
-    {
-        header: 'GENERAL',
-        items: [
-            { title: 'Dashboard', icon: MdDashboard, href: '/dashboard', role: 'admin' },
-            { title: 'Calendar', icon: MdOutlineCalendarToday, href: '/dashboard/calendar', role: 'admin' },
-            { title: 'User Management', icon: FiUser, href: '/dashboard/users-management', role: 'admin' },
-        ],
-    },
-    {
-        header: 'COURSES',
-        items: [
-            { title: 'Course Management', icon: MdMenuBook, href: '/dashboard/course-management', role: 'admin' },
-            { title: 'Assignments', icon: MdAssignment, href: '/dashboard/assignments', role: 'admin' },
-        ],
-    },
-    {
-        header: 'OTHER',
-        items: [
-            { title: 'Reports', icon: MdOutlineBarChart, href: '/dashboard/reports', role: 'admin' },
-            { title: 'Setting', icon: FiSettings, href: '/dashboard/setting', role: 'admin' },
-        ],
-    },
+const BOTTOM_MENU_ITEMS = [
+    { title: "Logout", icon: FiLogOut, onClick: () => { } },
 ];
 
 interface SidebarProps {
@@ -71,22 +73,18 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const user = useUserData();
+
+    if (!user?.role) {
+        return null;
+    }
+
     const toggleCollapse = () => {
         setIsCollapsed(!isCollapsed);
     };
 
-    // Prevent hydration mismatch: don't render until user role is known
-    if (!user?.role) {
-        return null; // or <LoadingOverlay loadingText="Loading..." />
-    }
+    const menuSections = MENU_CONFIG[user.role as keyof typeof MENU_CONFIG] || [];
 
-
-    const bottomMenuItems = [
-        { title: "Logout", icon: FiLogOut, onClick: () => { } },
-    ];
-
-    type MenuItem = typeof adminMenuSections[0]['items'][0] | typeof bottomMenuItems[0] | (typeof studentMenuSections[0]['items'][0]);
-    const NavLink = ({ item }: { item: MenuItem }) => {
+    const NavLink = ({ item }: { item: any }) => {
         const isActive = 'href' in item ? pathname === item.href : false;
 
         if ('onClick' in item) {
@@ -94,19 +92,19 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
                 <button
                     onClick={item.onClick}
                     className={`
-                        w-full flex items-center text-[15px] cursor-pointer font-[600] transition-all duration-200
-                        ${isCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}
-                        p-3 rounded-lg text-[#4A4C56] hover:bg-gray-100
-                    `}
+            w-full flex items-center text-[15px] cursor-pointer font-[600] transition-all duration-200
+            ${isCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}
+            p-3 rounded-lg text-[#4A4C56] hover:bg-gray-100
+          `}
                     title={isCollapsed ? item.title : ''}
                 >
                     <item.icon className="w-5 h-5 shrink-0 text-gray-500" />
                     <span className={`
-                        transition-all duration-300 ease-in-out
-                        ${isCollapsed ? 'opacity-0 max-w-0 ml-0' : 'opacity-100 max-w-[160px] ml-2'}
-                        ${isActive ? 'font-medium' : ''}
-                        overflow-hidden whitespace-nowrap align-middle inline-block
-                    `}>
+            transition-all duration-300 ease-in-out
+            ${isCollapsed ? 'opacity-0 max-w-0 ml-0' : 'opacity-100 max-w-[160px] ml-2'}
+            ${isActive ? 'font-medium' : ''}
+            overflow-hidden whitespace-nowrap align-middle inline-block
+          `}>
                         {item.title}
                     </span>
                 </button>
@@ -117,23 +115,23 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
             <Link
                 href={item.href}
                 className={`
-                    flex items-center text-[15px] font-[600] transition-all duration-200
-                    ${isCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}
-                    p-3 rounded-lg
-                    ${isActive ? 'bg-[#FEF9F2] text-[#F1C27D] border border-[#F1C27D]/30' : 'text-[#1D1F2C]/70 hover:bg-[#FEF9F2]'}
-                `}
+          flex items-center text-[15px] font-[600] transition-all duration-200
+          ${isCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}
+          p-3 rounded-lg
+          ${isActive ? 'bg-[#FEF9F2] text-[#F1C27D] border border-[#F1C27D]/30' : 'text-[#1D1F2C]/70 hover:bg-[#FEF9F2]'}
+        `}
                 title={isCollapsed ? item.title : ''}
             >
                 <item.icon className={`
-                    text-xl shrink-0
-                    ${isActive ? '' : 'text-gray-500'}
-                `} />
+          text-xl shrink-0
+          ${isActive ? '' : 'text-gray-500'}
+        `} />
                 <span className={`
-                    transition-all duration-300 ease-in-out
-                    ${isCollapsed ? 'opacity-0 max-w-0 ml-0' : 'opacity-100 max-w-[160px] ml-2'}
-                    ${isActive ? 'font-medium' : ''}
-                    overflow-hidden whitespace-nowrap align-middle inline-block
-                `}>
+          transition-all duration-300 ease-in-out
+          ${isCollapsed ? 'opacity-0 max-w-0 ml-0' : 'opacity-100 max-w-[160px] ml-2'}
+          ${isActive ? 'font-medium' : ''}
+          overflow-hidden whitespace-nowrap align-middle inline-block
+        `}>
                     {item.title}
                 </span>
             </Link>
@@ -145,43 +143,42 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
             {isLoading && <LoadingOverlay loadingText="Logging out" />}
             <aside
                 className={`
-        fixed top-0 left-0 z-40 h-screen transition-all duration-300 ease-in-out
-        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
-        md:relative md:translate-x-0
-        ${isCollapsed ? 'md:w-16' : 'w-64'}
-        bg-white border-r border-[#E9EAEC] overflow-hidden
-        flex flex-col
-      `}
+          fixed top-0 left-0 z-40 h-screen transition-all duration-300 ease-in-out
+          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+          md:relative md:translate-x-0
+          ${isCollapsed ? 'md:w-16' : 'w-64'}
+          bg-white border-r border-[#E9EAEC] overflow-hidden
+          flex flex-col
+        `}
             >
+                {/* Header */}
                 <div className="flex relative items-center justify-between p-5 pb-5">
                     <div className={`
-          transition-all duration-300 ease-in-out
-          ${isCollapsed ? 'opacity-0 max-w-0 w-0' : 'opacity-100 max-w-[220px] w-full'}
-        `}>
+            transition-all duration-300 ease-in-out
+            ${isCollapsed ? 'opacity-0 max-w-0 w-0' : 'opacity-100 max-w-[220px] w-full'}
+          `}>
                         <div className="flex items-center gap-4">
                             <Logo />
                             <span
                                 className={`transition-all duration-300 ease-in-out inline-block align-middle
-                                ${isCollapsed ? 'opacity-0 max-w-0 ml-0' : 'opacity-100 max-w-[160px] ml-2'}
-                                overflow-hidden whitespace-nowrap`}
+                ${isCollapsed ? 'opacity-0 max-w-0 ml-0' : 'opacity-100 max-w-[160px] ml-2'}
+                overflow-hidden whitespace-nowrap`}
                             >
-                                <h2 className="text-lg font-semibold leading-6 text-[#1D1F2C] font-sans">The White <br /> Eagles Academy</h2>
+                                <h2 className="text-lg font-semibold leading-6 text-[#1D1F2C] font-sans">
+                                    The White <br /> Eagles Academy
+                                </h2>
                             </span>
                         </div>
                     </div>
 
                     {/* Toggle button for large screens */}
-                    <div className='absolute -right-2  '>
+                    <div className='absolute -right-2'>
                         <button
                             className='hidden md:block cursor-pointer shrink-0 transition-transform duration-300'
                             onClick={toggleCollapse}
                         >
                             <div className={`transition-transform duration-300 group border border-[#E9EAEC] shadow-sm bg-gray-200 p-2 rounded-md ${isCollapsed ? 'rotate-180' : ''}`}>
-                                {isCollapsed ? (
-                                    <MdArrowForwardIos className='text-xl  text-gray-600 group-hover:text-[#8D58FA]' />
-                                ) : (
-                                    <MdArrowForwardIos className='text-xl text-gray-600 group-hover:text-[#8D58FA]' />
-                                )}
+                                <MdArrowForwardIos className='text-xl text-gray-600 group-hover:text-[#8D58FA]' />
                             </div>
                         </button>
                     </div>
@@ -189,51 +186,37 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
                     {/* Close button for mobile */}
                     <button
                         className={`p-2 rounded-lg hover:bg-gray-100 md:hidden
-            transition-opacity duration-300
-            ${isCollapsed ? 'opacity-0' : 'opacity-100'}
-          `}
+              transition-opacity duration-300
+              ${isCollapsed ? 'opacity-0' : 'opacity-100'}
+            `}
                         onClick={onMobileMenuClose}
                     >
                         <IoMdClose className="w-6 h-6" />
                     </button>
                 </div>
 
-                {/* Top Menu Items */}
-                <nav className={`flex-1 p-4  space-y-2 ${isCollapsed ? 'px-2' : ''}`}>
-                    {user?.role === 'admin' ? (
-                        adminMenuSections.map((section: { header: string; items: any[] }, sIdx: number) => (
-                            <div key={sIdx} className="mb-5">
-                                <div className={`text-xs font-semibold uppercase tracking-wider mb-1 ${isCollapsed ? 'hidden' : 'text-gray-400'}`}>{section.header}</div>
-                                <p className='space-y-2 text-sm'>
-                                    {section.items.map((item: any, iIdx: number) => (
-                                        <NavLink key={iIdx} item={item} />
-                                    ))}
-                                </p>
+                {/* Main Navigation */}
+                <nav className={`flex-1 p-4 space-y-2 ${isCollapsed ? 'px-2' : ''}`}>
+                    {menuSections.map((section, sIdx) => (
+                        <div key={sIdx} className="mb-5">
+                            <div className={`text-xs font-semibold uppercase tracking-wider mb-1 ${isCollapsed ? 'hidden' : 'text-gray-400'}`}>
+                                {section.header}
                             </div>
-                        ))
-                    ) : (
-                        studentMenuSections.map((section, sIdx) => (
-                            <div key={sIdx} className="mb-5">
-                                <div className={`text-xs font-semibold uppercase tracking-wider mb-1 ${isCollapsed ? 'hidden' : 'text-gray-400'}`}>{section.header}</div>
-                                <p className='space-y-2 text-sm'>
-                                    {section.items.map((item, iIdx) => (
-                                        <NavLink key={iIdx} item={item} />
-                                    ))}
-                                </p>
+                            <div className='space-y-2 text-sm'>
+                                {section.items.map((item, iIdx) => (
+                                    <NavLink key={iIdx} item={item} />
+                                ))}
                             </div>
-                        ))
-                    )}
+                        </div>
+                    ))}
                 </nav>
 
-                {/* Bottom Menu Items */}
+                {/* Bottom Navigation */}
                 <nav className={`p-4 space-y-2 ${isCollapsed ? 'px-2' : ''}`}>
                     <div className="border-t border-gray-200 pt-2">
-
-                        {
-                            bottomMenuItems.map((item, index) => (
-                                <NavLink key={index} item={item} />
-                            ))
-                        }
+                        {BOTTOM_MENU_ITEMS.map((item, index) => (
+                            <NavLink key={index} item={item} />
+                        ))}
                     </div>
                 </nav>
             </aside>

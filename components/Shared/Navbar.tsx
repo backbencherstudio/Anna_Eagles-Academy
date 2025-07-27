@@ -29,20 +29,79 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
         },
 
     ]);
-    // dynamic title show based on the page
-    const title = usePathname().split('/').pop();
+    // Dynamic title system - handles all route types including dynamic routes with query parameters
+    const pathname = usePathname();
+    const pathSegments = pathname.split('/').filter(segment => segment !== '');
+    const currentPath = pathSegments[pathSegments.length - 1] || 'dashboard';
 
     const titleMap = {
         'dashboard': 'Hi, ' + user?.name,
         'schedule': 'My Schedule',
         'discover': 'Discover Courses',
-        // id wise this page so route to checkout page
         'checkout': 'Checkout',
         'my-courses': 'My Courses',
         'assignments': 'Assignments',
         'setting': 'Setting',
         'payment-success': 'Payment Success',
-    }
+        'profile': 'Profile',
+        'notification': 'Notification',
+        'payment': 'Payment',
+        'change-password': 'Change Password',
+        'payment-method': 'Payment Method',
+        'billing': 'Billing',
+        'email-address': 'Email Address',
+        'courses-modules': 'Course Modules',
+        'courses': 'Courses',
+        'modules': 'Modules',
+        'quiz': 'Quiz',
+        'test': 'Test',
+        'video': 'Video',
+        'lesson': 'Lesson',
+        'chapter': 'Chapter',
+    };
+
+    // Function to get dynamic title based on pathname
+    const getDynamicTitle = () => {
+        // Special case for dashboard
+        if (currentPath === 'dashboard') {
+            return `Hi, ${user?.name}`;
+        }
+
+        // Handle specific routes with dynamic titles
+        if (pathname.includes('courses-modules')) {
+            return 'Course Modules';
+        }
+        if (pathname.includes('checkout/')) {
+            return 'Checkout';
+        }
+        if (pathname.includes('assignments/')) {
+            return 'Assignments';
+        }
+        if (pathname.includes('my-courses/')) {
+            return 'Course Details';
+        }
+        if (pathname.includes('setting/')) {
+            const settingPath = pathSegments[pathSegments.length - 1];
+            return titleMap[settingPath as keyof typeof titleMap] || 'Setting';
+        }
+
+        // Handle dynamic routes with IDs (like /assignments/[id], /my-courses/[id], etc.)
+        if (pathSegments.length > 2) {
+            const parentRoute = pathSegments[pathSegments.length - 2];
+            if (parentRoute === 'assignments') {
+                return 'Assignments';
+            }
+            if (parentRoute === 'my-courses') {
+                return 'Course Details';
+            }
+            if (parentRoute === 'checkout') {
+                return 'Checkout';
+            }
+        }
+
+        // Default to titleMap or fallback
+        return titleMap[currentPath as keyof typeof titleMap] || 'Dashboard';
+    };
 
 
 
@@ -68,11 +127,9 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
                         {user ? (
                             <>
                                 <h1 className="text-[24px] font-semibold text-[#111827]">
-                                    {title === 'dashboard'
-                                        ? `Hi, ${user.name}`
-                                        : titleMap[title as keyof typeof titleMap]}
+                                    {getDynamicTitle()}
                                 </h1>
-                                {title === 'dashboard' && user.role === 'student' && (
+                                {currentPath === 'dashboard' && user.role === 'student' && (
                                     <span className="text-[16px] text-[#777980] mt-1">
                                         Let’s boost your knowledge today and learn a new things
                                     </span>
