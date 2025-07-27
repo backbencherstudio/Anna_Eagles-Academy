@@ -1200,7 +1200,7 @@ export default function CustomVideoPlayer({
                             {/* Controls Bar */}
                             <div className="flex items-center justify-between text-white" style={{ pointerEvents: 'auto' }}>
                                 {/* Left Controls */}
-                                <div className="flex items-center  flex-shrink-0">
+                                <div className="flex items-center  flex-shrink-0 gap-2">
                                     {/* Previous Track */}
                                     <button
                                         type="button"
