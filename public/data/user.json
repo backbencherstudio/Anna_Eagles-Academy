@@ -1,0 +1,29 @@
+[
+    {
+        "id": 1,
+        "name": "John Doe",
+        "email": "student@gmail.com",
+        "role": "student",
+        "profileImage": "https://picsum.photos/150",
+        "password": "123456",
+        "phone": "+1234567890",
+        "address": "123 Main St, Anytown, USA",
+        "city": "Anytown",
+        "state": "CA",
+        "zip": "12345",
+        "country": "USA"
+    },
+    {
+        "id": 2,
+        "name": "Admin",
+        "email": "admin@admin.com",
+        "role": "admin",
+        "profileImage": "https://picsum.photos/150",
+        "phone": "+1234567890",
+        "address": "123 Main St, Anytown, USA",
+        "city": "Anytown",
+        "state": "CA",
+        "zip": "12345",
+        "country": "USA"
+    }
+]

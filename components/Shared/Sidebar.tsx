@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react';
 import Link from "next/link";
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { IoMdClose } from "react-icons/io";
 import { MdArrowForwardIos, MdDashboard, MdOutlineCalendarToday, MdAssignment, MdMenuBook, MdOutlineBarChart } from 'react-icons/md';
 import { FiLogOut, FiSettings, FiGlobe, FiUser } from 'react-icons/fi';
@@ -59,10 +59,6 @@ const MENU_CONFIG = {
     ],
 };
 
-const BOTTOM_MENU_ITEMS = [
-    { title: "Logout", icon: FiLogOut, onClick: () => { } },
-];
-
 interface SidebarProps {
     isMobileMenuOpen: boolean;
     onMobileMenuClose: () => void;
@@ -70,9 +66,10 @@ interface SidebarProps {
 
 export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: SidebarProps) {
     const pathname = usePathname();
+    const router = useRouter();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const user = useUserData();
+    const { user, logout } = useUserData();
 
     if (!user?.role) {
         return null;
@@ -80,6 +77,12 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
 
     const toggleCollapse = () => {
         setIsCollapsed(!isCollapsed);
+    };
+
+    const handleLogout = () => {
+        setIsLoading(true);
+        logout();
+        router.push('/login');
     };
 
     const menuSections = MENU_CONFIG[user.role as keyof typeof MENU_CONFIG] || [];
@@ -90,7 +93,7 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
         if ('onClick' in item) {
             return (
                 <button
-                    onClick={item.onClick}
+                    onClick={item.title === 'Logout' ? handleLogout : item.onClick}
                     className={`
             w-full flex items-center text-[15px] cursor-pointer font-[600] transition-all duration-200
             ${isCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}
@@ -211,12 +214,27 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
                     ))}
                 </nav>
 
-                {/* Bottom Navigation */}
+                {/* Bottom Navigation - Logout */}
                 <nav className={`p-4 space-y-2 ${isCollapsed ? 'px-2' : ''}`}>
                     <div className="border-t border-gray-200 pt-2">
-                        {BOTTOM_MENU_ITEMS.map((item, index) => (
-                            <NavLink key={index} item={item} />
-                        ))}
+                        <button
+                            onClick={handleLogout}
+                            className={`
+                w-full flex items-center text-[15px] cursor-pointer font-[600] transition-all duration-200
+                ${isCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}
+                p-3 rounded-lg text-[#4A4C56] hover:bg-gray-100
+              `}
+                            title={isCollapsed ? 'Logout' : ''}
+                        >
+                            <FiLogOut className="w-5 h-5 shrink-0 text-gray-500" />
+                            <span className={`
+                transition-all duration-300 ease-in-out
+                ${isCollapsed ? 'opacity-0 max-w-0 ml-0' : 'opacity-100 max-w-[160px] ml-2'}
+                overflow-hidden whitespace-nowrap align-middle inline-block
+              `}>
+                                Logout
+                            </span>
+                        </button>
                     </div>
                 </nav>
             </aside>

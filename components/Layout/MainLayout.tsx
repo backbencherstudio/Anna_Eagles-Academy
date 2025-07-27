@@ -4,15 +4,12 @@ import React, { useState } from 'react';
 import Sidebar from '../Shared/Sidebar';
 import Navbar from '../Shared/Navbar';
 
-
 interface LayoutProps {
     children: React.ReactNode;
 }
 
 export const MainLayout = ({ children }: LayoutProps) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-
 
     return (
 

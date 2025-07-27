@@ -1,7 +1,6 @@
 import { MainLayout } from '@/components/Layout/MainLayout';
-import { UserDataProvider } from '@/context/UserDataContext';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import React from 'react'
-
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -9,11 +8,10 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
     return (
-        <UserDataProvider>
+        <ProtectedRoute allowedRoles={['student', 'admin']}>
             <MainLayout>
                 {children}
             </MainLayout>
-        </UserDataProvider>
-
+        </ProtectedRoute>
     )
 }

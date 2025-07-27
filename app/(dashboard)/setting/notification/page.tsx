@@ -57,7 +57,7 @@ export default function NotificationPage() {
     };
 
     const handleSaveChanges = () => {
-        console.log('Saving notification settings:', settings);
+        // console.log('Saving notification settings:', settings);
         // Add your API call here to save the settings
     };
 

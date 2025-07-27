@@ -2,9 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { HiMenuAlt3 } from "react-icons/hi";
 import { FaRegUser } from "react-icons/fa";
 import { IoNotificationsOutline } from "react-icons/io5";
+import { FiLogOut } from "react-icons/fi";
 import Image from 'next/image';
 import { useUserData } from '@/context/UserDataContext';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import MainNotification from './MainNotification';
 
 interface NavbarProps {
     onMobileMenuToggle: () => void;
@@ -16,19 +26,59 @@ interface NotificationItem {
     id: string;
     message: string;
     time: string;
+    role?: string;
 }
 
 export default function Navbar({ onMobileMenuToggle, notificationCount }: NavbarProps) {
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-    const user = useUserData();
-    const [notifications, setNotifications] = useState<NotificationItem[]>([
-        {
-            id: '1',
-            message: 'You have empty vibe check for tomorrow.',
-            time: '01:55 pm',
-        },
+    const { user, logout } = useUserData();
+    const router = useRouter();
 
-    ]);
+    // Close notification dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as Element;
+            if (isNotificationOpen && !target.closest('.notification-dropdown')) {
+                setIsNotificationOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isNotificationOpen]);
+
+    // Role-based notification count calculation
+    const calculateNotificationCount = () => {
+        const allNotifications: NotificationItem[] = [
+            // Student notifications
+            { id: '1', message: 'You have empty vibe check for tomorrow.', time: '01:55 pm', role: 'student' },
+            { id: '2', message: 'Course completion notification', time: '02:30 pm', role: 'student' },
+            { id: '3', message: 'Payment success notification', time: '03:15 pm', role: 'student' },
+            
+            // Admin notifications
+            { id: '4', message: 'New student registration', time: '10:00 am', role: 'admin' },
+            { id: '5', message: 'Course completion alert', time: '11:30 am', role: 'admin' },
+            { id: '6', message: 'Revenue update', time: '12:45 pm', role: 'admin' },
+            { id: '7', message: 'System maintenance alert', time: '01:20 pm', role: 'admin' },
+        ];
+
+        // Filter notifications based on user role
+        const roleBasedNotifications = allNotifications.filter(notification => 
+            notification.role === user?.role || !notification.role
+        );
+
+        return roleBasedNotifications.length;
+    };
+
+    const [currentNotificationCount, setCurrentNotificationCount] = useState(0);
+
+    // Update notification count when user role changes
+    useEffect(() => {
+        setCurrentNotificationCount(calculateNotificationCount());
+    }, [user?.role]);
+
     // Dynamic title system - handles all route types including dynamic routes with query parameters
     const pathname = usePathname();
     const pathSegments = pathname.split('/').filter(segment => segment !== '');
@@ -105,12 +155,9 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
 
 
 
-    const handleClearAll = () => {
-        setNotifications([]);
-    };
-
-    const handleDeleteOne = (id: string) => {
-        setNotifications(prev => prev.filter(notification => notification.id !== id));
+    const handleLogout = () => {
+        logout();
+        router.push('/login');
     };
 
     return (
@@ -131,7 +178,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
                                 </h1>
                                 {currentPath === 'dashboard' && user.role === 'student' && (
                                     <span className="text-[16px] text-[#777980] mt-1">
-                                        Let’s boost your knowledge today and learn a new things
+                                        Let's boost your knowledge today and learn a new things
                                     </span>
                                 )}
                             </>
@@ -142,46 +189,69 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
                 </div>
 
                 <div className="flex items-center gap-6">
-                    <div className="relative">
+                    <div className="relative notification-dropdown">
                         <button
                             className="flex cursor-pointer items-center p-2 bg-[#F3F3F4] rounded-full hover:bg-gray-100 border border-gray-200"
                             onClick={() => setIsNotificationOpen(!isNotificationOpen)}
                         >
                             <IoNotificationsOutline className="text-xl text-[#070707]" />
                         </button>
-                        {(notificationCount ?? 0) > 0 && (
+                        {currentNotificationCount > 0 && (
                             <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                                {notificationCount}
+                                {currentNotificationCount}
                             </span>
                         )}
-                        {/* <Notification
-                            isOpen={isNotificationOpen}
-                            onClose={() => setIsNotificationOpen(false)}
-                            notifications={notifications}
-                            onClearAll={handleClearAll}
-                            onDeleteOne={handleDeleteOne}
-                        /> */}
+                        {isNotificationOpen && (
+                            <MainNotification
+                                isOpen={isNotificationOpen}
+                                onClose={() => setIsNotificationOpen(false)}
+                                isDropdown={true}
+                            />
+                        )}
                     </div>
 
                     <div className='bg-gray-200 w-[1.3px] h-[40px]'></div>
 
                     <div className='flex items-center gap-2'>
-                        <div className="">
-                            {
-                                user?.avatar_url && user.avatar_url !== 'null' ? (
-                                    <Image src={user.avatar_url} alt="Profile picture" width={500} height={500} className='rounded-full w-10 h-10 object-cover' />
-                                ) : (
-                                    <div className='p-2 cursor-pointer bg-[#F3F3F4] rounded-full flex items-center justify-center border border-gray-200'>
-                                        <FaRegUser className="text-xl text-[#070707]" />
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="p-0 h-auto cursor-pointer">
+                                    <div className='flex items-center gap-2'>
+                                        <div className="relative">
+                                            {user?.profileImage && user.profileImage !== 'null' && user.profileImage !== '' ? (
+                                                <Image 
+                                                    src={user.profileImage} 
+                                                    alt="Profile picture" 
+                                                    width={40} 
+                                                    height={40} 
+                                                    className='rounded-full w-10 h-10 object-cover'
+                                                    unoptimized={true}
+                                                />
+                                            ) : (
+                                                <div className='p-2 cursor-pointer bg-[#F3F3F4] rounded-full flex items-center justify-center border border-gray-200 w-10 h-10'>
+                                                    <FaRegUser className="text-xl text-[#070707]" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <h1 className="text-sm font-medium">{user?.name}</h1>
+                                            <p className="text-xs text-[#777980] capitalize">{user?.role}</p>
+                                        </div>
                                     </div>
-
-                                )
-                            }
-                        </div>
-                        <div>
-                            <h1 className="text-sm font-medium">{user?.name}</h1>
-                            <p className="text-xs text-[#777980]">{user?.role}</p>
-                        </div>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56">
+                                <DropdownMenuItem className='cursor-pointer' onClick={() => router.push('/setting/profile')}>
+                                    <FaRegUser className="mr-2 h-4 w-4" />
+                                    <span>Profile</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
+                                    <FiLogOut className="mr-2 h-4 w-4" />
+                                    <span>Logout</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </div>
             </div>

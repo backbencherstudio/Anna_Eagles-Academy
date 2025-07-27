@@ -9,12 +9,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import ProfileImage from '@/components/Shared/ProfileImage';
 
 export default function ProfilePage() {
-    const user = useUserData();
+    const { user } = useUserData();
 
     const [formData, setFormData] = useState({
-        name: user.name || 'Peter Parker',
+        name: user?.name || 'Peter Parker',
         title: 'Jr. Web/Mobile Developer',
-        avatar: user.avatar_url || ''
+        avatar: user?.profileImage || ''
     });
 
     const handleInputChange = (field: string, value: string) => {
@@ -27,7 +27,7 @@ export default function ProfilePage() {
 
     const handleSaveChanges = () => {
         // Handle save logic here
-        console.log('Saving changes:', formData);
+        // console.log('Saving changes:', formData);
         // You can add API call here to save the data
     };
 

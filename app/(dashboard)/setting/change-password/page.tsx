@@ -29,11 +29,11 @@ export default function ChangePasswordPage() {
 
     const onSubmit = async (data: ChangePasswordForm) => {
         try {
-            console.log('Password change data:', data);
+            // console.log('Password change data:', data);
             // Add your API call here to change password
             // await changePassword(data);
         } catch (error) {
-            console.error('Error changing password:', error);
+            // console.error('Error changing password:', error);
         }
     };
 

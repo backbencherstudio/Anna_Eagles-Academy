@@ -176,7 +176,7 @@ export default function CoursesModules() {
     setNetworkMessage(message);
 
     // Log network state for debugging
-    console.log(`Network State: ${state} - ${message}`);
+    // console.log(`Network State: ${state} - ${message}`);
   }, []);
 
   // Handle escape key to exit theater mode
