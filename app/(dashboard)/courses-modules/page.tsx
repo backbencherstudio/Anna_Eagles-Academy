@@ -3,36 +3,8 @@ import React, { useEffect, useState, useCallback, useMemo } from "react";
 import * as Accordion from '@radix-ui/react-accordion';
 import CustomVideoPlayer from "../../../components/Resuable/CustomVideoPlayer";
 import { FaCircleCheck } from "react-icons/fa6";
-// Throttle utility function
-const throttle = (func: Function, delay: number) => {
-  let lastCall = 0;
-  return (...args: any[]) => {
-    const now = Date.now();
-    if (now - lastCall >= delay) {
-      lastCall = now;
-      return func(...args);
-    }
-  };
-};
-
-// Video progress tracking functions
-const getVideoProgress = (videoId: string) => {
-  try {
-    const saved = localStorage.getItem(`video_progress_${videoId}`);
-    if (saved) {
-      return JSON.parse(saved);
-    }
-  } catch (error) {
-    console.error('Error loading video progress:', error);
-  }
-  return null;
-};
-
-const formatTime = (seconds: number) => {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = Math.floor(seconds % 60);
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-};
+import { useSearchParams } from 'next/navigation';
+import { useVideoProgress } from '../../../hooks/useVideoProgress';
 
 export default function CoursesModulesPage() {
   const [course, setCourse] = useState<any>(null);
@@ -52,27 +24,35 @@ export default function CoursesModulesPage() {
   // Video progress state
   const [videoProgress, setVideoProgress] = useState<{ [key: string]: any }>({});
 
+  // Get URL search parameters
+  const searchParams = useSearchParams();
+
+  // Use the video progress hook
+  const { 
+    getAllVideoProgress, 
+    loadVideoProgress, 
+    isVideoCompleted,
+    throttledSaveProgress 
+  } = useVideoProgress();
+
   // Load video progress for all videos
   const loadAllVideoProgress = useCallback(() => {
     if (!course) return;
-
-    const progress: { [key: string]: any } = {};
-    course.modules.forEach((mod: any) => {
-      mod.videos.forEach((vid: any) => {
-        const savedProgress = getVideoProgress(vid.video_id);
-        if (savedProgress) {
-          progress[vid.video_id] = savedProgress;
-        }
-      });
-    });
+    const progress = getAllVideoProgress(course);
     setVideoProgress(progress);
-  }, [course]);
+  }, [course, getAllVideoProgress]);
 
   // Throttled version of loadAllVideoProgress (max once every 2 seconds)
-  const throttledLoadProgress = useMemo(() =>
-    throttle(loadAllVideoProgress, 2000),
-    [loadAllVideoProgress]
-  );
+  const throttledLoadProgress = useMemo(() => {
+    let lastCall = 0;
+    return () => {
+      const now = Date.now();
+      if (now - lastCall >= 2000) {
+        lastCall = now;
+        loadAllVideoProgress();
+      }
+    };
+  }, [loadAllVideoProgress]);
 
   // Get progress for a specific video
   const getVideoProgressInfo = useCallback((videoId: string) => {
@@ -99,20 +79,18 @@ export default function CoursesModulesPage() {
     // Check if previous video in same module is completed
     if (videoIndex > 0) {
       const previousVideo = course.modules[moduleIndex].videos[videoIndex - 1];
-      const previousProgress = getVideoProgressInfo(previousVideo.video_id);
-      return previousProgress?.isCompleted || false;
+      return isVideoCompleted(previousVideo.video_id);
     }
 
     // Check if last video of previous module is completed
     if (moduleIndex > 0) {
       const previousModule = course.modules[moduleIndex - 1];
       const lastVideoOfPreviousModule = previousModule.videos[previousModule.videos.length - 1];
-      const previousProgress = getVideoProgressInfo(lastVideoOfPreviousModule.video_id);
-      return previousProgress?.isCompleted || false;
+      return isVideoCompleted(lastVideoOfPreviousModule.video_id);
     }
 
     return false;
-  }, [course, getVideoProgressInfo]);
+  }, [course, isVideoCompleted]);
 
   // Get unlock status for display
   const getUnlockStatus = useCallback((moduleIndex: number, videoIndex: number) => {
@@ -156,20 +134,57 @@ export default function CoursesModulesPage() {
   useEffect(() => {
     fetchCourseData().then((data) => {
       setCourse(data.course);
-      // Set first video as default
-      const firstVideo = data.course.modules[0]?.videos[0];
-      setCurrentVideo({
-        ...firstVideo,
-        module: data.course.modules[0]?.module_title,
-      });
-      setCurrentVideoIndex({ moduleIndex: 0, videoIndex: 0 });
+      
+      // Check for URL parameters to set initial video
+      const videoId = searchParams.get('video');
+      const moduleIndex = searchParams.get('module');
+      const videoIndex = searchParams.get('videoIndex');
+      
+      if (videoId && moduleIndex !== null && videoIndex !== null) {
+        // Set video based on URL parameters
+        const modIdx = parseInt(moduleIndex);
+        const vidIdx = parseInt(videoIndex);
+        
+        if (data.course.modules[modIdx] && data.course.modules[modIdx].videos[vidIdx]) {
+          const selectedVideo = data.course.modules[modIdx].videos[vidIdx];
+          setCurrentVideo({
+            ...selectedVideo,
+            module: data.course.modules[modIdx].module_title,
+          });
+          setCurrentVideoIndex({ moduleIndex: modIdx, videoIndex: vidIdx });
+          
+          // Open the accordion for the selected video's module
+          const moduleId = data.course.modules[modIdx].module_id;
+          setOpenModules([moduleId]);
+        } else {
+          // Fallback to first video if parameters are invalid
+          const firstVideo = data.course.modules[0]?.videos[0];
+          setCurrentVideo({
+            ...firstVideo,
+            module: data.course.modules[0]?.module_title,
+          });
+          setCurrentVideoIndex({ moduleIndex: 0, videoIndex: 0 });
+          
+          if (data.course.modules[0]?.module_id) {
+            setOpenModules([data.course.modules[0].module_id]);
+          }
+        }
+      } else {
+        // Set first video as default
+        const firstVideo = data.course.modules[0]?.videos[0];
+        setCurrentVideo({
+          ...firstVideo,
+          module: data.course.modules[0]?.module_title,
+        });
+        setCurrentVideoIndex({ moduleIndex: 0, videoIndex: 0 });
 
-      // Open the accordion for the first module
-      if (data.course.modules[0]?.module_id) {
-        setOpenModules([data.course.modules[0].module_id]);
+        // Open the accordion for the first module
+        if (data.course.modules[0]?.module_id) {
+          setOpenModules([data.course.modules[0].module_id]);
+        }
       }
     });
-  }, []);
+  }, [searchParams]);
 
   // Load progress when course data is available
   useEffect(() => {
@@ -331,6 +346,13 @@ export default function CoursesModulesPage() {
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isTheaterMode]);
 
+  // Format time utility function
+  const formatTime = useCallback((seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  }, []);
+
   if (!course || !currentVideo) {
     return (
       <div className="flex justify-center items-center h-96">
@@ -367,9 +389,6 @@ export default function CoursesModulesPage() {
             )}
           </div>
         )}
-
-
-
 
         {/* Video Player */}
         <CustomVideoPlayer
@@ -420,16 +439,6 @@ export default function CoursesModulesPage() {
             </div>
           </div>
         )}
-
-        {/* Course Description - Only show when not in theater mode */}
-        {/* {!isTheaterMode && (
-          <div className="bg-gray-50 rounded-xl p-4">
-            <h3 className="font-semibold text-gray-900 mb-2">About this course</h3>
-            <p className="text-gray-700 text-sm leading-relaxed">
-              {course.course_description}
-            </p>
-          </div>
-        )} */}
       </div>
 
       {/* Sidebar: Modules and Videos - Show in theater mode at bottom */}
@@ -495,13 +504,6 @@ export default function CoursesModulesPage() {
                           </div>
                         )}
 
-                        {/* Lock indicator */}
-                        {/* {!unlockStatus.isUnlocked && (
-                          <div className="absolute top-0 right-0 bg-red-500 text-white text-xs px-2 py-1 rounded-bl-lg rounded-tr-lg">
-                            {unlockStatus.message}
-                          </div>
-                        )} */}
-
                         <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${!unlockStatus.isUnlocked
                           ? 'bg-gray-300'
                           : isActive
@@ -517,9 +519,7 @@ export default function CoursesModulesPage() {
                             </svg>
                           ) : progressInfo && progressInfo.isCompleted ? (
                             // Checkmark for completed
-
                             <FaCircleCheck className="text-green-500 text-xl" />
-
                           ) : (
                             // Play icon for available
                             <svg width="18" height="18" viewBox="0 0 28 28" fill="none">
@@ -548,7 +548,6 @@ export default function CoursesModulesPage() {
                               {progressInfo.totalTime} min
                             </div>
                           )}
-
                         </div>
                       </button>
                     );
@@ -558,10 +557,7 @@ export default function CoursesModulesPage() {
             </Accordion.Item>
           ))}
         </Accordion.Root>
-
       </div>
     </div>
-
-
   );
 }

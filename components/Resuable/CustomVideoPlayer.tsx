@@ -1,6 +1,7 @@
 "use client"
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { MdOutlineReplay10, MdOutlineForward10 } from "react-icons/md";
+import { useVideoProgress } from "../../hooks/useVideoProgress";
 
 interface VideoData {
     video_id: string;
@@ -530,53 +531,10 @@ export default function CustomVideoPlayer({
         };
     }, [getNetworkStateMessage, onNetworkStateChange, playing, currentTime]);
 
-    // Throttle utility function
-    const throttle = (func: Function, delay: number) => {
-        let lastCall = 0;
-        return (...args: any[]) => {
-            const now = Date.now();
-            if (now - lastCall >= delay) {
-                lastCall = now;
-                return func(...args);
-            }
-        };
-    };
 
-    // Video progress tracking functions
-    const saveVideoProgress = useCallback((videoId: string, currentTime: number, duration: number) => {
-        if (duration > 0 && currentTime > 0) {
-            const progress = {
-                currentTime,
-                duration,
-                timestamp: Date.now(),
-                percentage: (currentTime / duration) * 100
-            };
-            localStorage.setItem(`video_progress_${videoId}`, JSON.stringify(progress));
-        }
-    }, []);
 
-    // Throttled version of saveVideoProgress (saves max once every 3 seconds)
-    const throttledSaveProgress = useMemo(() => 
-        throttle(saveVideoProgress, 3000), 
-        [saveVideoProgress]
-    );
-
-    const loadVideoProgress = useCallback((videoId: string) => {
-        try {
-            const saved = localStorage.getItem(`video_progress_${videoId}`);
-            if (saved) {
-                const progress = JSON.parse(saved);
-                return progress;
-            }
-        } catch (error) {
-            console.error('Error loading video progress:', error);
-        }
-        return null;
-    }, []);
-
-    const clearVideoProgress = useCallback((videoId: string) => {
-        localStorage.removeItem(`video_progress_${videoId}`);
-    }, []);
+    // Import video progress hook
+    const { saveVideoProgress, loadVideoProgress, clearVideoProgress, throttledSaveProgress } = useVideoProgress();
 
     // Custom video player functions
     const togglePlay = useCallback(() => {
