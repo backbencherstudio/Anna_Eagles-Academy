@@ -38,21 +38,21 @@ const MENU_CONFIG = {
             header: 'GENERAL',
             items: [
                 { title: 'Dashboard', icon: MdDashboard, href: '/dashboard' },
-                { title: 'Calendar', icon: MdOutlineCalendarToday, href: '/dashboard/calendar' },
-                { title: 'User Management', icon: FiUser, href: '/dashboard/users-management' },
+                { title: 'Calendar', icon: MdOutlineCalendarToday, href: '/calendar' },
+                { title: 'User Management', icon: FiUser, href: '/users-management' },
             ],
         },
         {
             header: 'COURSES',
             items: [
-                { title: 'Course Management', icon: MdMenuBook, href: '/dashboard/course-management' },
-                { title: 'Assignments', icon: MdAssignment, href: '/dashboard/assignments' },
+                { title: 'Course Management', icon: MdMenuBook, href: '/course-management' },
+                { title: 'Assignments', icon: MdAssignment, href: '/create-assignments' },
             ],
         },
         {
             header: 'OTHER',
             items: [
-                { title: 'Reports', icon: MdOutlineBarChart, href: '/dashboard/reports' },
+                { title: 'Reports', icon: MdOutlineBarChart, href: '/reports' },
                 { title: 'Setting', icon: FiSettings, href: '/setting/profile' },
             ],
         },
