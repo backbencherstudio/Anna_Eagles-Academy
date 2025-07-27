@@ -1,0 +1,298 @@
+[
+    {
+        "quiz_id": "3",
+        "quiz_title": "Quiz 5",
+        "subtitle": "Quiz 5",
+        "created_at": "2025-07-27",
+        "updated_at": "2025-07-27",
+        "status": "active",
+        "quiz_type": "quiz",
+        "quiz_duration": "10",
+        "quiz_duration_type": "minutes",
+        "deadline": "2025-07-28",
+        "total_marks": "100",
+        "quiz_description": "Advanced programming concepts",
+        "quiz_questions": [
+            {
+                "question_id": "1",
+                "question_type": "single_choice",
+                "question_marks": "10",
+                "question_text": "What does routes/web.php handle in Laravel?",
+                "options": [
+                    {
+                        "option_id": "1",
+                        "option_text": "API routes",
+                        "is_correct": false
+                    },
+                    {
+                        "option_id": "2",
+                        "option_text": "Web routes",
+                        "is_correct": true
+                    },
+                    {
+                        "option_id": "3",
+                        "option_text": "Database migrations",
+                        "is_correct": false
+                    },
+                    {
+                        "option_id": "4",
+                        "option_text": "Console commands",
+                        "is_correct": false
+                    }
+                ]
+            },
+            {
+                "question_id": "2",
+                "question_type": "single_choice",
+                "question_marks": "10",
+                "question_text": "Which command is used to create a new Laravel project?",
+                "options": [
+                    {
+                        "option_id": "1",
+                        "option_text": "composer create-project laravel/laravel",
+                        "is_correct": true
+                    },
+                    {
+                        "option_id": "2",
+                        "option_text": "npm install laravel",
+                        "is_correct": false
+                    },
+                    {
+                        "option_id": "3",
+                        "option_text": "php artisan new laravel",
+                        "is_correct": false
+                    },
+                    {
+                        "option_id": "4",
+                        "option_text": "laravel init",
+                        "is_correct": false
+                    }
+                ]
+            },
+            {
+                "question_id": "3",
+                "question_type": "multiple_choice",
+                "question_marks": "10",
+                "question_text": "Which of the following are HTTP methods used in Laravel routes?",
+                "options": [
+                    {
+                        "option_id": "1",
+                        "option_text": "GET",
+                        "is_correct": true
+                    },
+                    {
+                        "option_id": "2",
+                        "option_text": "POST",
+                        "is_correct": true
+                    },
+                    {
+                        "option_id": "3",
+                        "option_text": "CONNECT",
+                        "is_correct": false
+                    },
+                    {
+                        "option_id": "4",
+                        "option_text": "PUT",
+                        "is_correct": true
+                    }
+                ]
+            },
+            {
+                "question_id": "4",
+                "question_type": "single_choice",
+                "question_marks": "10",
+                "question_text": "In Laravel, which folder contains the controllers?",
+                "options": [
+                    {
+                        "option_id": "1",
+                        "option_text": "app/Http/Controllers",
+                        "is_correct": true
+                    },
+                    {
+                        "option_id": "2",
+                        "option_text": "resources/views",
+                        "is_correct": false
+                    },
+                    {
+                        "option_id": "3",
+                        "option_text": "routes",
+                        "is_correct": false
+                    },
+                    {
+                        "option_id": "4",
+                        "option_text": "config",
+                        "is_correct": false
+                    }
+                ]
+            },
+            {
+                "question_id": "5",
+                "question_type": "multiple_choice",
+                "question_marks": "10",
+                "question_text": "Which files are used to store Laravel configuration values?",
+                "options": [
+                    {
+                        "option_id": "1",
+                        "option_text": ".env",
+                        "is_correct": true
+                    },
+                    {
+                        "option_id": "2",
+                        "option_text": "config/app.php",
+                        "is_correct": true
+                    },
+                    {
+                        "option_id": "3",
+                        "option_text": "routes/web.php",
+                        "is_correct": false
+                    },
+                    {
+                        "option_id": "4",
+                        "option_text": "composer.json",
+                        "is_correct": false
+                    }
+                ]
+            },
+            {
+                "question_id": "6",
+                "question_type": "single_choice",
+                "question_marks": "10",
+                "question_text": "What is the default template engine used in Laravel?",
+                "options": [
+                    {
+                        "option_id": "1",
+                        "option_text": "Blade",
+                        "is_correct": true
+                    },
+                    {
+                        "option_id": "2",
+                        "option_text": "Twig",
+                        "is_correct": false
+                    },
+                    {
+                        "option_id": "3",
+                        "option_text": "Smarty",
+                        "is_correct": false
+                    },
+                    {
+                        "option_id": "4",
+                        "option_text": "Mustache",
+                        "is_correct": false
+                    }
+                ]
+            },
+            {
+                "question_id": "7",
+                "question_type": "multiple_choice",
+                "question_marks": "10",
+                "question_text": "Which artisan commands are related to database migrations?",
+                "options": [
+                    {
+                        "option_id": "1",
+                        "option_text": "php artisan migrate",
+                        "is_correct": true
+                    },
+                    {
+                        "option_id": "2",
+                        "option_text": "php artisan make:migration",
+                        "is_correct": true
+                    },
+                    {
+                        "option_id": "3",
+                        "option_text": "php artisan db:seed",
+                        "is_correct": false
+                    },
+                    {
+                        "option_id": "4",
+                        "option_text": "php artisan migrate:rollback",
+                        "is_correct": true
+                    }
+                ]
+            },
+            {
+                "question_id": "8",
+                "question_type": "single_choice",
+                "question_marks": "10",
+                "question_text": "Which Laravel file stores environment-specific configurations?",
+                "options": [
+                    {
+                        "option_id": "1",
+                        "option_text": ".env",
+                        "is_correct": true
+                    },
+                    {
+                        "option_id": "2",
+                        "option_text": "config/app.php",
+                        "is_correct": false
+                    },
+                    {
+                        "option_id": "3",
+                        "option_text": "routes/web.php",
+                        "is_correct": false
+                    },
+                    {
+                        "option_id": "4",
+                        "option_text": "bootstrap/app.php",
+                        "is_correct": false
+                    }
+                ]
+            },
+            {
+                "question_id": "9",
+                "question_type": "multiple_choice",
+                "question_marks": "10",
+                "question_text": "Which features are provided by Laravel Eloquent ORM?",
+                "options": [
+                    {
+                        "option_id": "1",
+                        "option_text": "ActiveRecord implementation",
+                        "is_correct": true
+                    },
+                    {
+                        "option_id": "2",
+                        "option_text": "Database relationships",
+                        "is_correct": true
+                    },
+                    {
+                        "option_id": "3",
+                        "option_text": "Blade template rendering",
+                        "is_correct": false
+                    },
+                    {
+                        "option_id": "4",
+                        "option_text": "Query builder integration",
+                        "is_correct": true
+                    }
+                ]
+            },
+            {
+                "question_id": "10",
+                "question_type": "single_choice",
+                "question_marks": "10",
+                "question_text": "Which HTTP method is typically used to delete resources in Laravel?",
+                "options": [
+                    {
+                        "option_id": "1",
+                        "option_text": "DELETE",
+                        "is_correct": true
+                    },
+                    {
+                        "option_id": "2",
+                        "option_text": "PUT",
+                        "is_correct": false
+                    },
+                    {
+                        "option_id": "3",
+                        "option_text": "GET",
+                        "is_correct": false
+                    },
+                    {
+                        "option_id": "4",
+                        "option_text": "POST",
+                        "is_correct": false
+                    }
+                ]
+            }
+        ]
+    }
+]
