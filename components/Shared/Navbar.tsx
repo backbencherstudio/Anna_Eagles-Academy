@@ -56,7 +56,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
             { id: '1', message: 'You have empty vibe check for tomorrow.', time: '01:55 pm', role: 'student' },
             { id: '2', message: 'Course completion notification', time: '02:30 pm', role: 'student' },
             { id: '3', message: 'Payment success notification', time: '03:15 pm', role: 'student' },
-            
+
             // Admin notifications
             { id: '4', message: 'New student registration', time: '10:00 am', role: 'admin' },
             { id: '5', message: 'Course completion alert', time: '11:30 am', role: 'admin' },
@@ -65,7 +65,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
         ];
 
         // Filter notifications based on user role
-        const roleBasedNotifications = allNotifications.filter(notification => 
+        const roleBasedNotifications = allNotifications.filter(notification =>
             notification.role === user?.role || !notification.role
         );
 
@@ -108,6 +108,13 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
         'video': 'Video',
         'lesson': 'Lesson',
         'chapter': 'Chapter',
+        'users-management': 'Users Management',
+        'email-notification': 'Email Notification',
+        "calendar": 'Calendar',
+        'course-management': 'Course Management',
+        'create-assignments': 'Create Assignments',
+        'reports': 'Reports',
+
     };
 
     // Function to get dynamic title based on pathname
@@ -219,11 +226,11 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
                                     <div className='flex items-center gap-2'>
                                         <div className="relative">
                                             {user?.profileImage && user.profileImage !== 'null' && user.profileImage !== '' ? (
-                                                <Image 
-                                                    src={user.profileImage} 
-                                                    alt="Profile picture" 
-                                                    width={40} 
-                                                    height={40} 
+                                                <Image
+                                                    src={user.profileImage}
+                                                    alt="Profile picture"
+                                                    width={40}
+                                                    height={40}
                                                     className='rounded-full w-10 h-10 object-cover'
                                                     unoptimized={true}
                                                 />
