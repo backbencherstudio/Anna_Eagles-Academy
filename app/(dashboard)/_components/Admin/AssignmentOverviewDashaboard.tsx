@@ -1,9 +1,10 @@
 import React from 'react'
-import {  CardContent } from '@/components/ui/card'
+import { CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { FaGraduationCap, FaPlay } from 'react-icons/fa'
 import Image from 'next/image'
+import Link from 'next/link'
 
 // Mock data for assignments
 const assignments = [
@@ -49,6 +50,8 @@ const ongoingCourse = {
     videoType: "SERMON"
 }
 
+
+
 export default function AssignmentOverviewDashaboard() {
     return (
         <div className="space-y-6 lg:space-y-8">
@@ -56,9 +59,11 @@ export default function AssignmentOverviewDashaboard() {
             <div className='bg-white rounded-lg p-4 sm:p-6'>
                 <div className="flex items-center justify-between mb-4 sm:mb-6">
                     <h2 className="text-lg sm:text-xl font-semibold text-gray-600">Assignment</h2>
-                    <Button variant="outline" className="text-xs sm:text-sm cursor-pointer">
-                        View all
-                    </Button>
+                    <Link href="/create-assignments">
+                        <Button variant="outline" className="text-xs sm:text-sm cursor-pointer">
+                            View all
+                        </Button>
+                    </Link>
                 </div>
 
                 <div className="grid gap-4 sm:gap-6">
@@ -79,7 +84,7 @@ export default function AssignmentOverviewDashaboard() {
                                         </h3>
 
                                         {/* Description */}
-                                        <p className="text-gray-600 text-sm sm:text-md mb-3 sm:mb-4 leading-relaxed">
+                                        <p className="text-gray-500 mb-3 sm:mb-4 leading-relaxed">
                                             {assignment.description}
                                         </p>
 
@@ -133,7 +138,7 @@ export default function AssignmentOverviewDashaboard() {
                 <div className='mt-8 sm:mt-10'>
                     <h2 className="text-lg sm:text-xl font-semibold text-gray-600 mb-3 sm:mb-4">Ongoing Course</h2>
 
-                    <div className="bg-[#F8FAFB] rounded-xl p-4 sm:p-6">
+                    <div className="bg-[#F8FAFB] rounded-xl p-4 sm:p-6 border border-gray-200">
 
                         <div >
                             <Image
@@ -146,11 +151,11 @@ export default function AssignmentOverviewDashaboard() {
                         </div>
 
                         {/* Course Info */}
-                        <div className="">
-                            <h3 className="text-sm sm:text-md lg:text-lg font-bold text-gray-600 mb-2 leading-tight">
+                        <div className="mt-4">
+                            <h3 className="text-sm sm:text-md lg:text-lg font-semibold text-gray-600 mb-2 leading-tight">
                                 {ongoingCourse.title}
                             </h3>
-                            <p className="text-xs sm:text-sm text-gray-500">
+                            <p className="text-xs sm:text-sm font-medium text-gray-500">
                                 Started: {ongoingCourse.startDate}
                             </p>
                         </div>
