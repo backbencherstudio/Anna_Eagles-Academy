@@ -1,0 +1,182 @@
+[
+    {
+        "id": 1,
+        "fullName": "Liam Carter",
+        "email": "liam.carter@example.com",
+        "avatar": "https://picsum.photos/150?random=1",
+        "completionStatus": 85,
+        "submittedAssignments": 25,
+        "enrollmentStatus": "Currently Enrolled"
+    },
+    {
+        "id": 2,
+        "fullName": "Olivia Smith",
+        "email": "olivia.smith@example.com",
+        "avatar": "https://picsum.photos/150?random=2",
+        "completionStatus": 90,
+        "submittedAssignments": 28,
+        "enrollmentStatus": "Currently Enrolled"
+    },
+    {
+        "id": 3,
+        "fullName": "Ava Brown",
+        "email": "ava.brown@example.com",
+        "avatar": "https://picsum.photos/150?random=3",
+        "completionStatus": 75,
+        "submittedAssignments": 32,
+        "enrollmentStatus": "Currently Enrolled"
+    },
+    {
+        "id": 4,
+        "fullName": "Isabella Davis",
+        "email": "isabella.davis@example.com",
+        "avatar": "https://picsum.photos/150?random=4",
+        "completionStatus": 80,
+        "submittedAssignments": 29,
+        "enrollmentStatus": "Currently Enrolled"
+    },
+    {
+        "id": 5,
+        "fullName": "Mia Wilson",
+        "email": "mia.wilson@example.com",
+        "avatar": "https://picsum.photos/150?random=5",
+        "completionStatus": 95,
+        "submittedAssignments": 31,
+        "enrollmentStatus": "Currently Enrolled"
+    },
+    {
+        "id": 6,
+        "fullName": "Charlotte Johnson",
+        "email": "charlotte.johnson@example.com",
+        "avatar": "https://picsum.photos/150?random=6",
+        "completionStatus": 70,
+        "submittedAssignments": 27,
+        "enrollmentStatus": "Currently Enrolled"
+    },
+    {
+        "id": 7,
+        "fullName": "Amelia Martinez",
+        "email": "amelia.martinez@example.com",
+        "avatar": "https://picsum.photos/150?random=7",
+        "completionStatus": 88,
+        "submittedAssignments": 30,
+        "enrollmentStatus": "Currently Enrolled"
+    },
+    {
+        "id": 8,
+        "fullName": "Harper Lee",
+        "email": "harper.lee@example.com",
+        "avatar": "https://picsum.photos/150?random=8",
+        "completionStatus": 82,
+        "submittedAssignments": 26,
+        "enrollmentStatus": "Currently Enrolled"
+    },
+    {
+        "id": 9,
+        "fullName": "Evelyn Garcia",
+        "email": "evelyn.garcia@example.com",
+        "avatar": "https://picsum.photos/150?random=9",
+        "completionStatus": 78,
+        "submittedAssignments": 33,
+        "enrollmentStatus": "Currently Enrolled"
+    },
+    {
+        "id": 10,
+        "fullName": "Abigail Rodriguez",
+        "email": "abigail.rodriguez@example.com",
+        "avatar": "https://picsum.photos/150?random=10",
+        "completionStatus": 92,
+        "submittedAssignments": 35,
+        "enrollmentStatus": "Currently Enrolled"
+    },
+    {
+        "id": 11,
+        "fullName": "Emily Lopez",
+        "email": "emily.lopez@example.com",
+        "avatar": "https://picsum.photos/150?random=11",
+        "completionStatus": 87,
+        "submittedAssignments": 28,
+        "enrollmentStatus": "Currently Enrolled"
+    },
+    {
+        "id": 12,
+        "fullName": "Elizabeth Gonzalez",
+        "email": "elizabeth.gonzalez@example.com",
+        "avatar": "https://picsum.photos/150?random=12",
+        "completionStatus": 83,
+        "submittedAssignments": 31,
+        "enrollmentStatus": "Currently Enrolled"
+    },
+    {
+        "id": 13,
+        "fullName": "Sofia Perez",
+        "email": "sofia.perez@example.com",
+        "avatar": "https://picsum.photos/150?random=13",
+        "completionStatus": 89,
+        "submittedAssignments": 29,
+        "enrollmentStatus": "Currently Enrolled"
+    },
+    {
+        "id": 14,
+        "fullName": "Avery Torres",
+        "email": "avery.torres@example.com",
+        "avatar": "https://picsum.photos/150?random=14",
+        "completionStatus": 76,
+        "submittedAssignments": 26,
+        "enrollmentStatus": "Currently Enrolled"
+    },
+    {
+        "id": 15,
+        "fullName": "Ella Ramirez",
+        "email": "ella.ramirez@example.com",
+        "avatar": "https://picsum.photos/150?random=15",
+        "completionStatus": 91,
+        "submittedAssignments": 34,
+        "enrollmentStatus": "Currently Enrolled"
+    },
+    {
+        "id": 16,
+        "fullName": "Madison Reed",
+        "email": "madison.reed@example.com",
+        "avatar": "https://picsum.photos/150?random=16",
+        "completionStatus": 84,
+        "submittedAssignments": 27,
+        "enrollmentStatus": "Currently Enrolled"
+    },
+    {
+        "id": 17,
+        "fullName": "Scarlett Cook",
+        "email": "scarlett.cook@example.com",
+        "avatar": "https://picsum.photos/150?random=17",
+        "completionStatus": 79,
+        "submittedAssignments": 30,
+        "enrollmentStatus": "Currently Enrolled"
+    },
+    {
+        "id": 18,
+        "fullName": "Victoria Morgan",
+        "email": "victoria.morgan@example.com",
+        "avatar": "https://picsum.photos/150?random=18",
+        "completionStatus": 86,
+        "submittedAssignments": 32,
+        "enrollmentStatus": "Currently Enrolled"
+    },
+    {
+        "id": 19,
+        "fullName": "Luna Bell",
+        "email": "luna.bell@example.com",
+        "avatar": "https://picsum.photos/150?random=19",
+        "completionStatus": 93,
+        "submittedAssignments": 36,
+        "enrollmentStatus": "Currently Enrolled"
+    },
+    {
+        "id": 20,
+        "fullName": "Grace Murphy",
+        "email": "grace.murphy@example.com",
+        "avatar": "https://picsum.photos/150?random=20",
+        "completionStatus": 81,
+        "submittedAssignments": 28,
+        "enrollmentStatus": "Currently Enrolled"
+    }
+]

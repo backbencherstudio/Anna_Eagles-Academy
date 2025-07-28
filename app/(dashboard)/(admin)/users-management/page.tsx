@@ -1,9 +1,8 @@
 import React from 'react'
+import UserManagementPage from '../../_components/Admin/UserManagementPage'
 
 export default function UsersManagement() {
     return (
-        <div>
-            this is users management
-        </div>
+        <UserManagementPage />
     )
 }
