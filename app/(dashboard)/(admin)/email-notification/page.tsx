@@ -5,8 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { Bold, Italic, Underline, Link, List, ListOrdered, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
+import TextAreaCustom from '@/components/Resuable/TextAreaCustom'
 
 interface Student {
     id: number
@@ -22,9 +22,6 @@ export default function EmailNotification() {
     const [students, setStudents] = useState<Student[]>([])
     const [selectedRecipient, setSelectedRecipient] = useState<string>('')
     const [message, setMessage] = useState<string>('')
-    const [isBold, setIsBold] = useState(false)
-    const [isItalic, setIsItalic] = useState(false)
-    const [isUnderline, setIsUnderline] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
 
     useEffect(() => {
@@ -34,6 +31,7 @@ export default function EmailNotification() {
                 const response = await fetch('/data/UserManagement.json')
                 const data = await response.json()
                 setStudents(data)
+                // console.log('Students data loaded:', data)
             } catch (error) {
                 console.error('Error fetching students:', error)
             }
@@ -43,24 +41,14 @@ export default function EmailNotification() {
     }, [])
 
     const handleSend = () => {
-        // Handle send functionality
-        console.log('Sending to:', selectedRecipient)
-        console.log('Message:', message)
+        console.log('=== EMAIL NOTIFICATION DATA ===')
+        console.log('Recipient:', selectedRecipient)
+        console.log('Message (HTML):', message)
+        console.log('Full Editor Data:', {
+            recipient: selectedRecipient,
+            messageHTML: message
+        })
         // Add your email sending logic here
-    }
-
-    const toggleFormat = (format: 'bold' | 'italic' | 'underline') => {
-        switch (format) {
-            case 'bold':
-                setIsBold(!isBold)
-                break
-            case 'italic':
-                setIsItalic(!isItalic)
-                break
-            case 'underline':
-                setIsUnderline(!isUnderline)
-                break
-        }
     }
 
     // Filter students based on search query
@@ -103,62 +91,13 @@ export default function EmailNotification() {
                     </Select>
                 </div>
 
-                {/* Message Input */}
-                <div className="space-y-2">
-                    <Label htmlFor="message">Input</Label>
-
-                    {/* Rich Text Toolbar */}
-                    <div className="flex items-center gap-2 p-2 border rounded-t-md bg-gray-50">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleFormat('bold')}
-                            className={isBold ? 'bg-gray-200' : ''}
-                        >
-                            <Bold className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleFormat('italic')}
-                            className={isItalic ? 'bg-gray-200' : ''}
-                        >
-                            <Italic className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleFormat('underline')}
-                            className={isUnderline ? 'bg-gray-200' : ''}
-                        >
-                            <Underline className="h-4 w-4" />
-                        </Button>
-                        <div className="w-px h-6 bg-gray-300 mx-2" />
-                        <Button variant="ghost" size="sm">
-                            <Link className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                            <List className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                            <ListOrdered className="h-4 w-4" />
-                        </Button>
-                    </div>
-
-                    {/* Text Area */}
-                    <Textarea
-                        id="message"
-                        placeholder="You are have talented, love your work!"
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        className="min-h-32 rounded-t-none resize-none"
-                        style={{
-                            fontWeight: isBold ? 'bold' : 'normal',
-                            fontStyle: isItalic ? 'italic' : 'normal',
-                            textDecoration: isUnderline ? 'underline' : 'none',
-                        }}
-                    />
-                </div>
+                {/* Rich Text Editor */}
+                <TextAreaCustom
+                    value={message}
+                    onChange={setMessage}
+                    label="Message"
+                    placeholder="Enter your message here..."
+                />
 
                 {/* Send Button */}
                 <div className="flex justify-end">

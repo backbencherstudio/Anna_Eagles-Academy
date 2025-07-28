@@ -109,6 +109,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
         'lesson': 'Lesson',
         'chapter': 'Chapter',
         'users-management': 'Users Management',
+
         'email-notification': 'Email Notification',
         "calendar": 'Calendar',
         'course-management': 'Course Management',
