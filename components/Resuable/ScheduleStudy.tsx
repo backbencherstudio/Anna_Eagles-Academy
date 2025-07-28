@@ -10,6 +10,10 @@ type ScheduleItem = {
     time?: string;
 };
 
+interface ScheduleStudyProps {
+    scheduleData: ScheduleItem[];
+}
+
 const WEEK_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const TIME_SLOTS = [
     "08:00 AM",
@@ -94,7 +98,7 @@ function getSlotSpan(start: string | null, end: string | null): number {
     return Math.max(1, endIdx - startIdx);
 }
 
-export default function ScheduleStudy() {
+export default function ScheduleStudy({ scheduleData }: ScheduleStudyProps) {
     const [events, setEvents] = useState<ScheduleItem[]>([]);
     const [baseDate, setBaseDate] = useState<Date>(() => {
         const now = new Date();
@@ -108,12 +112,8 @@ export default function ScheduleStudy() {
     });
 
     useEffect(() => {
-        fetch("/data/MyScheduleData.json")
-            .then((res) => res.json())
-            .then((data: ScheduleItem[]) => {
-                setEvents(data);
-            });
-    }, []);
+        setEvents(scheduleData);
+    }, [scheduleData]);
 
     const weekDates = getWeekDates(baseDate);
     const weekOfMonth = getWeekOfMonth(weekDates[0]);
