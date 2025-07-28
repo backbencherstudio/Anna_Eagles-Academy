@@ -34,13 +34,11 @@ export const authenticateUser = async (credentials: LoginCredentials): Promise<U
             throw new Error('User not found');
         }
 
-        // Check password (in real app, this would be hashed)
         const expectedPassword = DEMO_PASSWORDS[credentials.email];
         if (!expectedPassword || expectedPassword !== credentials.password) {
             throw new Error('Invalid password');
         }
 
-        // Transform the user data to match our User interface
         const transformedUser: User = {
             id: user.id,
             name: user.name,

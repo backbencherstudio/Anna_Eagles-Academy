@@ -14,9 +14,9 @@ interface MyScheduleProps {
 
 const TIME_SLOTS = [
     '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '01:00 PM', '02:00 PM',
-    '03:00 PM', '04:00 PM', '05:00 PM', '06:00 PM', '07:00 PM', '08:00 PM',
-    '09:00 PM', '10:00 PM', '11:00 PM', '12:00 AM', '01:00 AM', '02:00 AM',
-    '03:00 AM', '04:00 AM', '05:00 AM', '06:00 AM', '07:00 AM', '08:00 AM'
+    '03:00 PM', '04:00 PM', '05:00 PM',
+  
+   
 ];
 
 const parseTime = (timeStr: string) => {
@@ -49,7 +49,7 @@ const MySchedule: React.FC<MyScheduleProps> = ({ scheduleData }) => {
     });
 
     return (
-        <div style={{ background: '#fff', borderRadius: 16, padding: 24, height: 500, overflowY: 'auto' }}>
+        <div className='h-fit' style={{ background: '#fff', borderRadius: 16, padding: 24,  overflowY: 'auto' }}>
             <h3 style={{ fontWeight: 600, marginBottom: 16 }}>My Schedule</h3>
             {TIME_SLOTS.map((slot, idx) => {
                 const slotInfo = slotTaskMap[slot];

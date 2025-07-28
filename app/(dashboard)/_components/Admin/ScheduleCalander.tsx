@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react'
-import MyCourseCard from './MyCourseCard'
-import TodayTask from './TodayTask'
 import CalanderPage from '@/components/Resuable/CalanderPage'
+import React, { useEffect, useState } from 'react'
+
 
 interface ScheduleItem {
     id: number;
@@ -13,7 +12,8 @@ interface ScheduleItem {
     link_label?: string;
 }
 
-export default function StudentDashboard() {
+
+export default function ScheduleCalander() {
     const [scheduleData, setScheduleData] = useState<ScheduleItem[]>([]);
 
     useEffect(() => {
@@ -22,16 +22,9 @@ export default function StudentDashboard() {
             .then((data) => setScheduleData(data))
             .catch((error) => console.error('Error fetching schedule data:', error));
     }, []);
-
     return (
-        <div className='flex flex-col lg:flex-row gap-10'>
-            <div className='w-full lg:w-5/12 flex flex-col gap-7'>
-                <MyCourseCard />
-                <TodayTask />
-            </div>
-            <div className='w-full lg:w-7/12'>
-                <CalanderPage scheduleData={scheduleData} />
-            </div>
+        <div>
+            <CalanderPage scheduleData={scheduleData} />
         </div>
     )
 }

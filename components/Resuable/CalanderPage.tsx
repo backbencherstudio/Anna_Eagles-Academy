@@ -8,6 +8,8 @@ interface ScheduleItem {
     subject: string;
     date: string;
     time: string;
+    link?: string;
+    link_label?: string;
 }
 
 function formatDateLocal(date: Date): string {
@@ -18,21 +20,13 @@ function formatDateLocal(date: Date): string {
 }
 
 interface CalanderPageProps {
-    // scheduleData: ScheduleItem[];
+    scheduleData: ScheduleItem[];
     initialSelectedDate?: string;
 }
 
-export default function CalanderPage({ initialSelectedDate }: CalanderPageProps) {
-    const [scheduleData, setScheduleData] = useState<ScheduleItem[]>([]);
+export default function CalanderPage({ scheduleData, initialSelectedDate }: CalanderPageProps) {
     const [selectedDate, setSelectedDate] = useState<string>(initialSelectedDate || '');
     const [calendarDate, setCalendarDate] = useState<Date | undefined>(undefined);
-
-
-    useEffect(() => {
-        fetch('/data/MyScheduleData.json')
-            .then((res) => res.json())
-            .then((data) => setScheduleData(data));
-    }, []);
 
     useEffect(() => {
         if (!selectedDate) {
@@ -52,7 +46,7 @@ export default function CalanderPage({ initialSelectedDate }: CalanderPageProps)
     const filteredSchedule = scheduleData.filter((item) => item.date === selectedDate);
 
     return (
-        <div className="calendar-page-container rounded-2xl h-96">
+        <div className=" rounded-2xl ">
             <div className='bg-white rounded-2xl' style={{ height: 350, overflowY: 'auto' }}>
                 <Calendar
                     mode="single"

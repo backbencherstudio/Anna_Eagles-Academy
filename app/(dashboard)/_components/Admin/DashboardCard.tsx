@@ -1,15 +1,9 @@
-import { Icon } from 'lucide-react'
+
 import React from 'react'
-import { IconType } from 'react-icons'
 
 import { FaDollarSign, FaBookOpen, FaUsers } from 'react-icons/fa'
 
-interface DashboardCardProps {
-    title: string
-    value: string | number
-    icon: IconType
-    iconBgColor?: string
-}
+
 
 const data = [
     {

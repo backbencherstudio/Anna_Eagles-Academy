@@ -1,15 +1,12 @@
 import React, { useState } from 'react'
-import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { ChevronDown, RefreshCw, TrendingDown } from 'lucide-react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts'
+import { Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts'
 
 export default function RevenueGrowthPage() {
     const [selectedPeriod, setSelectedPeriod] = useState('Month')
-    // const [activeTooltip, setActiveTooltip] = useState<any>(null)
 
-    // Original data for the chart - keeping the same 8 data points
     const chartData = [
         { date: 'May 01', thisPeriod: 6000, lastPeriod: 3000 },
         { date: 'May 05', thisPeriod: 5800, lastPeriod: 2500 },
