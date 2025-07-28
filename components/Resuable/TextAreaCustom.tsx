@@ -630,8 +630,8 @@ export default function TextAreaCustom({
             onClick={handleUndo}
             disabled={!canUndo}
             className={`p-2 rounded transition-colors duration-150 ${canUndo
-                ? 'cursor-pointer hover:bg-gray-200'
-                : 'cursor-not-allowed opacity-50'
+              ? 'cursor-pointer hover:bg-gray-200'
+              : 'cursor-not-allowed opacity-50'
               }`}
             title={canUndo ? "Undo (Ctrl+Z)" : "Nothing to undo"}
           >
@@ -642,8 +642,8 @@ export default function TextAreaCustom({
             onClick={handleRedo}
             disabled={!canRedo}
             className={`p-2 rounded transition-colors duration-150 ${canRedo
-                ? 'cursor-pointer hover:bg-gray-200'
-                : 'cursor-not-allowed opacity-50'
+              ? 'cursor-pointer hover:bg-gray-200'
+              : 'cursor-not-allowed opacity-50'
               }`}
             title={canRedo ? "Redo (Ctrl+Y)" : "Nothing to redo"}
           >
@@ -721,8 +721,8 @@ export default function TextAreaCustom({
               type="button"
               onClick={handleListMenuToggle}
               className={`p-2 cursor-pointer rounded flex items-center gap-1 transition-colors duration-150 ${currentListType
-                  ? 'bg-[#F1C27D]/60 text-black'
-                  : 'hover:bg-gray-200'
+                ? 'bg-[#F1C27D]/60 text-black'
+                : 'hover:bg-gray-200'
                 }`}
               title="List Options"
             >
