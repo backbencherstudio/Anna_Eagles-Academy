@@ -95,7 +95,7 @@ export default function AwaitingEvaluation() {
 
                 setEvaluationData(sampleEvaluationData)
             } catch (error) {
-                console.error('Error fetching evaluation data:', error)
+                // console.error('Error fetching evaluation data:', error)
             } finally {
                 setLoading(false)
             }
@@ -116,7 +116,7 @@ export default function AwaitingEvaluation() {
 
     // Handle grade action
     const handleGrade = (item: EvaluationItem) => {
-        console.log('Grade assignment:', item)
+        // console.log('Grade assignment:', item)
         // Handle grading logic here
     }
 
@@ -126,7 +126,7 @@ export default function AwaitingEvaluation() {
         status: (
             <Button
                 onClick={() => handleGrade(item)}
-                className="bg-[#F1C27D] hover:bg-[#F1C27D]/80 text-gray-700 px-3 py-1 text-sm rounded"
+                className="bg-[#F1C27D] cursor-pointer hover:bg-[#F1C27D]/80 text-gray-700 px-3 py-1 text-sm rounded"
             >
                 Grade
             </Button>
