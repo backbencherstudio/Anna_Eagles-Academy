@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Bold, Italic, Underline, Link, List, AlignLeft, AlignCenter, AlignRight, AlignJustify, ChevronDown, Undo, Redo } from 'lucide-react'
+import { Bold, Italic, Underline, Link, List, AlignLeft, AlignCenter, AlignRight, AlignJustify, ChevronDown, Undo, Redo, Type, ListChecks, Highlighter } from 'lucide-react'
 
 interface TextAreaCustomProps {
   value: string
@@ -17,7 +17,7 @@ export default function TextAreaCustom({
   placeholder = "Enter your message here...",
   label,
   className = "",
-  minHeight = "128px"
+  minHeight = "188px"
 }: TextAreaCustomProps) {
   const editorRef = useRef<HTMLDivElement>(null)
   const [showListMenu, setShowListMenu] = useState(false)
@@ -29,6 +29,9 @@ export default function TextAreaCustom({
   const [isBold, setIsBold] = useState<boolean>(false)
   const [isItalic, setIsItalic] = useState<boolean>(false)
   const [isUnderline, setIsUnderline] = useState<boolean>(false)
+  const [isHighlighted, setIsHighlighted] = useState<boolean>(false)
+  const [showColorPalette, setShowColorPalette] = useState<boolean>(false)
+  const [currentHighlightColor, setCurrentHighlightColor] = useState<string>('#FEF3C7')
   const [canUndo, setCanUndo] = useState<boolean>(false)
   const [canRedo, setCanRedo] = useState<boolean>(false)
   const [showLinkMenu, setShowLinkMenu] = useState<boolean>(false)
@@ -38,6 +41,7 @@ export default function TextAreaCustom({
   const [linkFormData, setLinkFormData] = useState({ url: '', text: '', openInNewTab: true })
   const alignButtonRef = useRef<HTMLButtonElement>(null)
   const listButtonRef = useRef<HTMLButtonElement>(null)
+  const highlightButtonRef = useRef<HTMLButtonElement>(null)
   const linkRangeRef = useRef<Range | null>(null)
 
 
@@ -63,6 +67,8 @@ export default function TextAreaCustom({
         setIsItalic(!isItalic)
       } else if (command === 'underline') {
         setIsUnderline(!isUnderline)
+      } else if (command === 'backColor') {
+        setIsHighlighted(!isHighlighted)
       }
 
       // Re-focus editor after command
@@ -72,6 +78,78 @@ export default function TextAreaCustom({
       handleEditorChange()
 
     }, 10)
+  }
+
+  const toggleHighlight = () => {
+    const selection = window.getSelection()
+    if (!selection || selection.rangeCount === 0) {
+      alert('Please select text first to highlight')
+      return
+    }
+
+    const selectedText = selection.toString()
+    if (!selectedText) {
+      alert('Please select text first to highlight')
+      return
+    }
+
+    editorRef.current?.focus()
+    
+    // Toggle highlight
+    if (isHighlighted) {
+      // Remove highlight by setting background to transparent
+      document.execCommand('backColor', false, 'transparent')
+    } else {
+      // Add highlight with current color
+      document.execCommand('backColor', false, currentHighlightColor)
+    }
+    
+    setIsHighlighted(!isHighlighted)
+    handleEditorChange()
+  }
+
+  const handleHighlightMenuToggle = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!showColorPalette) {
+      const coords = getDropdownPosition(highlightButtonRef)
+      setDropdownCoords(coords)
+      setDropdownPosition(coords.position as 'top' | 'bottom')
+    }
+    setShowColorPalette(!showColorPalette)
+    setShowListMenu(false)
+    setShowAlignMenu(false)
+  }
+
+  const applyHighlightColor = (color: string) => {
+    const selection = window.getSelection()
+    if (!selection || selection.rangeCount === 0) {
+      alert('Please select text first to highlight')
+      return
+    }
+
+    const selectedText = selection.toString()
+    if (!selectedText) {
+      alert('Please select text first to highlight')
+      return
+    }
+
+    editorRef.current?.focus()
+    
+    if (color === 'transparent') {
+      // Remove highlight
+      document.execCommand('backColor', false, 'transparent')
+      setIsHighlighted(false)
+    } else {
+      // Apply highlight color
+      document.execCommand('backColor', false, color)
+      setCurrentHighlightColor(color)
+      setIsHighlighted(true)
+    }
+    
+    setShowColorPalette(false)
+    handleEditorChange()
   }
 
   const handleUndo = () => {
@@ -107,20 +185,102 @@ export default function TextAreaCustom({
     }
   }
 
+  const resetFormattingStates = () => {
+    // Reset all formatting states when clicking outside or losing focus
+    const selection = window.getSelection()
+    
+    if (!selection || selection.rangeCount === 0) {
+      // No selection, reset all states
+      setIsBold(false)
+      setIsItalic(false)
+      setIsUnderline(false)
+      setIsHighlighted(false)
+      setCurrentAlignment('left')
+      setCurrentListType('')
+      return
+    }
+
+    const selectedText = selection.toString()
+    if (!selectedText) {
+      // No text selected, reset all states
+      setIsBold(false)
+      setIsItalic(false)
+      setIsUnderline(false)
+      setIsHighlighted(false)
+      setCurrentAlignment('left')
+      setCurrentListType('')
+      return
+    }
+
+    // Check if selection is within the editor
+    const range = selection.getRangeAt(0)
+    if (!editorRef.current?.contains(range.commonAncestorContainer)) {
+      // Selection is outside editor, reset all states
+      setIsBold(false)
+      setIsItalic(false)
+      setIsUnderline(false)
+      setIsHighlighted(false)
+      setCurrentAlignment('left')
+      setCurrentListType('')
+      return
+    }
+
+    // If we have a valid selection within editor, check actual formatting
+    checkFormattingState()
+  }
+
   const checkFormattingState = () => {
     if (editorRef.current) {
-      setIsBold(document.queryCommandState('bold'))
-      setIsItalic(document.queryCommandState('italic'))
-      setIsUnderline(document.queryCommandState('underline'))
+      const selection = window.getSelection()
+      
+      // Only check formatting if we have a valid selection within the editor
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0)
+        
+        // Check if selection is within the editor
+        if (editorRef.current.contains(range.commonAncestorContainer)) {
+          setIsBold(document.queryCommandState('bold'))
+          setIsItalic(document.queryCommandState('italic'))
+          setIsUnderline(document.queryCommandState('underline'))
+          
+          // Check if current selection has background color (highlight)
+          const container = range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+            ? range.commonAncestorContainer.parentElement
+            : range.commonAncestorContainer as HTMLElement
+          
+          if (container) {
+            const backgroundColor = window.getComputedStyle(container).backgroundColor
+            const isHighlightedColor = backgroundColor !== 'rgba(0, 0, 0, 0)' && 
+                                     backgroundColor !== 'transparent' && 
+                                     backgroundColor !== 'rgb(255, 255, 255)' &&
+                                     backgroundColor !== 'rgba(255, 255, 255, 1)'
+            setIsHighlighted(isHighlightedColor)
+          } else {
+            setIsHighlighted(false)
+          }
+        } else {
+          // Selection is outside editor, reset states
+          setIsBold(false)
+          setIsItalic(false)
+          setIsUnderline(false)
+          setIsHighlighted(false)
+        }
+      } else {
+        // No selection, reset states
+        setIsBold(false)
+        setIsItalic(false)
+        setIsUnderline(false)
+        setIsHighlighted(false)
+      }
 
       // Check undo/redo availability
       setCanUndo(document.queryCommandEnabled('undo'))
       setCanRedo(document.queryCommandEnabled('redo'))
 
       // Check current list state
-      const selection = window.getSelection()
-      if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0)
+      const currentSelection = window.getSelection()
+      if (currentSelection && currentSelection.rangeCount > 0) {
+        const range = currentSelection.getRangeAt(0)
         const listItem = range.commonAncestorContainer.nodeType === Node.TEXT_NODE
           ? (range.commonAncestorContainer.parentElement as HTMLElement)?.closest('li')
           : (range.commonAncestorContainer as HTMLElement).closest('li')
@@ -164,7 +324,7 @@ export default function TextAreaCustom({
           const lists = editorRef.current.querySelectorAll('ul, ol')
           let isInList = false
           lists.forEach(list => {
-            if (list.contains(selection.anchorNode)) {
+            if (currentSelection && list.contains(currentSelection.anchorNode)) {
               isInList = true
               if (list.tagName === 'UL') {
                 setCurrentListType('bullet')
@@ -595,9 +755,20 @@ export default function TextAreaCustom({
         return
       }
 
+      // Don't close if clicking inside the editor
+      if (target.closest('[contenteditable="true"]')) {
+        return
+      }
+
       setShowListMenu(false)
       setShowAlignMenu(false)
+      setShowColorPalette(false)
       setShowLinkMenu(false)
+
+      // Reset formatting states when clicking outside editor
+      setTimeout(() => {
+        resetFormattingStates()
+      }, 10)
     }
 
     // Check dropdown position based on viewport
@@ -742,6 +913,11 @@ export default function TextAreaCustom({
       if (style) {
         style.remove()
       }
+
+      // Reset formatting states when editor loses focus
+      setTimeout(() => {
+        resetFormattingStates()
+      }, 100)
     }
 
     editor.addEventListener('focus', handleFocus)
@@ -766,114 +942,138 @@ export default function TextAreaCustom({
       )}
 
       <div className="border rounded-md overflow-hidden relative">
-        {/* Toolbar */}
-        <div className="toolbar-container flex items-center gap-1 p-2 bg-gray-50 border-b relative">
-          {/* Undo/Redo */}
-          <button
-            type="button"
-            onClick={handleUndo}
-            disabled={!canUndo}
-            className={`p-2 rounded transition-colors duration-150 ${canUndo
-              ? 'cursor-pointer hover:bg-gray-200'
-              : 'cursor-not-allowed opacity-50'
-              }`}
-            title={canUndo ? "Undo (Ctrl+Z)" : "Nothing to undo"}
-          >
-            <Undo className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={handleRedo}
-            disabled={!canRedo}
-            className={`p-2 rounded transition-colors duration-150 ${canRedo
-              ? 'cursor-pointer hover:bg-gray-200'
-              : 'cursor-not-allowed opacity-50'
-              }`}
-            title={canRedo ? "Redo (Ctrl+Y)" : "Nothing to redo"}
-          >
-            <Redo className="h-4 w-4" />
-          </button>
-          <div className="w-px h-6 bg-gray-300 mx-1"></div>
+        {/* Toolbar - Mobile Responsive with Horizontal Scroll */}
+        <div className="toolbar-container bg-gray-50 border-b relative">
+          <div className="flex items-center gap-1 p-2 overflow-x-auto scrollbar-hide min-w-0 sm:gap-2">
+            {/* Undo/Redo Group */}
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <button
+                type="button"
+                onClick={handleUndo}
+                disabled={!canUndo}
+                className={`p-2 sm:p-2.5 rounded transition-colors duration-150 ${canUndo
+                  ? 'cursor-pointer hover:bg-gray-200'
+                  : 'cursor-not-allowed opacity-50'
+                  }`}
+                title={canUndo ? "Undo (Ctrl+Z)" : "Nothing to undo"}
+              >
+                <Undo className="h-4 w-4 " />
+              </button>
+              <button
+                type="button"
+                onClick={handleRedo}
+                disabled={!canRedo}
+                className={`p-2 sm:p-2.5 rounded transition-colors duration-150 ${canRedo
+                  ? 'cursor-pointer hover:bg-gray-200'
+                  : 'cursor-not-allowed opacity-50'
+                  }`}
+                title={canRedo ? "Redo (Ctrl+Y)" : "Nothing to redo"}
+              >
+                <Redo className="h-4 w-4 " />
+              </button>
+            </div>
 
-          <button
-            type="button"
-            onClick={() => execCommand('bold')}
-            className={`p-2 rounded cursor-pointer transition-colors duration-150 ${isBold
-              ? 'bg-[#F1C27D]/60 text-black'
-              : 'hover:bg-gray-200'
-              }`}
-            title="Bold"
-          >
-            <Bold className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => execCommand('italic')}
-            className={`p-2 rounded cursor-pointer transition-colors duration-150 ${isItalic
-              ? 'bg-[#F1C27D]/60 text-black'
-              : 'hover:bg-gray-200'
-              }`}
-            title="Italic"
-          >
-            <Italic className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => execCommand('underline')}
-            className={`p-2 rounded cursor-pointer transition-colors duration-150 ${isUnderline
-              ? 'bg-[#F1C27D]/60 text-black '
-              : 'hover:bg-gray-200'
-              }`}
-            title="Underline"
-          >
-            <Underline className="h-4 w-4" />
-          </button>
-          <div className="w-px h-6 bg-gray-300 mx-1"></div>
-          <button
-            type="button"
-            onClick={insertLink}
-            className="p-2 cursor-pointer hover:bg-gray-200 rounded"
-            title="Create Link (Select text first)"
-          >
-            <Link className="h-4 w-4" />
-          </button>
-          <div className="w-px h-6 bg-gray-300 mx-1"></div>
+            <div className="w-px h-6 bg-gray-300 mx-1 flex-shrink-0"></div>
 
-          {/* Alignment Dropdown */}
-          <div className="relative">
-            <button
-              ref={alignButtonRef}
-              type="button"
-              onClick={handleAlignMenuToggle}
-              className="p-2 cursor-pointer hover:bg-gray-200 rounded flex items-center gap-1"
-              title="Text Alignment"
-            >
-              {currentAlignment === 'left' && <AlignLeft className="h-4 w-4" />}
-              {currentAlignment === 'center' && <AlignCenter className="h-4 w-4" />}
-              {currentAlignment === 'right' && <AlignRight className="h-4 w-4" />}
-              {currentAlignment === 'justify' && <AlignJustify className="h-4 w-4" />}
-              {!currentAlignment && <AlignLeft className="h-4 w-4" />}
-              <ChevronDown className="h-3 w-3" />
-            </button>
+            {/* Text Formatting Group */}
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => execCommand('bold')}
+                className={`p-2 sm:p-2.5 rounded cursor-pointer transition-colors duration-150 ${isBold
+                  ? 'bg-[#F1C27D]/60 text-black'
+                  : 'hover:bg-gray-200'
+                  }`}
+                title="Bold"
+              >
+                <Bold className="h-4 w-4 " />
+              </button>
+              <button
+                type="button"
+                onClick={() => execCommand('italic')}
+                className={`p-2 sm:p-2.5 rounded cursor-pointer transition-colors duration-150 ${isItalic
+                  ? 'bg-[#F1C27D]/60 text-black'
+                  : 'hover:bg-gray-200'
+                  }`}
+                title="Italic"
+              >
+                <Italic className="h-4 w-4 " />
+              </button>
+                            <button
+                type="button"
+                onClick={() => execCommand('underline')}
+                className={`p-2 sm:p-2.5 rounded cursor-pointer transition-colors duration-150 ${isUnderline
+                  ? 'bg-[#F1C27D]/60 text-black '
+                  : 'hover:bg-gray-200'
+                  }`}
+                title="Underline"
+              >
+                <Underline className="h-4 w-4 " />
+              </button>
+              <button
+                ref={highlightButtonRef}
+                type="button"
+                onClick={handleHighlightMenuToggle}
+                className={`p-2 sm:p-2.5 rounded cursor-pointer transition-colors duration-150 ${isHighlighted
+                  ? 'bg-[#F1C27D]/60 text-black'
+                  : 'hover:bg-gray-200'
+                  }`}
+                title="Highlight Text (Select text first)"
+              >
+                <Highlighter className="h-4 w-4 " />
+              </button>
+            </div>
+            
+            <div className="w-px h-6 bg-gray-300 mx-1 flex-shrink-0"></div>
 
-          </div>
+            {/* Link Group */}
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <button
+                type="button"
+                onClick={insertLink}
+                className="p-2 sm:p-2.5 cursor-pointer hover:bg-gray-200 rounded"
+                title="Create Link (Select text first)"
+              >
+                <Link className="h-4 w-4 " />
+              </button>
+            </div>
 
-          {/* List Dropdown */}
-          <div className="relative">
-            <button
-              ref={listButtonRef}
-              type="button"
-              onClick={handleListMenuToggle}
-              className={`p-2 cursor-pointer rounded flex items-center gap-1 transition-colors duration-150 ${currentListType
-                ? 'bg-[#F1C27D]/60 text-black'
-                : 'hover:bg-gray-200'
-                }`}
-              title="List Options"
-            >
-              <List className="h-4 w-4" />
-              <ChevronDown className="h-3 w-3" />
-            </button>
+            <div className="w-px h-6 bg-gray-300 mx-1 flex-shrink-0"></div>
 
+            {/* Alignment Dropdown */}
+            <div className="relative flex-shrink-0">
+              <button
+                ref={alignButtonRef}
+                type="button"
+                onClick={handleAlignMenuToggle}
+                className="p-2 sm:p-2.5 cursor-pointer hover:bg-gray-200 rounded flex items-center gap-1"
+                title="Text Alignment"
+              >
+                {currentAlignment === 'left' && <AlignLeft className="h-4 w-4 " />}
+                {currentAlignment === 'center' && <AlignCenter className="h-4 w-4 " />}
+                {currentAlignment === 'right' && <AlignRight className="h-4 w-4 " />}
+                {currentAlignment === 'justify' && <AlignJustify className="h-4 w-4 " />}
+                {!currentAlignment && <AlignLeft className="h-4 w-4 " />}
+                <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4" />
+              </button>
+            </div>
+
+            {/* List Dropdown */}
+            <div className="relative flex-shrink-0">
+              <button
+                ref={listButtonRef}
+                type="button"
+                onClick={handleListMenuToggle}
+                className={`p-2 sm:p-2.5 cursor-pointer rounded flex items-center gap-1 transition-colors duration-150 ${currentListType
+                  ? 'bg-[#F1C27D]/60 text-black'
+                  : 'hover:bg-gray-200'
+                  }`}
+                title="List Options"
+              >
+                <List className="h-4 w-4 " />
+                <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -895,7 +1095,7 @@ export default function TextAreaCustom({
           {showAlignMenu && createPortal(
             <div
               data-dropdown="true"
-              className="fixed bg-white  border border-gray-200 rounded-lg shadow-xl z-[9999] min-w-48 backdrop-blur-sm"
+              className="fixed bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] min-w-48 backdrop-blur-sm"
               style={{
                 left: dropdownCoords.x,
                 top: dropdownPosition === 'bottom' ? dropdownCoords.y : 'auto',
@@ -905,7 +1105,10 @@ export default function TextAreaCustom({
             >
               {/* Header */}
               <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-gray-100 rounded-t-lg">
-                <h3 className="text-sm font-semibold text-gray-700">Text Alignment</h3>
+                <div className="flex items-center gap-2">
+                  <Type className="h-4 w-4 text-gray-600" />
+                  <h3 className="text-sm font-semibold text-gray-700">Text Alignment</h3>
+                </div>
               </div>
 
               {/* Alignment Options */}
@@ -1042,12 +1245,14 @@ export default function TextAreaCustom({
             >
               {/* Header */}
               <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-gray-100 rounded-t-lg">
-                <h3 className="text-sm font-semibold text-gray-700">List Options</h3>
+                <div className="flex items-center gap-2">
+                  <ListChecks className="h-4 w-4 text-gray-600" />
+                  <h3 className="text-sm font-semibold text-gray-700">List Options</h3>
+                </div>
               </div>
 
               {/* Unordered Lists Section */}
               <div className="p-2">
-
                 <button
                   onClick={(e) => {
                     e.preventDefault()
@@ -1078,7 +1283,6 @@ export default function TextAreaCustom({
 
               {/* Ordered Lists Section */}
               <div className="p-2 border-t border-gray-100">
-
                 <button
                   onClick={(e) => {
                     e.preventDefault()
@@ -1225,75 +1429,183 @@ export default function TextAreaCustom({
             document.body
           )}
 
-          {/* Link Edit Menu */}
-          {showLinkMenu && currentLink && createPortal(
+          {/* Color Palette Dropdown */}
+          {showColorPalette && createPortal(
             <div
-              data-link-menu="true"
-              className="fixed bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] min-w-80 backdrop-blur-sm"
+              data-dropdown="true"
+              className="fixed bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] min-w-48 backdrop-blur-sm"
               style={{
-                left: linkMenuPosition.x,
-                top: linkMenuPosition.y
+                left: dropdownCoords.x,
+                top: dropdownPosition === 'bottom' ? dropdownCoords.y : 'auto',
+                bottom: dropdownPosition === 'top' ? window.innerHeight - dropdownCoords.y : 'auto'
               }}
-              onClick={(e) => e.stopPropagation()}
+              onClick={handleDropdownClick}
             >
               {/* Header */}
               <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-gray-100 rounded-t-lg">
-                <h3 className="text-sm font-semibold text-gray-700">Edit Link</h3>
+                <div className="flex items-center gap-2">
+                  <Highlighter className="h-4 w-4 text-gray-600" />
+                  <h3 className="text-sm font-semibold text-gray-700">Highlight Colors</h3>
+                </div>
               </div>
 
-              {/* Link URL Input */}
+              {/* Color Options */}
               <div className="p-4">
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      URL
-                    </label>
-                    <input
-                      type="url"
-                      defaultValue={currentLink.url}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#F1C27D] focus:border-transparent"
-                      placeholder="https://example.com"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          updateLink(e.currentTarget.value)
-                        }
-                      }}
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-2 pt-2">
-                    <button
-                      onClick={() => {
-                        const input = document.querySelector('[data-link-menu="true"] input') as HTMLInputElement
-                        if (input) {
-                          updateLink(input.value)
-                        }
-                      }}
-                      className="px-4 py-2 bg-[#F1C27D] text-white rounded-md text-sm font-medium hover:bg-[#F1C27D]/90 transition-colors"
-                    >
-                      Update Link
-                    </button>
-                    <button
-                      onClick={openLink}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
-                    >
-                      Open Link
-                    </button>
-                    <button
-                      onClick={removeLink}
-                      className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 transition-colors"
-                    >
-                      Remove Link
-                    </button>
-                  </div>
+                <div className="grid grid-cols-6 gap-2">
+                  {/* Light Green */}
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      applyHighlightColor('#D1FAE5')
+                    }}
+                    onMouseDown={(e) => e.preventDefault()}
+                    className="w-8 h-8 rounded-full bg-[#D1FAE5] border-2 border-gray-200 hover:border-gray-400 transition-colors cursor-pointer"
+                    title="Light Green"
+                  />
+                  
+                  {/* Light Blue */}
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      applyHighlightColor('#DBEAFE')
+                    }}
+                    onMouseDown={(e) => e.preventDefault()}
+                    className="w-8 h-8 rounded-full bg-[#DBEAFE] border-2 border-gray-200 hover:border-gray-400 transition-colors cursor-pointer"
+                    title="Light Blue"
+                  />
+                  
+                  {/* Reddish Brown */}
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      applyHighlightColor('#FEE2E2')
+                    }}
+                    onMouseDown={(e) => e.preventDefault()}
+                    className="w-8 h-8 rounded-full bg-[#FEE2E2] border-2 border-gray-200 hover:border-gray-400 transition-colors cursor-pointer"
+                    title="Light Red"
+                  />
+                  
+                  {/* Purple */}
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      applyHighlightColor('#F3E8FF')
+                    }}
+                    onMouseDown={(e) => e.preventDefault()}
+                    className="w-8 h-8 rounded-full bg-[#F3E8FF] border-2 border-gray-200 hover:border-gray-400 transition-colors cursor-pointer"
+                    title="Light Purple"
+                  />
+                  
+                  {/* Olive Green */}
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      applyHighlightColor('#FEF3C7')
+                    }}
+                    onMouseDown={(e) => e.preventDefault()}
+                    className="w-8 h-8 rounded-full bg-[#FEF3C7] border-2 border-gray-200 hover:border-gray-400 transition-colors cursor-pointer"
+                    title="Light Yellow"
+                  />
+                  
+                  {/* Clear/No Color */}
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      applyHighlightColor('transparent')
+                    }}
+                    onMouseDown={(e) => e.preventDefault()}
+                    className="w-8 h-8 rounded-full bg-white border-2 border-gray-300 hover:border-gray-500 transition-colors cursor-pointer relative"
+                    title="Clear Highlight"
+                  >
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-4 h-0.5 bg-gray-400 rotate-45"></div>
+                    </div>
+                  </button>
                 </div>
               </div>
 
               {/* Footer */}
               <div className="px-4 py-2 border-t border-gray-100 bg-gray-50 rounded-b-lg">
                 <p className="text-xs text-gray-500 text-center">
-                  Press Enter to update or use Ctrl+Click to open link directly
+                  Select text and choose a color to highlight
                 </p>
+              </div>
+            </div>,
+            document.body
+          )}
+
+          {/* Link Edit Menu */}
+          {showLinkMenu && currentLink && createPortal(
+            <div
+              data-link-menu="true"
+              className="fixed z-[9999] w-fit bg-white border border-gray-400 rounded-lg "
+              style={{
+                left: linkMenuPosition.x,
+                top: linkMenuPosition.y,
+                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+
+              <div className="flex items-center">
+                <input
+                  type="url"
+                  defaultValue={currentLink.url}
+                  className="flex-1 px-5 py-3 bg-transparent text-black placeholder-gray-400 text-sm focus:outline-none border-none"
+                  placeholder="Paste a link..."
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      updateLink(e.currentTarget.value)
+                    }
+                  }}
+                />
+
+                {/* Action Icons */}
+                <div className="flex items-center gap-1">
+                  {/* Undo/Return Button */}
+                  <button
+                    onClick={() => {
+                      const input = document.querySelector('[data-link-menu="true"] input[type="url"]') as HTMLInputElement
+                      if (input) {
+                        updateLink(input.value)
+                      }
+                    }}
+                    className="p-1.5 text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded transition-colors"
+                    title="Update Link"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                    </svg>
+                  </button>
+
+                  {/* Open Link Button */}
+                  <button
+                    onClick={openLink}
+                    className="p-1.5 text-gray-400 cursor-pointer hover:text-gray-200 hover:bg-gray-700 rounded transition-colors"
+                    title="Open Link"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </button>
+
+                  {/* Remove Link Button */}
+                  <button
+                    onClick={removeLink}
+                    className="p-1.5 text-gray-400 cursor-pointer hover:text-red-400 hover:bg-gray-700 rounded transition-colors"
+                    title="Remove Link"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>,
             document.body
@@ -1383,6 +1695,17 @@ export default function TextAreaCustom({
           )}
         </>
       )}
+
+      {/* Custom CSS for scrollbar hiding */}
+      <style jsx>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </div>
   )
 }

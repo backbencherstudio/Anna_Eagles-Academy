@@ -58,8 +58,8 @@ export default function EmailNotification() {
     )
 
     return (
-        <div className='bg-white rounded-xl p-4 py-8'>
-            <CardContent className="space-y-6">
+        <div className='bg-white rounded-xl p-5'>
+            <div className="space-y-6">
                 {/* Recipient Selection */}
                 <div className="space-y-2">
                     <Label htmlFor="recipient">To</Label>
@@ -108,7 +108,7 @@ export default function EmailNotification() {
                         Send
                     </Button>
                 </div>
-            </CardContent>
+            </div>
         </div>
     )
 }
