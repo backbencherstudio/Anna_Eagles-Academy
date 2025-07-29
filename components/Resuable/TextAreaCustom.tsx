@@ -31,6 +31,9 @@ export default function TextAreaCustom({
   const [isUnderline, setIsUnderline] = useState<boolean>(false)
   const [canUndo, setCanUndo] = useState<boolean>(false)
   const [canRedo, setCanRedo] = useState<boolean>(false)
+  const [showLinkMenu, setShowLinkMenu] = useState<boolean>(false)
+  const [currentLink, setCurrentLink] = useState<{ element: HTMLAnchorElement; url: string } | null>(null)
+  const [linkMenuPosition, setLinkMenuPosition] = useState({ x: 0, y: 0 })
   const alignButtonRef = useRef<HTMLButtonElement>(null)
   const listButtonRef = useRef<HTMLButtonElement>(null)
 
@@ -238,6 +241,33 @@ export default function TextAreaCustom({
     editorRef.current?.focus()
   }
 
+  const updateLink = (newUrl: string) => {
+    if (currentLink) {
+      currentLink.element.href = newUrl
+      setCurrentLink({ ...currentLink, url: newUrl })
+      handleEditorChange()
+      setShowLinkMenu(false)
+    }
+  }
+
+  const removeLink = () => {
+    if (currentLink) {
+      const textContent = currentLink.element.textContent
+      const textNode = document.createTextNode(textContent || '')
+      currentLink.element.parentNode?.replaceChild(textNode, currentLink.element)
+      setShowLinkMenu(false)
+      setCurrentLink(null)
+      handleEditorChange()
+    }
+  }
+
+  const openLink = () => {
+    if (currentLink) {
+      window.open(currentLink.url, '_blank', 'noopener,noreferrer')
+      setShowLinkMenu(false)
+    }
+  }
+
   const insertList = (type: string) => {
     // Focus back to editor before applying command
     editorRef.current?.focus()
@@ -439,19 +469,28 @@ export default function TextAreaCustom({
     setShowAlignMenu(false)
   }
 
-  // Handle link clicks to show URL
+  // Handle link clicks to show edit menu
   const handleLinkClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement
     if (target.tagName === 'A') {
       e.preventDefault()
+      e.stopPropagation()
+      
       const url = target.getAttribute('href')
       if (url) {
-        alert(`Link URL: ${url}`)
+        // Show link edit menu
+        const rect = target.getBoundingClientRect()
+        setLinkMenuPosition({
+          x: rect.left,
+          y: rect.bottom + 8
+        })
+        setCurrentLink({ element: target as HTMLAnchorElement, url })
+        setShowLinkMenu(true)
       }
     }
   }
 
-  // Add tooltip for links
+  // Add tooltip for links and handle hover
   useEffect(() => {
     const editor = editorRef.current
     if (!editor) return
@@ -461,15 +500,44 @@ export default function TextAreaCustom({
       if (target.tagName === 'A') {
         const url = target.getAttribute('href')
         if (url) {
-          target.title = `Click to view URL: ${url}`
+          target.title = `Click to edit or Ctrl+Click to open: ${url}`
+          // Add hover effect
+          target.style.cursor = 'pointer'
+          target.style.textDecoration = 'underline'
+          target.style.color = '#2563eb'
+        }
+      }
+    }
+
+    const handleMouseOut = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (target.tagName === 'A') {
+        // Remove hover effect
+        target.style.cursor = 'default'
+        target.style.textDecoration = 'underline'
+        target.style.color = '#2563eb'
+      }
+    }
+
+    const handleCtrlClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (target.tagName === 'A' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault()
+        const url = target.getAttribute('href')
+        if (url) {
+          window.open(url, '_blank', 'noopener,noreferrer')
         }
       }
     }
 
     editor.addEventListener('mouseover', handleMouseOver)
+    editor.addEventListener('mouseout', handleMouseOut)
+    editor.addEventListener('click', handleCtrlClick)
 
     return () => {
       editor.removeEventListener('mouseover', handleMouseOver)
+      editor.removeEventListener('mouseout', handleMouseOut)
+      editor.removeEventListener('click', handleCtrlClick)
     }
   }, [])
 
@@ -488,8 +556,14 @@ export default function TextAreaCustom({
         return
       }
 
+      // Don't close if clicking on link menu
+      if (target.closest('[data-link-menu="true"]')) {
+        return
+      }
+
       setShowListMenu(false)
       setShowAlignMenu(false)
+      setShowLinkMenu(false)
     }
 
     // Check dropdown position based on viewport
@@ -610,9 +684,19 @@ export default function TextAreaCustom({
           background-color: rgba(37, 99, 235, 0.1) !important;
           padding: 1px 2px !important;
           border-radius: 2px !important;
+          cursor: pointer !important;
+          transition: all 0.2s ease !important;
         }
         [contenteditable] a:hover {
           background-color: rgba(37, 99, 235, 0.2) !important;
+          color: #1d4ed8 !important;
+          text-decoration: underline !important;
+          transform: translateY(-1px) !important;
+          box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2) !important;
+        }
+        [contenteditable] a:active {
+          transform: translateY(0) !important;
+          box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2) !important;
         }
       `
       document.head.appendChild(style)
@@ -1101,6 +1185,80 @@ export default function TextAreaCustom({
               <div className="px-4 py-2 border-t border-gray-100 bg-gray-50 rounded-b-lg">
                 <p className="text-xs text-gray-500 text-center">
                   Select text or place cursor to create list
+                </p>
+              </div>
+            </div>,
+            document.body
+          )}
+
+          {/* Link Edit Menu */}
+          {showLinkMenu && currentLink && createPortal(
+            <div
+              data-link-menu="true"
+              className="fixed bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] min-w-80 backdrop-blur-sm"
+              style={{
+                left: linkMenuPosition.x,
+                top: linkMenuPosition.y
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-gray-100 rounded-t-lg">
+                <h3 className="text-sm font-semibold text-gray-700">Edit Link</h3>
+              </div>
+
+              {/* Link URL Input */}
+              <div className="p-4">
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      URL
+                    </label>
+                    <input
+                      type="url"
+                      defaultValue={currentLink.url}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#F1C27D] focus:border-transparent"
+                      placeholder="https://example.com"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          updateLink(e.currentTarget.value)
+                        }
+                      }}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center gap-2 pt-2">
+                    <button
+                      onClick={() => {
+                        const input = document.querySelector('[data-link-menu="true"] input') as HTMLInputElement
+                        if (input) {
+                          updateLink(input.value)
+                        }
+                      }}
+                      className="px-4 py-2 bg-[#F1C27D] text-white rounded-md text-sm font-medium hover:bg-[#F1C27D]/90 transition-colors"
+                    >
+                      Update Link
+                    </button>
+                    <button
+                      onClick={openLink}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      Open Link
+                    </button>
+                    <button
+                      onClick={removeLink}
+                      className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 transition-colors"
+                    >
+                      Remove Link
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-4 py-2 border-t border-gray-100 bg-gray-50 rounded-b-lg">
+                <p className="text-xs text-gray-500 text-center">
+                  Press Enter to update or use Ctrl+Click to open link directly
                 </p>
               </div>
             </div>,
