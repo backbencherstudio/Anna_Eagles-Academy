@@ -32,10 +32,13 @@ export default function TextAreaCustom({
   const [canUndo, setCanUndo] = useState<boolean>(false)
   const [canRedo, setCanRedo] = useState<boolean>(false)
   const [showLinkMenu, setShowLinkMenu] = useState<boolean>(false)
+  const [showLinkModal, setShowLinkModal] = useState<boolean>(false)
   const [currentLink, setCurrentLink] = useState<{ element: HTMLAnchorElement; url: string } | null>(null)
   const [linkMenuPosition, setLinkMenuPosition] = useState({ x: 0, y: 0 })
+  const [linkFormData, setLinkFormData] = useState({ url: '', text: '', openInNewTab: true })
   const alignButtonRef = useRef<HTMLButtonElement>(null)
   const listButtonRef = useRef<HTMLButtonElement>(null)
+  const linkRangeRef = useRef<Range | null>(null)
 
 
   const execCommand = (command: string, value: string = '') => {
@@ -216,29 +219,60 @@ export default function TextAreaCustom({
       return
     }
 
-    const url = prompt('Enter URL:')
-    if (!url) return
-
-    // Store the current selection range
+    // Store the current selection range for later use
     const range = selection.getRangeAt(0)
-    
+
+    // Set form data with selected text
+    setLinkFormData({
+      url: '',
+      text: selectedText,
+      openInNewTab: true
+    })
+
+    // Show the smart modal
+    setShowLinkModal(true)
+
+    // Store the range in a ref for later use
+    linkRangeRef.current = range
+  }
+
+  const handleCreateLink = () => {
+    if (!linkFormData.url.trim()) {
+      alert('Please enter a URL')
+      return
+    }
+
+    // Get the stored range
+    const range = linkRangeRef.current
+    if (!range) return
+
     // Create a link element
     const link = document.createElement('a')
-    link.href = url
-    link.textContent = selectedText
-    
+    link.href = linkFormData.url
+    link.textContent = linkFormData.text || linkFormData.url
+    link.target = linkFormData.openInNewTab ? '_blank' : '_self'
+    link.rel = linkFormData.openInNewTab ? 'noopener noreferrer' : ''
+
     // Delete the selected content and insert the link
     range.deleteContents()
     range.insertNode(link)
-    
+
     // Clear the selection
-    selection.removeAllRanges()
-    
+    const selection = window.getSelection()
+    selection?.removeAllRanges()
+
+    // Reset form and close modal
+    setLinkFormData({ url: '', text: '', openInNewTab: true })
+    setShowLinkModal(false)
+
     // Trigger change event
     handleEditorChange()
-    
+
     // Re-focus the editor
     editorRef.current?.focus()
+
+    // Clean up
+    linkRangeRef.current = null
   }
 
   const updateLink = (newUrl: string) => {
@@ -475,7 +509,7 @@ export default function TextAreaCustom({
     if (target.tagName === 'A') {
       e.preventDefault()
       e.stopPropagation()
-      
+
       const url = target.getAttribute('href')
       if (url) {
         // Show link edit menu
@@ -1226,7 +1260,7 @@ export default function TextAreaCustom({
                       }}
                     />
                   </div>
-                  
+
                   <div className="flex items-center gap-2 pt-2">
                     <button
                       onClick={() => {
@@ -1260,6 +1294,89 @@ export default function TextAreaCustom({
                 <p className="text-xs text-gray-500 text-center">
                   Press Enter to update or use Ctrl+Click to open link directly
                 </p>
+              </div>
+            </div>,
+            document.body
+          )}
+
+          {/* Smart Link Creation Modal */}
+          {showLinkModal && createPortal(
+            <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+              <div
+                className="bg-white rounded-xl shadow-2xl max-w-md w-full backdrop-blur-sm border border-gray-200"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Header */}
+                <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-gray-100 rounded-t-xl">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-800">Create Link</h3>
+                    <button
+                      onClick={() => {
+                        setShowLinkModal(false)
+                        setLinkFormData({ url: '', text: '', openInNewTab: true })
+                        linkRangeRef.current = null
+                      }}
+                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Form */}
+                <div className="p-6 space-y-4">
+                  {/* Link Text */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Link Text
+                    </label>
+                    <input
+                      type="text"
+                      value={linkFormData.text}
+                      onChange={(e) => setLinkFormData({ ...linkFormData, text: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#F1C27D] focus:border-transparent transition-all"
+                      placeholder="Enter link text..."
+                    />
+                  </div>
+
+                  {/* URL */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      URL <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="url"
+                      value={linkFormData.url}
+                      onChange={(e) => setLinkFormData({ ...linkFormData, url: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#F1C27D] focus:border-transparent transition-all"
+                      placeholder="https://example.com"
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-xl flex items-center justify-end space-x-3">
+                  <button
+                    onClick={() => {
+                      setShowLinkModal(false)
+                      setLinkFormData({ url: '', text: '', openInNewTab: true })
+                      linkRangeRef.current = null
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreateLink}
+                    disabled={!linkFormData.url.trim()}
+                    className="px-6 py-2 bg-[#F1C27D] text-white rounded-lg text-sm font-medium hover:bg-[#F1C27D]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    Create Link
+                  </button>
+                </div>
               </div>
             </div>,
             document.body
