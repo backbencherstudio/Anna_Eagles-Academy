@@ -1,0 +1,62 @@
+[
+    {
+        "id": 1,
+        "course_title": "HTML & CSS",
+        "course_description": "Welcome to the Master Class: Biblical Studies and Faith Application! 📖 This enriching course is designed to deepen your understanding of the Scriptures and their relevance in today's world. Whether you're a lifelong believer or new to the faith, this course will illuminate the teachings of the Bible and their application in everyday life. 🙏 Engage in interactive discussions and practical exercises that will enhance your spiritual journey. From exploring the historical context of biblical texts to applying their wisdom in modern scenarios, this class offers a thorough examination of the principles that guide Christian living. 🌟 By the end of this course, you'll be empowered to integrate biblical teachings into your daily decisions and interactions. Join us on this transformative journey and unlock the profound insights of the Bible in your life. Let's study, reflect, and grow in faith together!",
+        "course_price": 100,
+        "total_modules": 5,
+        "total_videos": 8,
+        "publish_date": "2025-07-24",
+        "end_date": "2025-12-31",
+        "status": "Ongoing",
+        "course_thumbnail": "https://img.youtube.com/vi/a_iQb1lnAEQ/0.jpg"
+    },
+    {
+        "id": 2,
+        "course_title": "React JS",
+        "course_description": "Welcome to the Master Class: Biblical Studies and Faith Application! 📖 This enriching course is designed to deepen your understanding of the Scriptures and their relevance in today's world. Whether you're a lifelong believer or new to the faith, this course will illuminate the teachings of the Bible and their application in everyday life. 🙏 Engage in interactive discussions and practical exercises that will enhance your spiritual journey. From exploring the historical context of biblical texts to applying their wisdom in modern scenarios, this class offers a thorough examination of the principles that guide Christian living. 🌟 By the end of this course, you'll be empowered to integrate biblical teachings into your daily decisions and interactions. Join us on this transformative journey and unlock the profound insights of the Bible in your life. Let's study, reflect, and grow in faith together!",
+        "course_price": 100,
+        "total_modules": 5,
+        "total_videos": 8,
+        "publish_date": "2025-07-24",
+        "end_date": "2025-12-31",
+        "status": "Finished",
+        "course_thumbnail": "https://img.youtube.com/vi/CgkZ7MvWUAA/0.jpg"
+    },
+    {
+        "id": 3,
+        "course_title": "Next JS",
+        "course_description": "Welcome to the Master Class: Biblical Studies and Faith Application! 📖 This enriching course is designed to deepen your understanding of the Scriptures and their relevance in today's world. Whether you're a lifelong believer or new to the faith, this course will illuminate the teachings of the Bible and their application in everyday life. 🙏 Engage in interactive discussions and practical exercises that will enhance your spiritual journey. From exploring the historical context of biblical texts to applying their wisdom in modern scenarios, this class offers a thorough examination of the principles that guide Christian living. 🌟 By the end of this course, you'll be empowered to integrate biblical teachings into your daily decisions and interactions. Join us on this transformative journey and unlock the profound insights of the Bible in your life. Let's study, reflect, and grow in faith together!",
+        "course_price": 100,
+        "total_modules": 5,
+        "total_videos": 8,
+        "publish_date": "2025-07-24",
+        "end_date": "2025-12-31",
+        "status": "Finished",
+        "course_thumbnail": "https://img.youtube.com/vi/W6NZfCO5SIk/0.jpg"
+    },
+    {
+        "id": 4,
+        "course_title": "Node JS",
+        "course_description": "Welcome to the Master Class: Biblical Studies and Faith Application! 📖 This enriching course is designed to deepen your understanding of the Scriptures and their relevance in today's world. Whether you're a lifelong believer or new to the faith, this course will illuminate the teachings of the Bible and their application in everyday life. 🙏 Engage in interactive discussions and practical exercises that will enhance your spiritual journey. From exploring the historical context of biblical texts to applying their wisdom in modern scenarios, this class offers a thorough examination of the principles that guide Christian living. 🌟 By the end of this course, you'll be empowered to integrate biblical teachings into your daily decisions and interactions. Join us on this transformative journey and unlock the profound insights of the Bible in your life. Let's study, reflect, and grow in faith together!",
+        "course_price": 100,
+        "total_modules": 5,
+        "total_videos": 8,
+        "publish_date": "2025-07-24",
+        "end_date": "2025-12-31",
+        "status": "Finished",
+        "course_thumbnail": "https://img.youtube.com/vi/W6NZfCO5SIk/0.jpg"
+    },
+    {
+        "id": 5,
+        "course_title": "Python",
+        "course_description": "Welcome to the Master Class: Biblical Studies and Faith Application! 📖 This enriching course is designed to deepen your understanding of the Scriptures and their relevance in today's world. Whether you're a lifelong believer or new to the faith, this course will illuminate the teachings of the Bible and their application in everyday life. 🙏 Engage in interactive discussions and practical exercises that will enhance your spiritual journey. From exploring the historical context of biblical texts to applying their wisdom in modern scenarios, this class offers a thorough examination of the principles that guide Christian living. 🌟 By the end of this course, you'll be empowered to integrate biblical teachings into your daily decisions and interactions. Join us on this transformative journey and unlock the profound insights of the Bible in your life. Let's study, reflect, and grow in faith together!",
+        "course_price": 100,
+        "total_modules": 5,
+        "total_videos": 8,
+        "publish_date": "2025-07-24",
+        "end_date": "2025-12-31",
+        "status": "Finished",
+        "course_thumbnail": "https://img.youtube.com/vi/W6NZfCO5SIk/0.jpg"
+    }
+]

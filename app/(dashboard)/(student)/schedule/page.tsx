@@ -1,6 +1,7 @@
 import React from 'react'
-import SchedulePage from '../_components/Student/SchedulePage'
-import CalanderStudent from '../_components/Student/CalanderStudent'
+import CalanderStudent from '../../_components/Student/CalanderStudent'
+import SchedulePage from '../../_components/Student/SchedulePage'
+
 
 export default function Calendar() {
     return (

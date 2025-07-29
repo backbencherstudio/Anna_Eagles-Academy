@@ -14,7 +14,7 @@ interface TextAreaCustomProps {
 export default function TextAreaCustom({
   value,
   onChange,
-  placeholder = "Enter your message here...",
+  placeholder = "",
   label,
   className = "",
   minHeight = "188px"
