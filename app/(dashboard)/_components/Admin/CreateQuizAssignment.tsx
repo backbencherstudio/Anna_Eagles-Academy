@@ -36,27 +36,27 @@ export default function CreateQuizAssignment() {
     const [questions, setQuestions] = useState<Question[]>([])
     const [selectedQuestionId, setSelectedQuestionId] = useState<string>('')
 
-      const {
-    control,
-    handleSubmit,
-    formState: { errors, isSubmitted, touchedFields, isDirty },
-    reset,
-    watch,
-    setValue,
-    getValues,
-    trigger,
-    setError,
-    clearErrors
-  } = useForm<QuizFormData>({
-    defaultValues: {
-      submissionDeadline: new Date(),
-      question: '',
-      options: ['', '', ''],
-      correctAnswer: '',
-      points: 10
-    },
-    mode: 'onSubmit'
-  })
+    const {
+        control,
+        handleSubmit,
+        formState: { errors, isSubmitted, touchedFields, isDirty },
+        reset,
+        watch,
+        setValue,
+        getValues,
+        trigger,
+        setError,
+        clearErrors
+    } = useForm<QuizFormData>({
+        defaultValues: {
+            submissionDeadline: new Date(),
+            question: '',
+            options: ['', '', ''],
+            correctAnswer: '',
+            points: 10
+        },
+        mode: 'onSubmit'
+    })
 
     const watchedOptions = watch('options')
     const watchedQuestion = watch('question')
@@ -114,18 +114,18 @@ export default function CreateQuizAssignment() {
                 points: data.points
             }
 
-                  setQuestions(prev => [...prev, newQuestion])
-      reset({
-        submissionDeadline: getValues('submissionDeadline'),
-        question: '',
-        options: ['', '', ''],
-        correctAnswer: '',
-        points: 10
-      })
-      setSelectedQuestionId('')
-      // Clear all errors after successful submission
-      clearErrors()
-      // console.log('Question added successfully!')
+            setQuestions(prev => [...prev, newQuestion])
+            reset({
+                submissionDeadline: getValues('submissionDeadline'),
+                question: '',
+                options: ['', '', ''],
+                correctAnswer: '',
+                points: 10
+            })
+            setSelectedQuestionId('')
+            // Clear all errors after successful submission
+            clearErrors()
+            // console.log('Question added successfully!')
         } else {
             // console.log('Validation failed - question or correct answer missing')
             // console.log('Question trimmed:', data.question.trim())
@@ -231,9 +231,9 @@ export default function CreateQuizAssignment() {
                                     </Popover>
                                 )}
                             />
-                                                            {errors.submissionDeadline && isSubmitted && (
-                                    <span className="text-xs text-red-500">{errors.submissionDeadline.message}</span>
-                                )}
+                            {errors.submissionDeadline && isSubmitted && (
+                                <span className="text-xs text-red-500">{errors.submissionDeadline.message}</span>
+                            )}
                         </div>
                     </div>
                     <Button
@@ -354,26 +354,26 @@ export default function CreateQuizAssignment() {
                         <div className='p-4'>
                             <div className="space-y-2">
                                 <Label htmlFor="question">Question <span className='text-red-500'>*</span></Label>
-                                                                    <Controller
-                                        name="question"
-                                        control={control}
-                                        rules={{ 
-                                            required: "Question is required",
-                                            minLength: { value: 10, message: "Question must be at least 10 characters" }
-                                        }}
-                                        render={({ field }) => (
-                                            <Textarea
-                                                id="question"
-                                                placeholder="Type your question here..."
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                className={`min-h-[100px] ${errors.question && isSubmitted && watchedQuestion.trim() ? 'border-red-500' : ''}`}
-                                            />
-                                        )}
-                                    />
-                                                                    {errors.question && isSubmitted && watchedQuestion.trim() && (
-                                        <span className="text-xs text-red-500">{errors.question.message}</span>
+                                <Controller
+                                    name="question"
+                                    control={control}
+                                    rules={{
+                                        required: "Question is required",
+                                        minLength: { value: 10, message: "Question must be at least 10 characters" }
+                                    }}
+                                    render={({ field }) => (
+                                        <Textarea
+                                            id="question"
+                                            placeholder="Type your question here..."
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            className={`min-h-[100px] ${errors.question && isSubmitted && watchedQuestion.trim() ? 'border-red-500' : ''}`}
+                                        />
                                     )}
+                                />
+                                {errors.question && isSubmitted && watchedQuestion.trim() && (
+                                    <span className="text-xs text-red-500">{errors.question.message}</span>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -456,7 +456,7 @@ export default function CreateQuizAssignment() {
                                                 value={field.value}
                                                 onValueChange={field.onChange}
                                             >
-                                                                                                    <SelectTrigger className={`w-full sm:w-48 ${errors.correctAnswer && isSubmitted && watchedQuestion.trim() ? 'border-red-500' : ''}`}>
+                                                <SelectTrigger className={`w-full sm:w-48 ${errors.correctAnswer && isSubmitted && watchedQuestion.trim() ? 'border-red-500' : ''}`}>
                                                     <SelectValue placeholder="Correct answer" />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -492,16 +492,16 @@ export default function CreateQuizAssignment() {
                                     </div>
                                 </div>
                             </div>
-                                                            {errors.correctAnswer && isSubmitted && watchedQuestion.trim() && (
-                                    <div className="px-5">
-                                        <span className="text-xs text-red-500">{errors.correctAnswer.message}</span>
-                                    </div>
-                                )}
-                                {errors.points && isSubmitted && watchedQuestion.trim() && (
-                                    <div className="px-5">
-                                        <span className="text-xs text-red-500">{errors.points.message}</span>
-                                    </div>
-                                )}
+                            {errors.correctAnswer && isSubmitted && watchedQuestion.trim() && (
+                                <div className="px-5">
+                                    <span className="text-xs text-red-500">{errors.correctAnswer.message}</span>
+                                </div>
+                            )}
+                            {errors.points && isSubmitted && watchedQuestion.trim() && (
+                                <div className="px-5">
+                                    <span className="text-xs text-red-500">{errors.points.message}</span>
+                                </div>
+                            )}
 
                             {/* Add Quiz Button */}
                             <div className="flex justify-end p-4">
