@@ -46,7 +46,7 @@ const MENU_CONFIG = {
             header: 'COURSES',
             items: [
                 { title: 'Course Management', icon: MdMenuBook, href: '/course-management' },
-                { title: 'Assignments', icon: MdAssignment, href: '/create-assignments' },
+                { title: 'Assignments', icon: MdAssignment, href: '/assignment-management' },
             ],
         },
         {

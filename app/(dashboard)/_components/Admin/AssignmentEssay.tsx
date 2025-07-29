@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Plus, ArrowRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 // Data type definition
 interface Assignment {
@@ -59,7 +60,7 @@ const sampleAssignments: Assignment[] = [
 export default function AssignmentEssay() {
     const [assignments, setAssignments] = useState<Assignment[]>([])
     const [loading, setLoading] = useState(true)
-
+    const router = useRouter()
     // Simulate data fetching with useEffect
     useEffect(() => {
         const fetchAssignments = async () => {
@@ -83,11 +84,13 @@ export default function AssignmentEssay() {
     }, [])
 
     const handleCreateAssignment = () => {
+        router.push('/create-assignment')
         // Handle create new assignment logic
         console.log('Create new assignment clicked')
     }
 
     const handleCardClick = (assignment: Assignment) => {
+
         // Handle card click logic
         console.log('Assignment clicked:', assignment)
     }

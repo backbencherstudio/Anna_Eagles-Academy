@@ -174,6 +174,11 @@ export default function CreateQuizAssignment() {
         setQuestions(items)
     }
 
+    const truncateText = (text: string, maxLength: number = 20) => {
+        if (text.length <= maxLength) return text
+        return text.substring(0, maxLength) + '...'
+    }
+
     return (
         <div className=" bg-white p-5 rounded-xl">
             {/* Header */}
@@ -316,8 +321,11 @@ export default function CreateQuizAssignment() {
                                                                         <p className="text-sm font-medium text-gray-900">
                                                                             Question {index + 1}
                                                                         </p>
-                                                                        <p className="text-xs text-gray-500 truncate">
-                                                                            {question.question || 'Enter your question here...'}
+                                                                        <p
+                                                                            className="text-sm text-gray-700 truncate cursor-help"
+                                                                            title={question.question}
+                                                                        >
+                                                                            {truncateText(question.question)}
                                                                         </p>
                                                                     </div>
                                                                 </div>
