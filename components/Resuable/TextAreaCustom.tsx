@@ -202,14 +202,40 @@ export default function TextAreaCustom({
 
   const insertLink = () => {
     const selection = window.getSelection()
-    if (selection && selection.toString()) {
-      const url = prompt('Enter URL:')
-      if (url) {
-        execCommand('createLink', url)
-      }
-    } else {
+    if (!selection || selection.rangeCount === 0) {
       alert('Please select text first to create a link')
+      return
     }
+
+    const selectedText = selection.toString()
+    if (!selectedText) {
+      alert('Please select text first to create a link')
+      return
+    }
+
+    const url = prompt('Enter URL:')
+    if (!url) return
+
+    // Store the current selection range
+    const range = selection.getRangeAt(0)
+    
+    // Create a link element
+    const link = document.createElement('a')
+    link.href = url
+    link.textContent = selectedText
+    
+    // Delete the selected content and insert the link
+    range.deleteContents()
+    range.insertNode(link)
+    
+    // Clear the selection
+    selection.removeAllRanges()
+    
+    // Trigger change event
+    handleEditorChange()
+    
+    // Re-focus the editor
+    editorRef.current?.focus()
   }
 
   const insertList = (type: string) => {
