@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import ReusableTable from '@/components/Resuable/ReusableTable'
 import { Button } from '@/components/ui/button'
+import { useRouter } from 'next/navigation'
 
 // Data type definition
 interface EvaluationItem {
@@ -81,7 +82,7 @@ export default function AwaitingEvaluation() {
     const [loading, setLoading] = useState(true)
     const [sortKey, setSortKey] = useState<string>('')
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
-
+    const router = useRouter()
     // Simulate data fetching with useEffect
     useEffect(() => {
         const fetchEvaluationData = async () => {
@@ -116,6 +117,7 @@ export default function AwaitingEvaluation() {
 
     // Handle grade action
     const handleGrade = (item: EvaluationItem) => {
+        router.push(`/assignment-evaluation/${item.id}`)
         // console.log('Grade assignment:', item)
         // Handle grading logic here
     }
