@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import CustomVideoPlayer from "@/components/Resuable/CustomVideoPlayer";
 import Modules_Sidebar from "./Modules_Sidebar";
 import ModulesSkeletonLoading from "./ModulesSkeletonLoading";
+import { useVideoProgress } from "@/hooks/useVideoProgress";
 
 export default function CoursesModules() {
   const [course, setCourse] = useState<any>(null);
@@ -13,7 +14,11 @@ export default function CoursesModules() {
   const [networkState, setNetworkState] = useState<number>(0);
   const [networkMessage, setNetworkMessage] = useState<string>('');
   const [openModules, setOpenModules] = useState<string[]>([]);
+  const [lockNotification, setLockNotification] = useState<{ show: boolean; message: string }>({ show: false, message: '' });
   const searchParams = useSearchParams();
+  
+  // Use the video progress hook
+  const { isVideoCompleted } = useVideoProgress();
 
   async function fetchCourseData() {
     const res = await fetch("/data/CourseData.json");
@@ -75,7 +80,26 @@ export default function CoursesModules() {
     });
   }, [searchParams]);
 
+  // Check if a video is unlocked (previous video is completed)
+  const isVideoUnlocked = useCallback((moduleIndex: number, videoIndex: number) => {
+    // First video is always unlocked
+    if (moduleIndex === 0 && videoIndex === 0) return true;
 
+    // Check if previous video in same module is completed
+    if (videoIndex > 0) {
+      const previousVideo = course.modules[moduleIndex].videos[videoIndex - 1];
+      return isVideoCompleted(previousVideo.video_id);
+    }
+
+    // Check if last video of previous module is completed
+    if (moduleIndex > 0) {
+      const previousModule = course.modules[moduleIndex - 1];
+      const lastVideoOfPreviousModule = previousModule.videos[previousModule.videos.length - 1];
+      return isVideoCompleted(lastVideoOfPreviousModule.video_id);
+    }
+
+    return false;
+  }, [course, isVideoCompleted]);
 
   const handleNextVideo = useCallback(() => {
     const { moduleIndex, videoIndex } = currentVideoIndex;
@@ -83,6 +107,19 @@ export default function CoursesModules() {
     // Check if there's a next video in the same module
     if (videoIndex < course.modules[moduleIndex].videos.length - 1) {
       const nextVideoIndex = videoIndex + 1;
+      
+      // Check if the next video is unlocked
+      if (!isVideoUnlocked(moduleIndex, nextVideoIndex)) {
+        // Show notification that video is locked
+        setLockNotification({
+          show: true,
+          message: "Please complete the current video first to unlock the next video."
+        });
+        // Hide notification after 3 seconds
+        setTimeout(() => setLockNotification({ show: false, message: '' }), 3000);
+        return;
+      }
+      
       const currentModule = course.modules[moduleIndex];
       const nextVideo = currentModule.videos[nextVideoIndex];
       setCurrentVideo({
@@ -94,6 +131,19 @@ export default function CoursesModules() {
       // Check if there's a next module
       if (moduleIndex < course.modules.length - 1) {
         const nextModuleIndex = moduleIndex + 1;
+        
+        // Check if the first video of the next module is unlocked
+        if (!isVideoUnlocked(nextModuleIndex, 0)) {
+          // Show notification that video is locked
+          setLockNotification({
+            show: true,
+            message: "Please complete all videos in the current module first to unlock the next module."
+          });
+          // Hide notification after 3 seconds
+          setTimeout(() => setLockNotification({ show: false, message: '' }), 3000);
+          return;
+        }
+        
         const nextModule = course.modules[nextModuleIndex];
         const nextVideo = nextModule.videos[0];
         setCurrentVideo({
@@ -109,7 +159,7 @@ export default function CoursesModules() {
         }
       }
     }
-  }, [currentVideoIndex, course, openModules]);
+  }, [currentVideoIndex, course, openModules, isVideoUnlocked]);
 
   const isLastVideo = useCallback(() => {
     const { moduleIndex, videoIndex } = currentVideoIndex;
@@ -119,8 +169,18 @@ export default function CoursesModules() {
     const isLastInModule = videoIndex === currentModule.videos.length - 1;
     const isLastModule = moduleIndex === course.modules.length - 1;
 
+    // Also check if next video is locked (if not the last video)
+    if (!isLastInModule || !isLastModule) {
+      const nextVideoIndex = isLastInModule ? 0 : videoIndex + 1;
+      const nextModuleIndex = isLastInModule ? moduleIndex + 1 : moduleIndex;
+      
+      if (!isVideoUnlocked(nextModuleIndex, nextVideoIndex)) {
+        return true; // Treat as last video if next is locked
+      }
+    }
+
     return isLastInModule && isLastModule;
-  }, [currentVideoIndex, course]);
+  }, [currentVideoIndex, course, isVideoUnlocked]);
 
   const isFirstVideo = useCallback(() => {
     const { moduleIndex, videoIndex } = currentVideoIndex;
@@ -199,6 +259,17 @@ export default function CoursesModules() {
   return (
     <div className={`flex max-w-7xl mx-auto gap-6 transition-all duration-500 ease-in-out ${isTheaterMode ? 'flex-col max-w-full px-0' : 'flex-col lg:flex-row '
       }`}>
+      {/* Lock Notification */}
+      {lockNotification.show && (
+        <div className="fixed top-4 right-4 z-50 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg max-w-sm">
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span className="text-sm font-medium">{lockNotification.message}</span>
+          </div>
+        </div>
+      )}
       {/* Video Player Section */}
       <div className={`bg-white h-fit rounded-2xl shadow transition-all duration-500 ease-in-out ${isTheaterMode ? 'w-full p-0' : 'flex-1 p-2 lg:p-6'
         }`}>
@@ -266,6 +337,7 @@ export default function CoursesModules() {
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-[#F1C27D] hover:bg-[#F1C27D]/80 text-white'
                   }`}
+                title={isLastVideo() ? 'This is the last video' : 'Go to next video'}
               >
                 {isLastVideo() ? 'End' : 'Next'}
               </button>
