@@ -5,15 +5,14 @@ import { User, Upload } from 'lucide-react';
 import { useState } from 'react';
 import { useUserData } from '@/context/UserDataContext';
 
-
 export default function ProfileImage() {
-    const user = useUserData();
+    const { user } = useUserData();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [formData, setFormData] = useState({
-        name: user.name || 'Peter Parker',
+        name: user?.name || 'Peter Parker',
         title: 'Jr. Web/Mobile Developer',
-        avatar: user.avatar_url || ''
+        avatar: user?.profileImage || ''
     });
 
     const [isUploading, setIsUploading] = useState(false);

@@ -92,7 +92,7 @@ export default function ReusableTable({
     // Calculate pagination values
     const totalItems = filteredData.length
     const totalPages = Math.ceil(totalItems / itemsPerPage)
-    
+
     // Paginate data
     const paginatedData = useMemo(() => {
         const startIndex = (currentPage - 1) * itemsPerPage
@@ -125,37 +125,37 @@ export default function ReusableTable({
     // Handle checkbox selection
     const handleItemSelect = (item: any) => {
         if (!onSelectionChange) return
-        
+
         const isSelected = selectedItems.some(selected => selected.id === item.id)
         let newSelectedItems: any[]
-        
+
         if (isSelected) {
             newSelectedItems = selectedItems.filter(selected => selected.id !== item.id)
         } else {
             newSelectedItems = [...selectedItems, item]
         }
-        
+
         onSelectionChange(newSelectedItems)
     }
 
     // Handle select all
     const handleSelectAll = () => {
         if (!onSelectionChange) return
-        
-        const allSelected = paginatedData.every(item => 
+
+        const allSelected = paginatedData.every(item =>
             selectedItems.some(selected => selected.id === item.id)
         )
-        
+
         if (allSelected) {
             // Deselect all current page items
-            const newSelectedItems = selectedItems.filter(selected => 
+            const newSelectedItems = selectedItems.filter(selected =>
                 !paginatedData.some(pageItem => pageItem.id === selected.id)
             )
             onSelectionChange(newSelectedItems)
         } else {
             // Select all current page items
             const currentPageIds = paginatedData.map(item => item.id)
-            const newSelectedItems = selectedItems.filter(selected => 
+            const newSelectedItems = selectedItems.filter(selected =>
                 !currentPageIds.includes(selected.id)
             )
             onSelectionChange([...newSelectedItems, ...paginatedData])
@@ -163,12 +163,12 @@ export default function ReusableTable({
     }
 
     // Check if all items on current page are selected
-    const isAllSelected = paginatedData.length > 0 && paginatedData.every(item => 
+    const isAllSelected = paginatedData.length > 0 && paginatedData.every(item =>
         selectedItems.some(selected => selected.id === item.id)
     )
 
     // Check if some items on current page are selected
-    const isIndeterminate = paginatedData.some(item => 
+    const isIndeterminate = paginatedData.some(item =>
         selectedItems.some(selected => selected.id === item.id)
     ) && !isAllSelected
 
@@ -222,7 +222,7 @@ export default function ReusableTable({
                 )
             case 'status':
                 return (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium  text-green-800">
                         {item.status}
                     </span>
                 )

@@ -164,9 +164,10 @@ export default function AwaitingEvaluation() {
                 <ReusableTable
                     headers={tableHeaders}
                     data={transformedData}
-                    onSort={handleSort}
-                    sortKey={sortKey}
-                    sortDirection={sortDirection}
+                    showPagination={false}
+                    // onSort={handleSort}
+                    // sortKey={sortKey}
+                    // sortDirection={sortDirection}
                 />
             </div>
 
