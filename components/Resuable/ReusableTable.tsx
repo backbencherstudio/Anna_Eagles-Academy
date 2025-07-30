@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useMemo } from 'react'
 import {
     Table,
     TableBody,
@@ -15,7 +15,9 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Download, Trash2, ChevronUp, ChevronDown } from "lucide-react"
+import { MoreHorizontal, ChevronUp, ChevronDown } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
+import ResuablePagination from "./ResuablePagination"
 
 interface TableHeader {
     key: string
@@ -34,19 +36,144 @@ interface ReusableTableProps {
     headers: TableHeader[]
     data: any[]
     actions?: TableAction[]
-    onSort?: (key: string) => void
-    sortKey?: string
-    sortDirection?: 'asc' | 'desc'
+    itemsPerPage?: number
+    itemsPerPageOptions?: number[]
+    showPagination?: boolean
+    showCheckbox?: boolean
+    selectedItems?: any[]
+    onSelectionChange?: (selectedItems: any[]) => void
 }
 
 export default function ReusableTable({
     headers,
     data,
     actions,
-    onSort,
-    sortKey,
-    sortDirection
+    itemsPerPage: initialItemsPerPage = 10,
+    itemsPerPageOptions = [5, 10, 15, 20],
+    showPagination = true,
+    showCheckbox = false,
+    selectedItems = [],
+    onSelectionChange
 }: ReusableTableProps) {
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage, setItemsPerPage] = useState(initialItemsPerPage)
+    const [sortKey, setSortKey] = useState('')
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
+
+    // Use data directly since filtering will be done by parent component
+    const filteredData = data
+
+    // Sort data
+    const sortedData = useMemo(() => {
+        if (!sortKey) return filteredData
+
+        return [...filteredData].sort((a, b) => {
+            let aValue = a[sortKey]
+            let bValue = b[sortKey]
+
+            // Handle date sorting
+            if (sortKey === 'date' || sortKey.includes('date')) {
+                aValue = new Date(aValue).getTime()
+                bValue = new Date(bValue).getTime()
+            }
+
+            // Handle amount sorting (remove $ and convert to number)
+            if (sortKey === 'amount' || sortKey.includes('amount')) {
+                aValue = parseFloat(aValue.toString().replace(/[$,]/g, ''))
+                bValue = parseFloat(bValue.toString().replace(/[$,]/g, ''))
+            }
+
+            if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1
+            if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1
+            return 0
+        })
+    }, [filteredData, sortKey, sortDirection])
+
+    // Calculate pagination values
+    const totalItems = filteredData.length
+    const totalPages = Math.ceil(totalItems / itemsPerPage)
+    
+    // Paginate data
+    const paginatedData = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage
+        const endIndex = startIndex + itemsPerPage
+        return sortedData.slice(startIndex, endIndex)
+    }, [sortedData, currentPage, itemsPerPage])
+
+    // Handle sorting
+    const handleSort = (key: string) => {
+        if (sortKey === key) {
+            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+        } else {
+            setSortKey(key)
+            setSortDirection('asc')
+        }
+        setCurrentPage(1) // Reset to first page when sorting
+    }
+
+    // Handle page change
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page)
+    }
+
+    // Handle items per page change
+    const handleItemsPerPageChange = (newItemsPerPage: number) => {
+        setItemsPerPage(newItemsPerPage)
+        setCurrentPage(1) // Reset to first page when changing items per page
+    }
+
+    // Handle checkbox selection
+    const handleItemSelect = (item: any) => {
+        if (!onSelectionChange) return
+        
+        const isSelected = selectedItems.some(selected => selected.id === item.id)
+        let newSelectedItems: any[]
+        
+        if (isSelected) {
+            newSelectedItems = selectedItems.filter(selected => selected.id !== item.id)
+        } else {
+            newSelectedItems = [...selectedItems, item]
+        }
+        
+        onSelectionChange(newSelectedItems)
+    }
+
+    // Handle select all
+    const handleSelectAll = () => {
+        if (!onSelectionChange) return
+        
+        const allSelected = paginatedData.every(item => 
+            selectedItems.some(selected => selected.id === item.id)
+        )
+        
+        if (allSelected) {
+            // Deselect all current page items
+            const newSelectedItems = selectedItems.filter(selected => 
+                !paginatedData.some(pageItem => pageItem.id === selected.id)
+            )
+            onSelectionChange(newSelectedItems)
+        } else {
+            // Select all current page items
+            const currentPageIds = paginatedData.map(item => item.id)
+            const newSelectedItems = selectedItems.filter(selected => 
+                !currentPageIds.includes(selected.id)
+            )
+            onSelectionChange([...newSelectedItems, ...paginatedData])
+        }
+    }
+
+    // Check if all items on current page are selected
+    const isAllSelected = paginatedData.length > 0 && paginatedData.every(item => 
+        selectedItems.some(selected => selected.id === item.id)
+    )
+
+    // Check if some items on current page are selected
+    const isIndeterminate = paginatedData.some(item => 
+        selectedItems.some(selected => selected.id === item.id)
+    ) && !isAllSelected
+
+
+
     const renderCellContent = (item: any, header: TableHeader) => {
         switch (header.key) {
             case 'fullName':
@@ -93,6 +220,35 @@ export default function ReusableTable({
                         )}
                     </div>
                 )
+            case 'status':
+                return (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        {item.status}
+                    </span>
+                )
+            case 'actions':
+                return actions ? (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0 cursor-pointer">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            {actions.map((action, index) => (
+                                <DropdownMenuItem
+                                    key={index}
+                                    onClick={() => action.onClick(item)}
+                                    className={action.variant === "destructive" ? "text-red-600 cursor-pointer" : "cursor-pointer"}
+                                >
+                                    {action.icon}
+                                    {action.label}
+                                </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                ) : null
             default:
                 return item[header.key]
         }
@@ -117,36 +273,70 @@ export default function ReusableTable({
     }
 
     return (
-
-        <Table>
-            <TableHeader className='bg-gray-100 '>
-                <TableRow className='border-none'>
-                    {headers.map((header) => (
-                        <TableHead
-                            key={header.key}
-                            className={header.sortable ? "cursor-pointer hover:bg-muted/50" : ""}
-                            onClick={() => header.sortable && onSort?.(header.key)}
-                        >
-                            <div className="flex items-center gap-2">
-                                {header.label}
-                                {renderSortIcon(header)}
-                            </div>
-                        </TableHead>
-                    ))}
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {data.map((item, index) => (
-                    <TableRow key={item.id || index}>
-                        {headers.map((header) => (
-                            <TableCell key={header.key}>
-                                {renderCellContent(item, header)}
-                            </TableCell>
+        <div className="w-full">
+            {/* Table */}
+            <div className="rounded-md border">
+                <Table>
+                    <TableHeader className='bg-gray-100'>
+                        <TableRow className='border-none'>
+                            {showCheckbox && (
+                                <TableHead className="w-12">
+                                    <Checkbox
+                                        checked={isAllSelected}
+                                        onCheckedChange={handleSelectAll}
+                                    />
+                                </TableHead>
+                            )}
+                            {headers.map((header) => (
+                                <TableHead
+                                    key={header.key}
+                                    className={header.sortable ? "cursor-pointer hover:bg-muted/50" : ""}
+                                    onClick={() => header.sortable && handleSort(header.key)}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        {header.label}
+                                        {renderSortIcon(header)}
+                                    </div>
+                                </TableHead>
+                            ))}
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {paginatedData.map((item, index) => (
+                            <TableRow key={item.id || index}>
+                                {showCheckbox && (
+                                    <TableCell className="w-12">
+                                        <Checkbox
+                                            checked={selectedItems.some(selected => selected.id === item.id)}
+                                            onCheckedChange={() => handleItemSelect(item)}
+                                        />
+                                    </TableCell>
+                                )}
+                                {headers.map((header) => (
+                                    <TableCell key={header.key}>
+                                        {renderCellContent(item, header)}
+                                    </TableCell>
+                                ))}
+                            </TableRow>
                         ))}
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
+                    </TableBody>
+                </Table>
+            </div>
 
+            {/* Pagination */}
+            {showPagination && totalItems > 0 && (
+                <div className="mt-4">
+                    <ResuablePagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalItems={totalItems}
+                        itemsPerPage={itemsPerPage}
+                        onPageChange={handlePageChange}
+                        onItemsPerPageChange={handleItemsPerPageChange}
+                        itemsPerPageOptions={itemsPerPageOptions}
+                    />
+                </div>
+            )}
+        </div>
     )
 }

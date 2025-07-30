@@ -2,9 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import ReusableTable from '@/components/Resuable/ReusableTable'
-import ResuablePagination from '@/components/Resuable/ResuablePagination'
 import { Download, Trash2, Search, ChevronUp, ChevronDown } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
@@ -29,10 +28,6 @@ interface User {
 export default function UserManagementPage() {
     const router = useRouter()
     const [users, setUsers] = useState<User[]>([])
-    const [currentPage, setCurrentPage] = useState(1)
-    const [itemsPerPage, setItemsPerPage] = useState(8)
-    const [sortKey, setSortKey] = useState<string>('')
-    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
     const [searchQuery, setSearchQuery] = useState('')
     const [sortBy, setSortBy] = useState('')
 
@@ -50,12 +45,19 @@ export default function UserManagementPage() {
         loadUsers()
     }, [])
 
+    // Filter users based on search query
+    const filteredUsers = users.filter(user =>
+        user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.enrollmentStatus.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+
     const headers = [
-        { key: 'fullName', label: 'Full Name' },
+        { key: 'fullName', label: 'Full Name', sortable: true },
         { key: 'email', label: 'Email Address', sortable: true },
         { key: 'completionStatus', label: 'Completion Status', sortable: true },
         { key: 'submittedAssignments', label: 'Submitted Assignments', sortable: true },
-        { key: 'enrollmentStatus', label: 'Enrollment Status' }
+        { key: 'enrollmentStatus', label: 'Enrollment Status', sortable: true }
     ]
 
     const actions = [
@@ -77,49 +79,6 @@ export default function UserManagementPage() {
             variant: 'destructive' as const
         }
     ]
-
-    const handleSort = (key: string) => {
-        if (sortKey === key) {
-            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
-        } else {
-            setSortKey(key)
-            setSortDirection('asc')
-        }
-    }
-
-    const sortedUsers = [...users].sort((a, b) => {
-        if (!sortKey) return 0
-
-        const aValue = a[sortKey as keyof User]
-        const bValue = b[sortKey as keyof User]
-
-        if (typeof aValue === 'string' && typeof bValue === 'string') {
-            return sortDirection === 'asc'
-                ? aValue.localeCompare(bValue)
-                : bValue.localeCompare(aValue)
-        }
-
-        if (typeof aValue === 'number' && typeof bValue === 'number') {
-            return sortDirection === 'asc' ? aValue - bValue : bValue - aValue
-        }
-
-        return 0
-    })
-
-    const totalItems = sortedUsers.length
-    const totalPages = Math.ceil(totalItems / itemsPerPage)
-    const startIndex = (currentPage - 1) * itemsPerPage
-    const endIndex = startIndex + itemsPerPage
-    const currentUsers = sortedUsers.slice(startIndex, endIndex)
-
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page)
-    }
-
-    const handleItemsPerPageChange = (newItemsPerPage: number) => {
-        setItemsPerPage(newItemsPerPage)
-        setCurrentPage(1)
-    }
 
     const handleSendEmailNotification = () => {
         router.push('/email-notification')
@@ -174,26 +133,14 @@ export default function UserManagementPage() {
                     </Button>
                 </div>
             </div>
-
-            <CardContent className="p-0">
-                <ReusableTable
-                    headers={headers}
-                    data={currentUsers}
-                    actions={actions}
-                    onSort={handleSort}
-                    sortKey={sortKey}
-                    sortDirection={sortDirection}
-                />
-
-                <ResuablePagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    totalItems={totalItems}
-                    itemsPerPage={itemsPerPage}
-                    onPageChange={handlePageChange}
-                    onItemsPerPageChange={handleItemsPerPageChange}
-                />
-            </CardContent>
+            <ReusableTable
+                headers={headers}
+                data={filteredUsers}
+                actions={actions}
+                itemsPerPage={8}
+                itemsPerPageOptions={[5, 8, 10, 15]}
+                showPagination={true}
+            />
 
         </div>
     )

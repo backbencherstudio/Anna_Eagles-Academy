@@ -76,7 +76,7 @@ export default function FinancialReportsCard() {
 
     // Shimmer Skeleton Component
     const ShimmerCard = () => (
-        <Card className="shadow-sm">
+        <Card className="">
             <CardContent className="p-6">
                 {/* Icon skeleton */}
                 <div className="flex items-start justify-between mb-4">
@@ -127,12 +127,12 @@ export default function FinancialReportsCard() {
     return (
         <div>
             {/* Header */}
-            <div className='flex items-center justify-between mb-6'>
+            <div className='flex items-center flex-col md:flex-row gap-4 justify-between mb-6'>
                 <h2 className='text-xl font-semibold text-gray-900'>Financial Reports</h2>
                 <Button
                     onClick={handleExportReport}
                     variant="outline"
-                    className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                    className="border-gray-300 cursor-pointer text-gray-700 hover:bg-gray-50"
                 >
                     <Download className="h-4 w-4 mr-2" />
                     Export Financial Report
@@ -144,7 +144,7 @@ export default function FinancialReportsCard() {
                 {financialMetrics.map((metric) => {
                     const IconComponent = metric.icon
                     return (
-                        <Card key={metric.id} className="shadow-sm hover:shadow-md transition-shadow">
+                        <Card key={metric.id} className="border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
                             <CardContent className="p-6">
                                 {/* Top Section */}
                                 <div className="flex items-start justify-between mb-4">
