@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import QuizPage from './Quiz_test/QuizPage'
 import Easy_test from './Quiz_test/Easy_test'
 
+
 export default function AssignmentPage() {
     const params = useParams()
 

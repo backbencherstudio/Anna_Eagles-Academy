@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Check, ArrowLeft } from 'lucide-react'
+import TextAreaCustom from '@/components/Resuable/TextAreaCustom'
 
 interface EssayQuestion {
     question_id: string
@@ -142,13 +143,14 @@ export default function Easy_test() {
                             </div>
 
                             <div>
+
+                                {/* custom text area components use TextAreaCustom */}
                                 <p className="text-xs sm:text-sm font-medium text-gray-700 mb-2 sm:mb-3">Answer:</p>
-                                <textarea
+                                <TextAreaCustom
                                     value={answers[question.question_id] || ''}
-                                    onChange={(e) => handleEssayAnswer(question.question_id, e.target.value)}
+                                    onChange={(e) => handleEssayAnswer(question.question_id, e)}
                                     placeholder="You are have talented, love your work!"
-                                    className="w-full h-24 sm:h-32 p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-xs sm:text-sm"
-                                    disabled={isSubmitted}
+                                    // disabled={isSubmitted}
                                 />
                             </div>
                         </div>

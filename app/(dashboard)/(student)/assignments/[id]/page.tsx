@@ -1,5 +1,6 @@
+import AssignmentPage from '@/app/(dashboard)/_components/Student/AssignmentPage'
 import React from 'react'
-import AssignmentPage from '../../_components/Student/AssignmentPage'
+
 
 export default function TestPage() {
     return (
