@@ -62,7 +62,7 @@ export default function NotificationPage() {
     };
 
     return (
-        <Card className="border-0 shadow-sm">
+        <Card className="border-0 shadow-sm p-4">
             <CardHeader className="">
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-lg font-semibold text-gray-900">Push Notification</CardTitle>

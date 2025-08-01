@@ -56,7 +56,7 @@ export default function ChangePasswordPage() {
     return (
         <>
             {/* Change Password Form */}
-            <Card className="border-0 ">
+            <Card className="border-0 p-4">
                 <CardHeader>
                     <CardTitle className="text-lg lg:text-xl font-semibold">Password Change</CardTitle>
                     <CardDescription className="text-md text-gray-400 leading-relaxed">

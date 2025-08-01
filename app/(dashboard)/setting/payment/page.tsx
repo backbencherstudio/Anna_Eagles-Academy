@@ -83,9 +83,9 @@ export default function PaymentPage() {
     };
 
     return (
-        <div className="space-y-6 lg:space-y-8">
+        <div className="space-y-6 lg:space-y-8 ">
             {/* Payment Section */}
-            <Card className="border-0 shadow-sm">
+            <Card className="border-0 shadow-sm p-4">
                 <CardHeader className="">
                     <CardTitle className="text-lg font-semibold text-gray-900">Payment</CardTitle>
                     <CardDescription className="text-md text-gray-400 leading-relaxed">

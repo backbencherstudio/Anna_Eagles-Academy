@@ -34,7 +34,7 @@ export default function ProfilePage() {
     return (
         <div className="space-y-6 md:space-y-8">
             {/* Public Profile Section */}
-            <Card className="border-0 ">
+            <Card className="border-0 p-4">
                 <CardHeader className="">
                     <CardTitle className="text-lg md:text-xl font-semibold">Public Profile</CardTitle>
                     <CardDescription className="text-md text-gray-400 leading-relaxed">This will be displayed on your profile.</CardDescription>
