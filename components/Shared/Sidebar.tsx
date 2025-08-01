@@ -90,10 +90,24 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
     const NavLink = ({ item }: { item: any }) => {
         const isActive = 'href' in item ? pathname === item.href : false;
 
+        const handleLinkClick = () => {
+            // Close mobile sidebar when a link is clicked
+            if (window.innerWidth < 768) { // md breakpoint
+                onMobileMenuClose();
+            }
+        };
+
         if ('onClick' in item) {
             return (
                 <button
-                    onClick={item.title === 'Logout' ? handleLogout : item.onClick}
+                    onClick={(e) => {
+                        if (item.title === 'Logout') {
+                            handleLogout();
+                        } else {
+                            item.onClick(e);
+                        }
+                        handleLinkClick();
+                    }}
                     className={`
             w-full flex items-center text-[15px] cursor-pointer font-[600] transition-all duration-200
             ${isCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}
@@ -117,6 +131,7 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
         return (
             <Link
                 href={item.href}
+                onClick={handleLinkClick}
                 className={`
           flex items-center text-[15px] font-[600] transition-all duration-200
           ${isCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}
@@ -218,7 +233,13 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
                 <nav className={`p-4 space-y-2 ${isCollapsed ? 'px-2' : ''}`}>
                     <div className="border-t border-gray-200 pt-2">
                         <button
-                            onClick={handleLogout}
+                            onClick={() => {
+                                handleLogout();
+                                // Close mobile sidebar when logout is clicked
+                                if (window.innerWidth < 768) { // md breakpoint
+                                    onMobileMenuClose();
+                                }
+                            }}
                             className={`
                 w-full flex items-center text-[15px] cursor-pointer font-[600] transition-all duration-200
                 ${isCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}

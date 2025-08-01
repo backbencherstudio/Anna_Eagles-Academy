@@ -209,7 +209,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
                                 {currentNotificationCount}
                             </span>
                         )}
-                        <div className='absolute -right-44 sm:-right-0'>
+                        <div className='absolute -right-40 sm:-right-0 md:-right-5 top-12'>
                             {isNotificationOpen && (
                                 <MainNotification
                                     isOpen={isNotificationOpen}
