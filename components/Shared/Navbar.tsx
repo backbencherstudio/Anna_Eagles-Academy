@@ -181,11 +181,11 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
                     <div className='hidden sm:flex flex-col'>
                         {user ? (
                             <>
-                                <h1 className="text-[24px] font-semibold text-[#111827]">
+                                <h1 className="text-[20px] xl:text-[24px] font-semibold text-[#111827]">
                                     {getDynamicTitle()}
                                 </h1>
                                 {currentPath === 'dashboard' && user.role === 'student' && (
-                                    <span className="text-[16px] text-[#777980] mt-1">
+                                    <span className="text-[14px] xl:text-[16px] text-[#777980] mt-1">
                                         Let's boost your knowledge today and learn a new things
                                     </span>
                                 )}
@@ -226,7 +226,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="p-0 h-auto cursor-pointer">
-                                    <div className='flex items-center gap-2'>
+                                    <div>
                                         <div className="relative">
                                             {user?.profileImage && user.profileImage !== 'null' && user.profileImage !== '' ? (
                                                 <Image
@@ -243,10 +243,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
                                                 </div>
                                             )}
                                         </div>
-                                        <div>
-                                            <h1 className="text-sm font-medium">{user?.name}</h1>
-                                            <p className="text-xs text-[#777980] capitalize">{user?.role}</p>
-                                        </div>
+
                                     </div>
                                 </Button>
                             </DropdownMenuTrigger>
