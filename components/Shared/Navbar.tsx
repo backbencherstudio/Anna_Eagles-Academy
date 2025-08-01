@@ -209,13 +209,15 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
                                 {currentNotificationCount}
                             </span>
                         )}
-                        {isNotificationOpen && (
-                            <MainNotification
-                                isOpen={isNotificationOpen}
-                                onClose={() => setIsNotificationOpen(false)}
-                                isDropdown={true}
-                            />
-                        )}
+                        <div className='absolute -right-44 sm:-right-0'>
+                            {isNotificationOpen && (
+                                <MainNotification
+                                    isOpen={isNotificationOpen}
+                                    onClose={() => setIsNotificationOpen(false)}
+                                    isDropdown={true}
+                                />
+                            )}
+                        </div>
                     </div>
 
                     <div className='bg-gray-200 w-[1.3px] h-[40px]'></div>
