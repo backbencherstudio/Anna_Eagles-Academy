@@ -67,7 +67,7 @@ export default function WatchWelcomeVideo() {
                                 controls
                                 preload="metadata"
                                 src="/videos/welcome.mp4"
-                                onLoadedMetadata={() => setLoading(false)}
+                                onLoadedMetadata={() => setLoading(false)} 
                             />
                         </div>
                     </div>
