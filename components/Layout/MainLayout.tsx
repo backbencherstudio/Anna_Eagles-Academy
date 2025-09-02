@@ -13,7 +13,7 @@ export const MainLayout = ({ children }: LayoutProps) => {
 
     return (
 
-        <div className="flex h-screen overflow-hidden bg-[#F7F7F9] font-commissioner">
+        <div className="flex h-screen overflow-hidden bg-[#F7F7F9] font-spline-sans">
             <Sidebar
                 isMobileMenuOpen={isMobileMenuOpen}
                 onMobileMenuClose={() => setIsMobileMenuOpen(false)}

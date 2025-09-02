@@ -9,7 +9,7 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
     return (
         <ProtectedRoute allowedRoles={['student', 'admin']}>
-            <MainLayout>
+            <MainLayout >
                 {children}
             </MainLayout>
         </ProtectedRoute>

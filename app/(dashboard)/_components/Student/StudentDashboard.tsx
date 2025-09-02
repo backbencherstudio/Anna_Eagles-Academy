@@ -5,6 +5,7 @@ import CalanderPage from '@/components/Resuable/CalanderPage'
 import CourseAnnouncement from './MainDashboard/CourseAnnouncement';
 import WatchWelcomeVideo from './MainDashboard/WatchWelcomeVideo';
 import StudentFeedback from './MainDashboard/StudentFeedback/StudentFeedback';
+import TeacherVideo from './MainDashboard/TeacherVideo/TeacherVideo';
 
 interface ScheduleItem {
     id: number;
@@ -40,6 +41,7 @@ export default function StudentDashboard() {
                 <div className='w-full lg:w-5/12'>
                     <CalanderPage scheduleData={scheduleData} />
                     <StudentFeedback />
+                    <TeacherVideo />
                 </div>
             </div>
         </>

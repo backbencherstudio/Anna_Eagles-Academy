@@ -29,7 +29,7 @@ export default function StudentFeedback() {
                     'The leadership course has transformed my understanding...',
                 time: '06:00 AM',
                 date: 'Jan 10, 2025',
-                thumbnail: '/images/discover/course.png',
+                thumbnail: '',
             },
             {
                 id: 'c2',
@@ -40,7 +40,7 @@ export default function StudentFeedback() {
                     'This course helped me understand the role of the Holy Spirit more deeply.',
                 time: '06:00 AM',
                 date: 'Jan 10, 2025',
-                thumbnail: '/images/discover/course.png',
+                thumbnail: '',
             },
         ],
         []
@@ -57,7 +57,7 @@ export default function StudentFeedback() {
                     'This week, I learned how listening in silence helps me hear God clearer. The meditation exercises really opened my heart.',
                 time: '06:00 AM',
                 date: 'Jan 10, 2025',
-                thumbnail: '/images/discover/course.png',
+                thumbnail: '',
             },
             {
                 id: 'w2',
@@ -68,7 +68,7 @@ export default function StudentFeedback() {
                     'Amazing start to this journey! The community here feels supportive and genuine. I\'m grateful for everything I\'m learning.',
                 time: '06:00 AM',
                 date: 'Jan 10, 2025',
-                thumbnail: '/images/discover/course.png',
+                thumbnail: '',
             },
         ],
         []
@@ -77,7 +77,7 @@ export default function StudentFeedback() {
     const data = activeTab === 'course' ? courseReviews : weeklyReviews
 
     return (
-        <div className="bg-white rounded-2xl p-4 border border-[#ECEFF3]">
+        <div className="bg-white rounded-2xl p-4 border border-[#ECEFF3] font-spline-sans mb-4">
             <div className="flex flex-col mb-4">
                 <h2 className="text-[#1D1F2C] font-bold text-xl lg:text-2xl mb-4">Student Sharing's Feedback</h2>
                 <button

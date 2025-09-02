@@ -121,6 +121,8 @@
   body {
     @apply bg-background text-foreground;
   }
+
+
 }
 
 .bg-accent {
@@ -171,4 +173,3 @@
 [contenteditable] ol[style*="upper-roman"] {
   list-style-type: upper-roman !important;
 }
-
