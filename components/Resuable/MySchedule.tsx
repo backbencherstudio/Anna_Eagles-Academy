@@ -13,9 +13,11 @@ interface MyScheduleProps {
 }
 
 const TIME_SLOTS = [
-    '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '01:00 PM'
-  
-   
+    '09:00 AM',
+    '10:00 AM',
+    '11:00 AM',
+    '12:00 PM',
+    '01:00 PM',
 ];
 
 const parseTime = (timeStr: string) => {
@@ -27,7 +29,7 @@ const parseTime = (timeStr: string) => {
 };
 
 const MySchedule: React.FC<MyScheduleProps> = ({ scheduleData }) => {
-    // Assume scheduleData is already filtered for the correct date
+
     const slotTaskMap: Record<string, { task: ScheduleItem; isFirst: boolean; isLast: boolean } | null> = {};
     TIME_SLOTS.forEach((slot) => {
         slotTaskMap[slot] = null;
@@ -40,7 +42,7 @@ const MySchedule: React.FC<MyScheduleProps> = ({ scheduleData }) => {
                 slotTaskMap[slot] = {
                     task,
                     isFirst: slotTime === startTime,
-                    isLast: slotTime === endTime
+                    isLast: slotTime === endTime,
                 };
                 break;
             }
@@ -48,11 +50,12 @@ const MySchedule: React.FC<MyScheduleProps> = ({ scheduleData }) => {
     });
 
     return (
-        <div className='h-fit' style={{ background: '#fff', borderRadius: 16, padding: 24,  overflowY: 'auto' }}>
-            <h3 style={{ fontWeight: 600, marginBottom: 16 }}>My Schedule</h3>
+        <div className='h-fit border border-[#ECEFF3] bg-white rounded-2xl p-6 overflow-y-auto font-spline-sans'>
+            <h3 className='text-[#1D1F2C] font-bold text-xl lg:text-2xl pb-4 font-spline-sans'>My Schedule</h3>
             {TIME_SLOTS.map((slot, idx) => {
                 const slotInfo = slotTaskMap[slot];
-                const slotBg = slotInfo ? '#FFF7ED' : '#F7F8FA';
+
+
                 let marginBottom = 12;
                 if (slotInfo && idx < TIME_SLOTS.length - 1) {
                     const nextSlot = TIME_SLOTS[idx + 1];
@@ -61,30 +64,50 @@ const MySchedule: React.FC<MyScheduleProps> = ({ scheduleData }) => {
                         marginBottom = 0;
                     }
                 }
+
+
+                const isMiddleSegment = !!(slotInfo && !slotInfo.isFirst && !slotInfo.isLast);
+                const bgClass = slotInfo ? 'bg-[#FFF7ED]' : 'bg-[#F7F8FA]';
+                const roundedClass = slotInfo
+                    ? slotInfo.isFirst && slotInfo.isLast
+                        ? 'rounded-2xl'
+                        : slotInfo.isFirst
+                            ? 'rounded-t-2xl'
+                            : slotInfo.isLast
+                                ? 'rounded-b-2xl'
+                                : 'rounded-none'
+                    : 'rounded-2xl';
+
                 return (
-                    <div
-                        key={slot}
-                        style={{
-                            background: slotBg,
-                            borderRadius: 16,
-                            padding: 20,
-                            marginBottom,
-                            minHeight: 60,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'center',
-                        }}
-                    >
-                        <div style={{ color: '#8A8A8A', fontWeight: 500 }}>{slot}</div>
-                        {slotInfo && slotInfo.isFirst ? (
-                            <>
-                                <div style={{ color: '#E6A23C', fontWeight: 600, fontSize: 16 }}>{slotInfo.task.subject}</div>
-                                <div style={{ color: '#E6A23C', fontWeight: 700 }}>{slotInfo.task.task}</div>
-                                <div style={{ color: '#E6A23C', fontWeight: 400, fontSize: 13 }}>{slotInfo.task.time}</div>
-                            </>
-                        ) : slotInfo && slotInfo.isLast ? (
-                            <div style={{ color: '#E6A23C', fontWeight: 400, fontSize: 13 }}>Ends: {slot}</div>
-                        ) : null}
+                    <div key={slot} className={`flex items-stretch gap-4 ${marginBottom === 0 ? 'mb-0' : 'mb-3'}`}>
+                        {/* Time column */}
+                        <div className='w-[90px] text-[#6B7280]  min-h-[48px] flex items-center'>
+                            {slot}
+                        </div>
+
+                        {/* Slot box */}
+                        <div className={`min-h-[48px] flex flex-col justify-center w-full p-4 ${bgClass} ${roundedClass}`}>
+                            {slotInfo ? (
+                                slotInfo.isFirst ? (
+                                    <>
+                                        <div className='text-[#E6A23C] font-semibold text-[16px]'>
+                                            {slotInfo.task.subject}
+                                        </div>
+                                        <div className='text-[#E6A23C] font-bold'>
+                                            {slotInfo.task.task}
+                                        </div>
+                                        <div className='text-[#E6A23C] font-normal text-[13px]'>
+                                            {slotInfo.task.time}
+                                        </div>
+                                    </>
+                                ) : isMiddleSegment ? null : (
+
+                                    null
+                                )
+                            ) : (
+                                <div className='text-[#A0A6AD]  text-center'>N/A</div>
+                            )}
+                        </div>
                     </div>
                 );
             })}
