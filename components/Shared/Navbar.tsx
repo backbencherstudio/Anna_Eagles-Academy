@@ -169,7 +169,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
     };
 
     return (
-        <header className="bg-white border-b border-[#E9EAEC] z-10 mx-2 md:mx-6 mt-4 rounded-2xl">
+        <header className="bg-white z-10 ">
             <div className="flex items-center justify-between py-4 px-6">
                 <div className="flex items-center gap-4">
                     <button
