@@ -178,7 +178,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
                     >
                         <HiMenuAlt3 className="w-6 h-6" />
                     </button>
-                    <div className='hidden sm:flex flex-col'>
+                    <div className='hidden lg:flex flex-col'>
                         {user ? (
                             <>
                                 <h1 className="text-[20px] xl:text-[24px] font-semibold text-[#111827]">
@@ -195,6 +195,8 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
                         )}
                     </div>
                 </div>
+
+                <h1 className='text-[14px] xl:text-[16px] text-[#777980] hidden sm:block capitalize '><span>"</span>he Lord is my shepherd; I shall not want <span>"</span></h1>
 
                 <div className="flex items-center gap-6">
                     <div className="relative notification-dropdown">

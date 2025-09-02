@@ -8,6 +8,7 @@ import { FiLogOut, FiSettings, FiGlobe, FiUser } from 'react-icons/fi';
 import LoadingOverlay from '../Resuable/LoadingOverlay';
 import Logo from '../Icons/Logo';
 import { useUserData } from '@/context/UserDataContext';
+import Image from 'next/image';
 
 const MENU_CONFIG = {
     student: [
@@ -175,7 +176,7 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
             transition-all duration-300 ease-in-out
             ${isCollapsed ? 'opacity-0 max-w-0 w-0' : 'opacity-100 max-w-[220px] w-full'}
           `}>
-                        <div className="flex items-center gap-4">
+                        {/* <div className="flex items-center gap-4">
                             <Logo />
                             <span
                                 className={`transition-all duration-300 ease-in-out inline-block align-middle
@@ -186,6 +187,10 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
                                     The White <br /> Eagles Academy
                                 </h2>
                             </span>
+                        </div> */}
+
+                        <div className='w-full h-full'>
+                            <Image src="/images/logo/logo2.jpg" alt="logo" width={1000} height={500} className='rounded w-48 mx-auto h-full object-cover' />
                         </div>
                     </div>
 

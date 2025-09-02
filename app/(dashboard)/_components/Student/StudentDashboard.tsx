@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import MyCourseCard from './MyCourseCard'
 import TodayTask from './TodayTask'
 import CalanderPage from '@/components/Resuable/CalanderPage'
+import CourseAnnouncement from './MainDashboard/CourseAnnouncement';
 
 interface ScheduleItem {
     id: number;
@@ -24,14 +25,18 @@ export default function StudentDashboard() {
     }, []);
 
     return (
-        <div className='flex flex-col lg:flex-row gap-10'>
-            <div className='w-full lg:w-5/12 flex flex-col gap-7'>
-                <MyCourseCard />
-                <TodayTask />
+        <>
+            <CourseAnnouncement />
+            <div className='flex flex-col lg:flex-row gap-10'>
+
+                <div className='w-full lg:w-5/12 flex flex-col gap-7'>
+                    <MyCourseCard />
+                    <TodayTask />
+                </div>
+                <div className='w-full lg:w-7/12'>
+                    <CalanderPage scheduleData={scheduleData} />
+                </div>
             </div>
-            <div className='w-full lg:w-7/12'>
-                <CalanderPage scheduleData={scheduleData} />
-            </div>
-        </div>
+        </>
     )
 }
