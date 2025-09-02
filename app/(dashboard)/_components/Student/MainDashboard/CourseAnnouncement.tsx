@@ -53,8 +53,8 @@ export default function CourseAnnouncement() {
     if (!isVisible) return null
 
     return (
-        <div className="relative bg-[#0F25980D] border border-[#C4CEFF] rounded-lg shadow-sm p-3 mb-4">
-            <div className=" flex items-center justify-between gap-2 sm:gap-3">
+        <div className="relative bg-[#0F25980D] border border-[#C4CEFF] rounded-lg shadow-sm px-5 py-3 mb-4">
+            <div className=" flex items-center justify-between gap-2 sm:gap-3 font-spline-sans">
                 {/* Left side: Icon + Text */}
                 <div className="flex items-center gap-2 ">
                     {/* Megaphone Icon */}
@@ -68,7 +68,7 @@ export default function CourseAnnouncement() {
                             {announcements.map((announcement) => (
                                 <div key={announcement.id} className="embla__slide cursor-pointer flex-shrink-0 w-full">
                                     <div className="flex items-center ju">
-                                        <span className="text-gray-700 font-medium text-xs sm:text-sm leading-relaxed">
+                                        <span className="text-gray-700  text-xs sm:text-base leading-relaxed ">
                                             <span className="font-semibold">{announcement.title}:</span> {announcement.message}
                                         </span>
                                     </div>

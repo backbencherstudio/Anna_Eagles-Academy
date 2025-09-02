@@ -3,6 +3,7 @@ import MyCourseCard from './MyCourseCard'
 import TodayTask from './TodayTask'
 import CalanderPage from '@/components/Resuable/CalanderPage'
 import CourseAnnouncement from './MainDashboard/CourseAnnouncement';
+import WatchWelcomeVideo from './MainDashboard/WatchWelcomeVideo';
 
 interface ScheduleItem {
     id: number;
@@ -27,6 +28,7 @@ export default function StudentDashboard() {
     return (
         <>
             <CourseAnnouncement />
+            <WatchWelcomeVideo/>
             <div className='flex flex-col lg:flex-row gap-10'>
 
                 <div className='w-full lg:w-5/12 flex flex-col gap-7'>
