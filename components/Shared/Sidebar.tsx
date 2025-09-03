@@ -3,34 +3,60 @@ import React, { useState } from 'react';
 import Link from "next/link";
 import { usePathname, useRouter } from 'next/navigation';
 import { IoMdClose } from "react-icons/io";
-import { MdArrowForwardIos, MdDashboard, MdOutlineCalendarToday, MdAssignment, MdMenuBook, MdOutlineBarChart } from 'react-icons/md';
-import { FiLogOut, FiSettings, FiGlobe, FiUser } from 'react-icons/fi';
+import { MdArrowForwardIos, MdAssignment, MdMenuBook, MdOutlineBarChart } from 'react-icons/md';
+import { FiLogOut, FiSettings,  FiUser } from 'react-icons/fi';
 import LoadingOverlay from '../Resuable/LoadingOverlay';
 import Logo from '../Icons/Logo';
-import { useUserData } from '@/context/UserDataContext';
-import Image from 'next/image';
+import { useUserData } from '@/context/UserDataContext'; 
+import DashboardIcon from '@/components/Icons/CustomIcon/DectiveIcon/DashboardIcon';
+import DashboardIconAc from '@/components/Icons/CustomIcon/ActiveIcon/DashboardIconAc';
+import CalanderIcon from '@/components/Icons/CustomIcon/DectiveIcon/CalanderIcon';
+import CalanderIconAt from '@/components/Icons/CustomIcon/ActiveIcon/CalanderIconAt';
+import DiscoverIcon from '@/components/Icons/CustomIcon/DectiveIcon/DiscoverIcon';
+import DiscoverIconAc from '@/components/Icons/CustomIcon/ActiveIcon/DiscoverIconAc';
+import MyCourseIcon from '@/components/Icons/CustomIcon/DectiveIcon/MyCourseIcon';
+import MyCourseIconAc from '@/components/Icons/CustomIcon/ActiveIcon/MyCourseIconAc';
+import AssignmentIcon from '@/components/Icons/CustomIcon/DectiveIcon/AssignmentIcon';
+import AssignmentIconAc from '@/components/Icons/CustomIcon/ActiveIcon/AssignmentIconAc';
+import StudentFileIcon from '../Icons/CustomIcon/DectiveIcon/StudentFileIcon';
+import StudentFileIconAc from '../Icons/CustomIcon/ActiveIcon/StudentFileIconAc';
+import DownloadMaterialsIcon from '../Icons/CustomIcon/DectiveIcon/DownloadMaterialsIcon';
+import DownloadMaterialsIconAc from '../Icons/CustomIcon/ActiveIcon/DownloadMaterialsIconAc';
+import ContactTeacherIcon from '../Icons/CustomIcon/DectiveIcon/ContactTeacherIcon';
+import ContactTeacherIconAc from '../Icons/CustomIcon/ActiveIcon/ContactTeacherIconAc';
+import DiplomaIcon from '../Icons/CustomIcon/DectiveIcon/DiplomaIcon';
+import DiplomaIconAc from '../Icons/CustomIcon/ActiveIcon/DiplomaIconAc';
+import DonationIcon from '../Icons/CustomIcon/DectiveIcon/DonationIcon';
+import DonationIconAc from '../Icons/CustomIcon/ActiveIcon/DonationIconAc';
+import SettingsIcon from '../Icons/CustomIcon/DectiveIcon/SettingsIcon';
+import SettingsIconAc from '../Icons/CustomIcon/ActiveIcon/SettingsIconAc';
 
 const MENU_CONFIG = {
     student: [
         {
             header: 'GENERAL',
             items: [
-                { title: 'Dashboard', icon: MdDashboard, href: '/dashboard' },
-                { title: 'Schedule', icon: MdOutlineCalendarToday, href: '/schedule' },
+                { title: 'Dashboard', icon: DashboardIcon, activeIcon: DashboardIconAc, href: '/dashboard' },
+                { title: 'Calander', icon: CalanderIcon, activeIcon: CalanderIconAt, href: '/schedule' },
             ],
         },
         {
             header: 'COURSES',
             items: [
-                { title: 'Discover', icon: FiGlobe, href: '/discover' },
-                { title: 'My Courses', icon: MdMenuBook, href: '/my-courses' },
-                { title: 'Assignments', icon: MdAssignment, href: '/assignments' },
+                { title: 'Discover', icon: DiscoverIcon, activeIcon: DiscoverIconAc, href: '/discover' },
+                { title: 'My Courses', icon: MyCourseIcon, activeIcon: MyCourseIconAc, href: '/my-courses' },
+                { title: 'Assignments', icon: AssignmentIcon, activeIcon: AssignmentIconAc, href: '/assignments' },
+                { title: 'Student Files', icon: StudentFileIcon, activeIcon: StudentFileIconAc, href: '/student-files' },
+                { title: 'Download Materials', icon: DownloadMaterialsIcon, activeIcon: DownloadMaterialsIconAc, href: '/download-materials' },
+                { title: 'Contact Teacher', icon: ContactTeacherIcon, activeIcon: ContactTeacherIconAc, href: '/contact-teacher' },
+                { title: 'Diploma', icon: DiplomaIcon, activeIcon: DiplomaIconAc, href: '/diploma' },
+                { title: 'Donations', icon: DonationIcon, activeIcon: DonationIconAc, href: '/donations' },
             ],
         },
         {
             header: 'OTHER',
             items: [
-                { title: 'Setting', icon: FiSettings, href: '/setting/profile' },
+                { title: 'Setting', icon: SettingsIcon, activeIcon: SettingsIconAc, href: '/setting/profile' },
             ],
         },
     ],
@@ -38,8 +64,8 @@ const MENU_CONFIG = {
         {
             header: 'GENERAL',
             items: [
-                { title: 'Dashboard', icon: MdDashboard, href: '/dashboard' },
-                { title: 'Calendar', icon: MdOutlineCalendarToday, href: '/calendar' },
+                { title: 'Dashboard', icon: DashboardIcon, activeIcon: DashboardIconAc, href: '/dashboard' },
+                { title: 'Calendar', icon: CalanderIcon, activeIcon: CalanderIconAt, href: '/calendar' },
                 { title: 'User Management', icon: FiUser, href: '/users-management' },
             ],
         },
@@ -90,6 +116,7 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
 
     const NavLink = ({ item }: { item: any }) => {
         const isActive = 'href' in item ? pathname === item.href : false;
+        const IconComponent = isActive && item.activeIcon ? item.activeIcon : item.icon;
 
         const handleLinkClick = () => {
 
@@ -116,7 +143,7 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
           `}
                     title={isCollapsed ? item.title : ''}
                 >
-                    <item.icon className="w-5 h-5 shrink-0 text-gray-500" />
+                    <IconComponent className="w-5 h-5 shrink-0 text-gray-500" />
                     <span className={`
             transition-all duration-300 ease-in-out
             ${isCollapsed ? 'opacity-0 max-w-0 ml-0' : 'opacity-100 max-w-[160px] ml-2'}
@@ -141,7 +168,7 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
         `}
                 title={isCollapsed ? item.title : ''}
             >
-                <item.icon className={`
+                <IconComponent className={`
           text-xl shrink-0
           ${isActive ? '' : 'text-gray-500'}
         `} />
@@ -241,7 +268,7 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
                             onClick={() => {
                                 handleLogout();
                                 // Close mobile sidebar when logout is clicked
-                                if (window.innerWidth < 768) { // md breakpoint
+                                if (window.innerWidth < 768) { 
                                     onMobileMenuClose();
                                 }
                             }}

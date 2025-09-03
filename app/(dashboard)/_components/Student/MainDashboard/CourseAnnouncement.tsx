@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
 import { X, Volume2 } from 'lucide-react'
-import AnnouncementIcon from '@/helper/CustomIcon/AnnouncementIcon'
+import AnnouncementIcon from '@/components/Icons/CustomIcon/AnnouncementIcon'
 
 interface Announcement {
     id: number
