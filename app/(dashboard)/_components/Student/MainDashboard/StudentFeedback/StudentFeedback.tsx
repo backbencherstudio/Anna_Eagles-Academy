@@ -20,6 +20,16 @@ export default function StudentFeedback() {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [loading, setLoading] = useState(false)
 
+    const handleWriteReview = () => {
+        setLoading(true)
+
+        // Simulate loading for 1.5 seconds, then open modal
+        setTimeout(() => {
+            setLoading(false)
+            setIsModalOpen(true)
+        }, 100)
+    }
+
     const courseReviews: ReviewItem[] = useMemo(
         () => [
             {
@@ -79,14 +89,20 @@ export default function StudentFeedback() {
     const data = activeTab === 'course' ? courseReviews : weeklyReviews
 
     return (
-        <div className="bg-white rounded-2xl p-4 border border-[#ECEFF3] font-spline-sans mb-4">
+        <div className="bg-white rounded-2xl p-4 border border-[#ECEFF3] mb-4">
             <div className="flex flex-col mb-4">
                 <h2 className="text-[#1D1F2C] font-bold text-xl lg:text-2xl mb-4">Student Sharing's Feedback</h2>
                 <button
-                    className="px-4 py-2 cursor-pointer w-fit rounded-xl bg-[#0F2598] hover:bg-[#0F2598]/80 transition-all duration-300 text-white text-sm font-semibold shadow-sm"
-                    onClick={() => setIsModalOpen(true)}
+                    className="bg-[#0F2598] w-fit cursor-pointer hover:bg-[#0F2598]/80 transition-colors duration-200 rounded-lg px-4 sm:px-6 py-2 sm:py-3 flex items-center gap-2 sm:gap-3 text-white font-medium text-sm  disabled:opacity-70"
+                    onClick={handleWriteReview}
+                    disabled={loading}
                 >
-                    {loading ? <ButtonSpring className="w-4 h-4 animate-spin" /> : 'Write a Review'}
+                    {loading ? (
+                        <ButtonSpring size={16} color="#F1C27D" />
+                    ) : (
+                        <> </>
+                    )}
+                    <span>{loading ? 'Please wait...' : 'Write a Review'}</span>
                 </button>
             </div>
 
@@ -95,17 +111,15 @@ export default function StudentFeedback() {
                 <div className="relative">
                     <div className="flex items-center">
                         <button
-                            className={`flex-1 py-2 text-sm font-semibold text-center transition-colors cursor-pointer ${
-                                activeTab === 'course' ? 'text-[#0F2598]' : 'text-muted-foreground'
-                            }`}
+                            className={`flex-1 py-2 text-sm font-semibold text-center transition-colors cursor-pointer ${activeTab === 'course' ? 'text-[#0F2598]' : 'text-muted-foreground'
+                                }`}
                             onClick={() => setActiveTab('course')}
                         >
                             Course review
                         </button>
                         <button
-                            className={`flex-1 py-2 text-sm font-semibold text-center transition-colors cursor-pointer ${
-                                activeTab === 'weekly' ? 'text-[#0F2598]' : 'text-muted-foreground'
-                            }`}
+                            className={`flex-1 py-2 text-sm font-semibold text-center transition-colors cursor-pointer ${activeTab === 'weekly' ? 'text-[#0F2598]' : 'text-muted-foreground'
+                                }`}
                             onClick={() => setActiveTab('weekly')}
                         >
                             Weekly review
@@ -113,9 +127,8 @@ export default function StudentFeedback() {
                     </div>
                     <div className="absolute left-0 right-0 bottom-0 h-[2px] bg-gray-200" />
                     <div
-                        className={`absolute bottom-0 h-[2px] bg-[#0F2598] w-1/2 transition-transform duration-300 ${
-                            activeTab === 'course' ? 'translate-x-0' : 'translate-x-full'
-                        }`}
+                        className={`absolute bottom-0 h-[2px] bg-[#0F2598] w-1/2 transition-transform duration-300 ${activeTab === 'course' ? 'translate-x-0' : 'translate-x-full'
+                            }`}
                     />
                 </div>
             </div>
