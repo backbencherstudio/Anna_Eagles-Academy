@@ -2225,6 +2225,7 @@ __metadata:
     lucide-react: "npm:^0.525.0"
     next: "npm:15.4.2"
     react: "npm:19.1.0"
+    react-country-flag: "npm:^3.1.0"
     react-day-picker: "npm:^9.8.0"
     react-dom: "npm:19.1.0"
     react-hook-form: "npm:^7.61.1"
@@ -4900,6 +4901,15 @@ __metadata:
   version: 4.0.3
   resolution: "raf-schd@npm:4.0.3"
   checksum: 10c0/ecabf0957c05fad059779bddcd992f1a9d3a35dfea439a6f0935c382fcf4f7f7fa60489e467b4c2db357a3665167d2a379782586b59712bb36c766e02824709b
+  languageName: node
+  linkType: hard
+
+"react-country-flag@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "react-country-flag@npm:3.1.0"
+  peerDependencies:
+    react: ">=16"
+  checksum: 10c0/6271cde6cf355c66e2b669c74e98596d771534154210bbb84cd84788f46710c7ee14671229cb92203d09aeb4c30206bb882b73d63d95a73f96cdaca09ed2bd0d
   languageName: node
   linkType: hard
 

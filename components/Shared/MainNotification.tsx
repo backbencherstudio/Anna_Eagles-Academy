@@ -205,6 +205,16 @@ export default function MainNotification({ isOpen = true, onClose, isDropdown = 
 
     const [notifications, setNotifications] = useState<NotificationItem[]>(filteredNotifications);
 
+    // Calculate notification count
+    const calculateNotificationCount = () => {
+        return notifications.length;
+    };
+
+    // Expose notification count for external use
+    const getNotificationCount = () => {
+        return notifications.length;
+    };
+
     // Update notifications when user role changes
     useEffect(() => {
         const updatedFilteredNotifications = allNotifications.filter(notification =>
@@ -212,6 +222,23 @@ export default function MainNotification({ isOpen = true, onClose, isDropdown = 
         );
         setNotifications(updatedFilteredNotifications);
     }, [user?.role]);
+
+    // Close notification dropdown when clicking outside (only for dropdown mode)
+    useEffect(() => {
+        if (!isDropdown || !isOpen) return;
+
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as Element;
+            if (!target.closest('.notification-dropdown')) {
+                onClose?.();
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isDropdown, isOpen, onClose]);
 
     const handleAccept = (id: string) => {
         // Handle accept logic
