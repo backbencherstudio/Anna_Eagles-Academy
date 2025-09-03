@@ -51,7 +51,7 @@ export default function Language({ onLanguageChange, className = "" }: LanguageP
             <DropdownMenuTrigger asChild>
                 <Button 
                     variant="ghost" 
-                    className={`flex cursor-pointer items-center gap-2 p-2 bg-[#F3F3F4] rounded-full hover:bg-gray-100 border border-gray-200 h-auto ${className}`}
+                    className={`flex  cursor-pointer items-center gap-2 p-2 bg-[#F3F3F4] rounded-full hover:bg-gray-100 border border-gray-200 h-auto ${className}`}
                 >
                     <ReactCountryFlag 
                         countryCode={currentLanguage.countryCode} 
@@ -68,7 +68,7 @@ export default function Language({ onLanguageChange, className = "" }: LanguageP
                     <ChevronDown className="h-3 w-3 text-[#070707]" />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent  className="w-48 mt-3">
                 {languageOptions.map((language) => (
                     <DropdownMenuItem
                         key={language.code}

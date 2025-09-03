@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Play } from 'lucide-react'
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import ButtonSpring from '@/components/Resuable/ButtonSpring'
+import VideoModal from '@/components/Resuable/VideoModal'
 
 export default function WatchWelcomeVideo() {
     const [open, setOpen] = useState(false)
@@ -22,6 +22,8 @@ export default function WatchWelcomeVideo() {
             if (timerRef.current) clearTimeout(timerRef.current)
         }
     }, [])
+
+    const sampleVideoUrl = 'https://www.w3schools.com/html/mov_bbb.mp4'
 
     return (
         <div className="w-full bg-[#0F2598] rounded-xl px-5 py-4  flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 mb-4">
@@ -52,27 +54,14 @@ export default function WatchWelcomeVideo() {
             </div>
 
             {/* Video Modal */}
-            <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setLoading(false) }}>
-                <DialogContent
-                    showOverlay={true}
-                    showCloseButton={true}
-                    className="!max-w-4xl !p-0 !border-0 !bg-transparent shadow-none"
-                    closeButtonClassName="text-white hover:text-white/90"
-                >
-                    <DialogTitle className="sr-only">Welcome Video</DialogTitle>
-                    <div className="w-full">
-                        <div className="relative w-full aspect-video overflow-hidden rounded-lg bg-black">
-                            <video
-                                className="absolute inset-0 h-full w-full"
-                                controls
-                                preload="metadata"
-                                src="/videos/welcome.mp4"
-                                onLoadedMetadata={() => setLoading(false)} 
-                            />
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
+            <VideoModal
+                open={open}
+                onOpenChange={(v) => { setOpen(v); if (!v) setLoading(false) }}
+                videoSrc={sampleVideoUrl}
+                title="Welcome Video"
+                autoPlay
+                onLoadedMetadata={() => setLoading(false)}
+            />
         </div>
     )
 }

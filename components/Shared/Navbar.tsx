@@ -24,10 +24,8 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
     const handleLanguageChange = (languageCode: string) => {
         // Here you can add logic to change the app language
         // For example, using i18n or context
-        console.log('Language changed to:', languageCode);
+        // console.log('Language changed to:', languageCode);
     };
-
-
 
     // Dynamic title system - handles all route types including dynamic routes with query parameters
     const pathname = usePathname();
@@ -38,6 +36,16 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
         'dashboard': 'Hi, ' + user?.name,
         'schedule': 'My Schedule',
         'discover': 'Discover Courses',
+        'student-files': 'Student Files',
+        'download-materials': 'Download Materials',
+        'contact-teacher': 'Contact Teacher',
+        'diploma': 'Diploma',
+        'donations': 'Donations',
+        'card-generator': 'Card Generator',
+        'reports': 'Reports',
+        'teacher-section': 'Teacher Section',
+        'student-feedback': 'Student Feedback',
+        'donation': 'Donation',
         'checkout': 'Checkout',
         'my-courses': 'My Courses',
         'assignments': 'Assignments',
@@ -59,12 +67,11 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
         'lesson': 'Lesson',
         'chapter': 'Chapter',
         'users-management': 'Users Management',
-
         'email-notification': 'Email Notification',
         "calendar": 'Calendar',
         'course-management': 'Course Management',
         'create-assignments': 'Create Assignments',
-        'reports': 'Reports',
+
 
     };
 
@@ -173,7 +180,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
                                 {currentNotificationCount}
                             </span>
                         )}
-                        <div className='absolute -right-40 sm:-right-0 md:-right-5 top-12'>
+                        <div className='absolute -right-18 sm:-right-0 md:-right-5 top-12'>
                             {isNotificationOpen && (
                                 <MainNotification
                                     isOpen={isNotificationOpen}
