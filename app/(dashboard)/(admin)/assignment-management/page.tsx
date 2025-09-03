@@ -1,7 +1,8 @@
+import AssignmentEssay from '@/app/(dashboard)/_components/Admin/AssignmentEssay'
+import AssignmentQuiz from '@/app/(dashboard)/_components/Admin/AssignmentQuiz'
+import AwaitingEvaluation from '@/app/(dashboard)/_components/Admin/AwaitingEvaluation'
 import React from 'react'
-import AssignmentQuiz from '../../_components/Admin/AssignmentQuiz'
-import AssignmentEssay from '../../_components/Admin/AssignmentEssay'
-import AwaitingEvaluation from '../../_components/Admin/AwaitingEvaluation'
+
 
 export default function CreateAssignmentsPage() {
     return (

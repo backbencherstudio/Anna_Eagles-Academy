@@ -3,8 +3,8 @@ import React, { useState } from 'react';
 import Link from "next/link";
 import { usePathname, useRouter } from 'next/navigation';
 import { IoMdClose } from "react-icons/io";
-import { MdArrowForwardIos, MdAssignment, MdMenuBook, MdOutlineBarChart } from 'react-icons/md';
-import { FiLogOut, FiSettings,  FiUser } from 'react-icons/fi';
+import { MdArrowForwardIos } from 'react-icons/md';
+import { FiLogOut, FiSettings } from 'react-icons/fi';
 import LoadingOverlay from '../Resuable/LoadingOverlay';
 import Logo from '../Icons/Logo';
 import { useUserData } from '@/context/UserDataContext'; 
@@ -30,6 +30,12 @@ import DonationIcon from '../Icons/CustomIcon/DectiveIcon/DonationIcon';
 import DonationIconAc from '../Icons/CustomIcon/ActiveIcon/DonationIconAc';
 import SettingsIcon from '../Icons/CustomIcon/DectiveIcon/SettingsIcon';
 import SettingsIconAc from '../Icons/CustomIcon/ActiveIcon/SettingsIconAc';
+import UserManagementIcon from '../Icons/CustomIcon/DectiveIcon/UserManagementIcon';
+import UserManagementIconAc from '../Icons/CustomIcon/ActiveIcon/UserManagementIconAc';
+import CardIcon from '../Icons/CustomIcon/DectiveIcon/CardIcon';
+import CardIconAc from '../Icons/CustomIcon/ActiveIcon/CardIconAc';
+import ChartIcon from '../Icons/CustomIcon/DectiveIcon/ChartIcon';
+import ChartIconAc from '../Icons/CustomIcon/ActiveIcon/ChartIconAc';
 
 const MENU_CONFIG = {
     student: [
@@ -66,20 +72,24 @@ const MENU_CONFIG = {
             items: [
                 { title: 'Dashboard', icon: DashboardIcon, activeIcon: DashboardIconAc, href: '/dashboard' },
                 { title: 'Calendar', icon: CalanderIcon, activeIcon: CalanderIconAt, href: '/calendar' },
-                { title: 'User Management', icon: FiUser, href: '/users-management' },
+                { title: 'User Management', icon: UserManagementIcon, activeIcon: UserManagementIconAc, href: '/users-management' },
             ],
         },
         {
             header: 'COURSES',
             items: [
-                { title: 'Course Management', icon: MdMenuBook, href: '/course-management' },
-                { title: 'Assignments', icon: MdAssignment, href: '/assignment-management' },
+                { title: 'Course Management', icon: MyCourseIcon, activeIcon: MyCourseIconAc, href: '/course-management' },
+                { title: 'Assignments', icon: AssignmentIcon, activeIcon: AssignmentIconAc, href: '/assignment-management' },
+                { title: 'Teacher Section', icon: AssignmentIcon, activeIcon: AssignmentIconAc, href: '/teacher-section' },
+                { title: 'Student Feedback', icon: StudentFileIcon, activeIcon: StudentFileIconAc, href: '/student-feedback' },
+                { title: 'Donations', icon: DonationIcon, activeIcon: DonationIconAc, href: '/donation' },
+                { title: 'Card Generator', icon: CardIcon, activeIcon: CardIconAc, href: '/card-generator' },
+                { title: 'Reports', icon: ChartIcon, activeIcon: ChartIconAc, href: '/reports' },
             ],
         },
         {
             header: 'OTHER',
             items: [
-                { title: 'Reports', icon: MdOutlineBarChart, href: '/reports' },
                 { title: 'Setting', icon: FiSettings, href: '/setting/profile' },
             ],
         },

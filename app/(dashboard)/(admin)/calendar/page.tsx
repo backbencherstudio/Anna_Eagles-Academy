@@ -1,10 +1,12 @@
 'use client'
 import React, { useState } from 'react'
-import CalanderAdmin from '../../_components/Admin/CalanderAdmin'
+
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
-import AddEventModal from '../../_components/Admin/AddEventModal'
-import AddEvent from '../../_components/Admin/AddEvent'
+import CalanderAdmin from '@/app/(dashboard)/_components/Admin/CalanderAdmin'
+import AddEvent from '@/app/(dashboard)/_components/Admin/AddEvent'
+import AddEventModal from '@/app/(dashboard)/_components/Admin/AddEventModal'
+
 
 export default function Calendar() {
     const [isModalOpen, setIsModalOpen] = useState(false)

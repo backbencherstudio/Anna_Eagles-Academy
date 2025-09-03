@@ -1,5 +1,5 @@
 import React from 'react'
-import EmailNotification from '../../_components/Admin/EmailNotification'
+import EmailNotification from '@/app/(dashboard)/_components/Admin/EmailNotification'
 
 export default function EmailNotificationPage() {
     return (

@@ -1,6 +1,6 @@
 import React from 'react'
-import FinancialReportsCard from '../../_components/Admin/FinancialReportsCard'
-import TableTransactions from '../../_components/Admin/TableTransactions'
+import FinancialReportsCard from '@/app/(dashboard)/_components/Admin/FinancialReportsCard'
+import TableTransactions from '@/app/(dashboard)/_components/Admin/TableTransactions'
 
 export default function ReportsPage() {
     return (

@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react'
 import ReusableTable from '@/components/Resuable/ReusableTable'
 import { Download, Trash2, Search, ChevronUp, ChevronDown } from "lucide-react"
-import { CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
