@@ -78,7 +78,7 @@ const completeCourseData: CompleteCourseData = {
 
 export default function CompleteCourse() {
     return (
-        <div className="w-full bg-white rounded-2xl p-4 sm:p-6 shadow mb-4 sm:mb-8">
+        <div className="w-full bg-white rounded-2xl p-4 sm:p-6 shadow mb-5">
             {/* Smart Accordion - Click to show/hide full course content */}
             <Accordion type="single" collapsible className="w-full" defaultValue="course-content">
                 <AccordionItem value="course-content" className="border-none">
@@ -112,8 +112,7 @@ export default function CompleteCourse() {
                                 </div>
                                 <Button variant="outline" size="sm" className="flex items-center gap-2 bg-blue-50 border-blue-200 text-[#0F2598] hover:bg-[#ECEFF3] cursor-pointer text-xs sm:text-sm px-3 py-2 w-full sm:w-auto justify-center">
                                     <Play className="w-3 h-3 sm:w-4 sm:h-4" />
-                                    <span className="hidden xs:inline">Watch a Video</span>
-                                    <span className="xs:hidden">Watch</span>
+                                    <span className="">Watch a Video</span>
                                 </Button>
                             </div>
                         </div>
@@ -202,8 +201,7 @@ export default function CompleteCourse() {
                                     </div>
                                     <Button variant="outline" size="sm" className="flex items-center gap-2 bg-blue-50 border-blue-200 text-[#0F2598] hover:bg-[#ECEFF3] cursor-pointer text-xs sm:text-sm px-3 py-2 w-full sm:w-auto justify-center">
                                         <Play className="w-3 h-3 sm:w-4 sm:h-4" />
-                                        <span className="hidden xs:inline">Watch a Video</span>
-                                        <span className="xs:hidden">Watch</span>
+                                        <span className="">Watch a Video</span>
                                     </Button>
                                 </div>
                             </CardContent>

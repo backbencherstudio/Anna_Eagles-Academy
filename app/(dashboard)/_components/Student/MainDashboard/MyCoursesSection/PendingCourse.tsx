@@ -80,7 +80,7 @@ const completeCourseData: CompleteCourseData = {
 
 export default function PendingCourse() {
     return (
-        <div className="w-full bg-white rounded-2xl p-4 sm:p-6 shadow mb-4 sm:mb-8">
+        <div className="w-full bg-white rounded-2xl p-4 sm:p-6 shadow mb-4">
             {/* Smart Accordion - Click to show/hide full course content */}
             <Accordion type="single" collapsible className="w-full" defaultValue="course-content">
                 <AccordionItem value="course-content" className="border-none">

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import WriteReviewModal from './WriteReviewModal'
+import ButtonSpring from '@/components/Resuable/ButtonSpring'
 
 interface ReviewItem {
     id: string
@@ -17,6 +18,7 @@ interface ReviewItem {
 export default function StudentFeedback() {
     const [activeTab, setActiveTab] = useState<'course' | 'weekly'>('course')
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [loading, setLoading] = useState(false)
 
     const courseReviews: ReviewItem[] = useMemo(
         () => [
@@ -84,7 +86,7 @@ export default function StudentFeedback() {
                     className="px-4 py-2 cursor-pointer w-fit rounded-xl bg-[#0F2598] hover:bg-[#0F2598]/80 transition-all duration-300 text-white text-sm font-semibold shadow-sm"
                     onClick={() => setIsModalOpen(true)}
                 >
-                    Write a Review
+                    {loading ? <ButtonSpring className="w-4 h-4 animate-spin" /> : 'Write a Review'}
                 </button>
             </div>
 

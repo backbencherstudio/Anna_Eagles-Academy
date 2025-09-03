@@ -54,7 +54,7 @@ export default function TeacherVideo() {
         <div className="bg-white rounded-2xl p-4 border border-[#ECEFF3]">
             <h2 className="text-[#1D1F2C] font-bold text-xl lg:text-2xl mb-4">Teacher Video</h2>
 
-            <div className="flex flex-col gap-4 max-h-[70vh] overflow-y-auto pr-1">
+            <div className="flex flex-col gap-4 max-h-[100vh] overflow-y-auto pr-1">
                 {videos.map((item) => (
                     <div key={item.id} className="rounded-2xl border border-[#ECEFF3] p-4 shadow-sm">
                         {/* Thumbnail */}

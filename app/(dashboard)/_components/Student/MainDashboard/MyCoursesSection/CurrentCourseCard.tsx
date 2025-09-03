@@ -66,7 +66,7 @@ export default function CurrentCourseCard() {
             </div>
 
             {/* course video */}
-            <div className="mt-4">
+            <div className="">
                 <div className="relative w-full overflow-hidden rounded-2xl bg-black">
                     <div className="aspect-video">
                         <video

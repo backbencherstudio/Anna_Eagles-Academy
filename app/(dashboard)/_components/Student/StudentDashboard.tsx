@@ -7,6 +7,7 @@ import TeacherVideo from './MainDashboard/TeacherVideo/TeacherVideo';
 import CurrentCourseCard from './MainDashboard/MyCoursesSection/CurrentCourseCard';
 import CompleteCourse from './MainDashboard/MyCoursesSection/CompeleteCourse';
 import PendingCourse from './MainDashboard/MyCoursesSection/PendingCourse';
+import AcademyMaterials from './MainDashboard/MyCoursesSection/AcademyMaterials';
 
 interface ScheduleItem {
     id: number;
@@ -34,7 +35,7 @@ export default function StudentDashboard() {
             <WatchWelcomeVideo />
             <div className='flex flex-col lg:flex-row gap-10'>
                 {/* left side */}
-                <div className='w-full lg:w-7/12 flex flex-col mt-2'>
+                <div className='w-full lg:w-7/12 flex flex-col gap-5'>
                     {/* My Courses Section */}
                     <div className='flex flex-col gap-4 '>
                         <h1 className='text-2xl font-semibold text-[#1D1F2C]'>My Courses</h1>
@@ -42,8 +43,11 @@ export default function StudentDashboard() {
                     </div>
 
                     {/* cousres list */}
-                    <CompleteCourse />
-                    <PendingCourse />
+                    <div className=''>
+                        <CompleteCourse />
+                        <PendingCourse />
+                        <AcademyMaterials />
+                    </div>
 
                 </div>
                 {/* right side */}
