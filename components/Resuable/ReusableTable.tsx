@@ -275,8 +275,8 @@ export default function ReusableTable({
     return (
         <div className="w-full">
             {/* Table */}
-            <div className="rounded-md border">
-                <Table>
+            <div className="rounded-md border sm:overflow-visible overflow-x-auto">
+                <Table className="min-w-max">
                     <TableHeader className='bg-gray-100'>
                         <TableRow className='border-none'>
                             {showCheckbox && (
