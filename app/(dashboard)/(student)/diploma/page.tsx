@@ -20,7 +20,7 @@ const renderStatusPill = (status: CourseRow['status']) => (
   <span
     className={
       'inline-flex items-center rounded-lg px-3 py-1 text-xs font-medium ' +
-      (status === 'COMPLETED' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700')
+      (status === 'COMPLETED' ? 'bg-[#E7F7EF] text-[#0CAF60]' : 'bg-[#FFF6D3] text-[#E6BB20]')
     }
   >
     {status}
@@ -30,16 +30,24 @@ const renderStatusPill = (status: CourseRow['status']) => (
 const renderDownloadButton = (
   row: CourseRow,
   onClick: (r: CourseRow) => void
-) => (
-  <Button
-    size="sm"
-    className="bg-[#0F2598] py-5 cursor-pointer hover:bg-[#0F2598]/90 text-white"
-    onClick={() => onClick(row)}
-  >
-    <Download className="size-4" />
-    Download Certificate
-  </Button>
-)
+) => {
+  const isCompleted = row.status === 'COMPLETED'
+  return (
+    <Button
+      size="sm"
+      disabled={!isCompleted}
+      className={
+        (isCompleted
+          ? 'bg-[#0F2598] hover:bg-[#0F2598]/90 text-white cursor-pointer '
+          : 'bg-gray-200 text-gray-500 cursor-not-allowed hover:bg-gray-200 ') + 'py-5'
+      }
+      onClick={isCompleted ? () => onClick(row) : undefined}
+    >
+      <Download className="size-4" />
+      Download Certificate
+    </Button>
+  )
+}
 
 
 const headers = [
