@@ -1,11 +1,31 @@
 "use client"
 import React from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 export default function PrivacyPolicy() {
+    const router = useRouter()
+    const pathname = usePathname()
+    const searchParams = useSearchParams()
+    const initialTab = searchParams.get('tab') || 'privacy'
+    const [activeTab, setActiveTab] = React.useState<string>(initialTab)
+
+    React.useEffect(() => {
+        const urlTab = searchParams.get('tab') || 'privacy'
+        if (urlTab !== activeTab) {
+            setActiveTab(urlTab)
+        }
+    }, [searchParams])
+
+    React.useEffect(() => {
+        const sp = new URLSearchParams(searchParams.toString())
+        sp.set('tab', activeTab)
+        router.replace(`${pathname}?${sp.toString()}`, { scroll: false })
+    }, [activeTab, pathname])
+
     return (
         <div className="mx-auto w-full  p-4 rounded-lg space-y-6 py-6">
-            <Tabs defaultValue="privacy" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="w-full justify-start rounded-lg bg-white p-2">
                     <TabsTrigger value="privacy" className="data-[state=active]:bg-[#0F2598]/5 cursor-pointer data-[state=active]:text-[#0F2598]">
                         Privacy Policy
