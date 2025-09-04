@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import CourseCard from './CourseCard'
+import CourseCard from '@/app/(dashboard)/_components/Admin/CourseManagement/CourseCard'
 import { useRouter } from 'next/navigation'
 
 interface Course {
@@ -77,7 +77,7 @@ export default function CourseManagement() {
     }
 
     return (
-        <div className="bg-white rounded-xl p-5">
+        <div className="">
             {/* Header with Create Button */}
             <div className="flex justify-end">
                 <Button
