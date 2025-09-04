@@ -58,7 +58,7 @@ export default function WaveAnimation({
             <div
               key={`left-${i}`}
               className={`rounded-full flex-1 transition-all duration-200 ease-in-out ${
-                isBarActive ? 'bg-blue-500' : 'bg-amber-600'
+                isBarActive ? 'bg-blue-500' : 'bg-[#F1C27D]'
               }`}
               style={{
                 height: `${Math.max(animatedHeight, 12)}px`,
@@ -91,7 +91,7 @@ export default function WaveAnimation({
             <div
               key={`right-${i}`}
               className={`rounded-full flex-1 transition-all duration-200 ease-in-out ${
-                isBarActive ? 'bg-blue-500' : 'bg-amber-600'
+                isBarActive ? 'bg-blue-500' : 'bg-[#F1C27D]'
               }`}
               style={{
                 height: `${Math.max(animatedHeight, 12)}px`,

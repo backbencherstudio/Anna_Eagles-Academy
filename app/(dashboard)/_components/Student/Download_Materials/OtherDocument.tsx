@@ -2,7 +2,9 @@
 import React from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { FileText, Download, Eye } from 'lucide-react'
+import { FileText, Download } from 'lucide-react'
+import FilesIcon from '@/components/Icons/DownloadMaterials/FilesIcon'
+import Image from 'next/image'
 
 type OtherDocument = {
   id: string
@@ -11,32 +13,50 @@ type OtherDocument = {
   week: string
   type: 'pdf' | 'doc' | 'txt' | 'other'
   size: string
+  url: string
+  thumbnail?: string
 }
 
 const mockOtherDocuments: OtherDocument[] = [
   {
     id: '1',
-    title: 'Course Syllabus - Complete Guide',
-    description: 'Detailed course syllabus with learning objectives, assessment criteria, and schedule.',
+    title: 'PPT Demo File',
+    description: 'Sample PowerPoint slide deck for testing downloads and previews.',
     week: 'Week 1',
-    type: 'pdf',
-    size: '2.5 MB'
+    type: 'other',
+    size: '1.1 MB',
+    url: 'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pptx-file.pptx',
+    thumbnail: '/images/Thumbnail.png'
   },
   {
     id: '2',
-    title: 'Assignment Guidelines',
-    description: 'Comprehensive guidelines for all course assignments and submission requirements.',
+    title: 'DOC Demo File',
+    description: 'Sample Word document for testing file handling in the app.',
     week: 'Week 1',
-    type: 'pdf',
-    size: '1.8 MB'
+    type: 'doc',
+    size: '48 KB',
+    url: 'https://file-examples.com/storage/fefb5b5f8795a1b259d5b2e/2017/02/file-sample_100kB.docx',
+    thumbnail: '/images/Thumbnail.png'
   },
   {
     id: '3',
-    title: 'Reference Materials',
-    description: 'Additional reading materials and resources to supplement your learning.',
+    title: 'PDF Demo File',
+    description: 'Standard PDF sample to verify download and open-in-new-tab behavior.',
     week: 'Week 2',
     type: 'pdf',
-    size: '3.2 MB'
+    size: '2.5 MB',
+    url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+    thumbnail: '/images/Thumbnail.png'
+  },
+  {
+    id: '4',
+    title: 'Other (TXT) Demo File',
+    description: 'Plain text sample file representing other document types.',
+    week: 'Week 2',
+    type: 'txt',
+    size: '1 KB',
+    url: 'https://www.w3.org/TR/PNG/iso_8859-1.txt',
+    thumbnail: '/images/Thumbnail.png'
   }
 ]
 
@@ -64,59 +84,77 @@ const getFileIcon = (type: string) => {
 }
 
 export default function OtherDocument() {
+  const handleDownload = async (docItem: OtherDocument) => {
+    try {
+      const response = await fetch(docItem.url)
+      if (!response.ok) {
+        throw new Error('Network response was not ok')
+      }
+      const blob = await response.blob()
+      const blobUrl = URL.createObjectURL(blob)
+
+      const urlParts = docItem.url.split('?')[0].split('#')[0]
+      const extension = urlParts.includes('.') ? urlParts.substring(urlParts.lastIndexOf('.') + 1) : 'file'
+      const sanitizedTitle = docItem.title.replace(/[^a-z0-9]+/gi, '-').replace(/(^-|-$)/g, '').toLowerCase()
+      const filename = `${sanitizedTitle}.${extension}`
+
+      const link = window.document.createElement('a')
+      link.href = blobUrl
+      link.download = filename
+      window.document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(blobUrl)
+    } catch (error) {
+      window.open(docItem.url, '_blank', 'noopener,noreferrer')
+    }
+  }
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-white rounded-xl p-4">
       {/* Files Section Header */}
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-[#0F2598] flex items-center justify-center">
-          <FileText className="w-4 h-4 text-white" />
+        <div>
+          <FilesIcon />
         </div>
-        <h2 className="text-lg font-semibold text-gray-800">Other Documents</h2>
+        <h2 className="text-lg font-semibold text-gray-800">Documents</h2>
       </div>
 
-      {/* Other Documents Grid */}
-      <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
+      {/* Other Documents List */}
+      <div className="space-y-4">
         {mockOtherDocuments.map((document) => (
-          <Card key={document.id} className="rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+          <Card key={document.id} className="rounded-xl border border-gray-200 transition-shadow">
             <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                {/* File Icon */}
+              <div className="flex items-center gap-4">
+                {/* File Thumbnail */}
                 <div className="flex-shrink-0">
-                  {getFileIcon(document.type)}
+                  {document.thumbnail ? (
+                    <Image className='rounded-lg w-24 h-20' src={document.thumbnail} alt={document.title} width={100} height={100} />
+                  ) : (
+                    getFileIcon(document.type)
+                  )}
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-semibold text-gray-900 mb-2 line-clamp-2">
+                  <h3 className="text-base font-semibold text-gray-900 mb-1">
                     {document.title}
                   </h3>
-                  <p className="text-sm text-gray-600 mb-2 line-clamp-3">
+                  <p className="text-sm text-gray-600 leading-relaxed">
                     {document.description}
                   </p>
-                  <p className="text-xs text-gray-500 mb-4">
-                    Size: {document.size}
-                  </p>
                 </div>
-              </div>
 
-              {/* Action Buttons */}
-              <div className="mt-4 flex flex-col gap-2">
-                <div className="flex gap-2">
-                  <Button 
-                    className="flex-1 bg-[#0F2598] text-white hover:bg-[#0F2598]/90 text-sm font-medium py-2"
+                {/* Action Button */}
+                <div className="flex-shrink-0 flex flex-col items-end gap-1">
+                  <Button
+                    onClick={() => handleDownload(document)}
+                    className="bg-[#0F2598] cursor-pointer text-white hover:bg-[#0F2598]/90 text-sm font-medium px-4 py-2"
                     size="sm"
                   >
-                    <Eye className="w-4 h-4 mr-2" />
-                    View Document
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    className="flex-1 border-[#0F2598] text-[#0F2598] hover:bg-[#0F2598]/5 text-sm font-medium py-2"
-                    size="sm"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
                     Download
+                    <Download className="w-4 h-4" />
                   </Button>
+                  <p className="text-xs text-gray-500">{document.size}</p>
                 </div>
               </div>
             </CardContent>

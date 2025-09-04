@@ -220,7 +220,7 @@ export default function AutoPlayer({
             onClick={handlePlayPause}
             className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 bg-white rounded-full flex items-center justify-center transition-all cursor-pointer duration-200 hover:scale-105"
           >
-            <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 bg-amber-600 rounded-full flex items-center justify-center">
+            <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 bg-[#F1C27D] rounded-full flex items-center justify-center">
               {isCurrentlyPlaying && isPlaying ? (
                 <Pause className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 lg:w-5 lg:h-5 text-white" />
               ) : (
@@ -244,7 +244,7 @@ export default function AutoPlayer({
             isCurrentlyPlaying ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'
           }`}
           style={{
-            background: `linear-gradient(to right, #3B82F6 0%, #3B82F6 ${progress}%, #E5E7EB ${progress}%, #E5E7EB 100%)`
+            background: `linear-gradient(to right, #F1C27D 0%, #F1C27D ${progress}%, #E5E7EB ${progress}%, #E5E7EB 100%)`
           }}
         />
       </div>
@@ -274,7 +274,7 @@ export default function AutoPlayer({
               onChange={handleVolumeChange}
               className="w-24 sm:w-32 h-0.5 sm:h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer volume-slider"
               style={{
-                background: `linear-gradient(to right, #3B82F6 0%, #3B82F6 ${(isMuted ? 0 : volume) * 100}%, #E5E7EB ${(isMuted ? 0 : volume) * 100}%, #E5E7EB 100%)`
+                background: `linear-gradient(to right, #F1C27D 0%, #F1C27D ${(isMuted ? 0 : volume) * 100}%, #E5E7EB ${(isMuted ? 0 : volume) * 100}%, #E5E7EB 100%)`
               }}
             />
           </div>

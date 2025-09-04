@@ -91,9 +91,9 @@ export default function AudioLessons() {
                             {/* Action Button */}
                             <button 
                                 onClick={() => handlePrimaryButtonClick(lesson)}
-                                className={`w-full py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors text-sm sm:text-base ${
+                                className={`w-full cursor-pointer py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors text-sm sm:text-base ${
                                     isCurrentlyPlaying
-                                        ? (isPlaying ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-blue-600 text-white hover:bg-blue-700')
+                                        ? (isPlaying ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-[#0F2598] text-white hover:bg-[#0F2598]/90')
                                         : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
                                 }`}
                             >
