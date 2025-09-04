@@ -47,13 +47,10 @@ export default function AutoPlayer({
   
   const isCurrentlyPlaying = currentPlayingId === audioId
 
-  // Handle play/pause when isCurrentlyPlaying changes
+  // When this player is no longer the current one, ensure it is paused.
+  // Do not auto-play when it becomes current; playback is controlled by isPlaying state.
   useEffect(() => {
-    if (isCurrentlyPlaying && audioRef.current) {
-      // When this becomes the current player, start playing
-      audioRef.current.play().catch(console.error)
-    } else if (audioRef.current) {
-      // When this is no longer the current player, pause
+    if (!isCurrentlyPlaying && audioRef.current) {
       audioRef.current.pause()
     }
   }, [isCurrentlyPlaying])
