@@ -31,6 +31,8 @@ import CardIcon from '../Icons/CustomIcon/DectiveIcon/CardIcon'
 import CardIconAc from '../Icons/CustomIcon/ActiveIcon/CardIconAc'
 import ChartIcon from '../Icons/CustomIcon/DectiveIcon/ChartIcon'
 import ChartIconAc from '../Icons/CustomIcon/ActiveIcon/ChartIconAc'
+import PolicyIcon from '../Icons/CustomIcon/DectiveIcon/PolicyIcon'
+import PolicyIconAc from '../Icons/CustomIcon/ActiveIcon/PolicyIconAc'
 
 export const MENU_CONFIG = {
     student: [
@@ -58,6 +60,7 @@ export const MENU_CONFIG = {
             header: 'OTHER',
             items: [
                 { title: 'Setting', icon: SettingsIcon, activeIcon: SettingsIconAc, href: '/setting/profile' },
+                { title: 'Privacy Policy', icon: PolicyIcon, activeIcon: PolicyIconAc, href: '/privacy-policy' },
             ],
         },
     ],
@@ -86,6 +89,7 @@ export const MENU_CONFIG = {
             header: 'OTHER',
             items: [
                 { title: 'Setting', icon: FiSettings, href: '/setting/profile' },
+          
             ],
         },
     ],
