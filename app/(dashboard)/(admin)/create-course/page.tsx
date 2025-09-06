@@ -8,8 +8,10 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Calendar } from '@/components/ui/calendar'
+import { DateRange } from 'react-day-picker'
 import { Separator } from '@/components/ui/separator'
-import { Upload, Plus, Paperclip, Image } from 'lucide-react'
+import { Plus, Paperclip, Image, Calendar as CalendarIcon } from 'lucide-react'
+import DateRangePicker from '@/components/ui/DateRangePicker'
 
 interface Module {
     id: string
@@ -27,7 +29,7 @@ interface CourseFormData {
         title: string
         files: File[]
     }[]
-    selectedDate: Date | undefined
+    dateRange: DateRange | undefined
 }
 
 export default function CreateCoursePage() {
@@ -48,7 +50,7 @@ export default function CreateCoursePage() {
             price: '',
             thumbnail: null,
             modules: [{ id: '1', title: '', files: [] }],
-            selectedDate: new Date()
+            dateRange: undefined
         }
     })
 
@@ -57,7 +59,7 @@ export default function CreateCoursePage() {
         name: "modules"
     })
 
-    const selectedDate = watch('selectedDate')
+    const dateRange = watch('dateRange')
 
     const handleThumbnailUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
@@ -140,7 +142,7 @@ export default function CreateCoursePage() {
 
                             {/* Upload Thumbnail */}
                             <div className="space-y-2">
-                               
+
                                 <div className="flex items-center gap-3">
                                     <Button
                                         type="button"
@@ -331,28 +333,37 @@ export default function CreateCoursePage() {
 
                 {/* Right Column - Set Availability */}
                 <div className="lg:col-span-1">
-                    <Card className='border py-5'>
+                    <Card className='border py-5 relative'>
                         <CardHeader>
                             <CardTitle className="text-md font-semibold">Set Availability</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <Label className="text-sm font-medium text-gray-700">Course name: {watch('title') || 'Untitled Course'}</Label>
+                            </div>
+                            
                             <Separator />
 
-                            <div className="space-y-2">
-                                {/* <Label className="text-sm font-medium">Calendar</Label> */}
-                                <Calendar
-                                    mode="single"
-                                    selected={selectedDate}
-                                    onSelect={(date) => setValue('selectedDate', date)}
-                                    className="rounded-md border w-full"
-                                    disabled={(date) => {
-                                        const today = new Date()
-                                        today.setHours(0, 0, 0, 0)
-                                        const checkDate = new Date(date)
-                                        checkDate.setHours(0, 0, 0, 0)
-                                        return checkDate < today
-                                    }}
-                                />
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium text-gray-700">Start Date</Label>
+                                    <DateRangePicker
+                                        value={dateRange}
+                                        onChange={(range) => setValue('dateRange', range)}
+                                        placeholder="Select start date"
+                                        showAs="start"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium text-gray-700">End Date</Label>
+                                    <DateRangePicker
+                                        value={dateRange}
+                                        onChange={(range) => setValue('dateRange', range)}
+                                        placeholder="Select end date"
+                                        showAs="end"
+                                    />
+                                </div>
                             </div>
 
                             <Separator />
@@ -369,6 +380,7 @@ export default function CreateCoursePage() {
                     </Card>
                 </div>
             </div>
+
         </form>
     )
 }
