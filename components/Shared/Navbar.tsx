@@ -153,14 +153,18 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
                 </div>
 
                 {/* Quote chip (poem section) */}
-                <div className="hidden xl:flex items-center justify-center">
-                    <div className="max-w-[860px] w-full bg-[#F1C27D1A] px-4 sm:px-6 py-3 sm:py-4 rounded-tl-[48px] rounded-br-[48px] rounded-tr-[10px] rounded-bl-[10px]">
-                        <p className="text-[#0F172A] italic text-[13px] leading-relaxed text-center font-medium">
-                            "For I know the plans I have for you, declares the Lord, plans to <br /> prosper you and not to harm you, to give you hope and a future."
-                        </p>
-                        <p className="text-center text-[#E2A93B] text-[12px] sm:text-[14px] font-semibold mt-1">— Jeremiah 29:11</p>
-                    </div>
-                </div>
+                {
+                    currentPath === 'dashboard' && user?.role === 'student' && (
+                        <div className="hidden xl:flex items-center justify-center">
+                            <div className="max-w-[860px] w-full bg-[#F1C27D1A] px-4 sm:px-6 py-3 sm:py-4 rounded-tl-[48px] rounded-br-[48px] rounded-tr-[10px] rounded-bl-[10px]">
+                                <p className="text-[#0F172A] italic text-[13px] leading-relaxed text-center font-medium">
+                                    "For I know the plans I have for you, declares the Lord, plans to <br /> prosper you and not to harm you, to give you hope and a future."
+                                </p>
+                                <p className="text-center text-[#E2A93B] text-[12px] sm:text-[14px] font-semibold mt-1">— Jeremiah 29:11</p>
+                            </div>
+                        </div>
+                    )
+                }
 
                 <div className="flex items-center gap-6">
 
