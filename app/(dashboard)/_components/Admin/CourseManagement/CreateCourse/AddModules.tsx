@@ -39,12 +39,14 @@ interface AddModulesProps {
     control: Control<CourseFormData>
     register: UseFormRegister<CourseFormData>
     errors: FieldErrors<CourseFormData>
+    onTotalPriceChange: (total: number) => void
 }
 
 export default function AddModules({
     control,
     register,
-    errors
+    errors,
+    onTotalPriceChange
 }: AddModulesProps) {
     const [moduleFiles, setModuleFiles] = useState<{ [key: string]: File[] }>({})
     const [showModuleForm, setShowModuleForm] = useState(false)
@@ -53,11 +55,18 @@ export default function AddModules({
     const [introVideoFile, setIntroVideoFile] = useState<File | null>(null)
     const [endVideoFile, setEndVideoFile] = useState<File | null>(null)
     const [lessons, setLessons] = useState<Lesson[]>([])
+    const [modulePrices, setModulePrices] = useState<{ [key: string]: number }>({})
 
     const { fields, append, remove } = useFieldArray({
         control,
         name: "modules"
     })
+
+    // Calculate total price whenever module prices change
+    React.useEffect(() => {
+        const total = Object.values(modulePrices).reduce((sum, price) => sum + price, 0)
+        onTotalPriceChange(total)
+    }, [modulePrices, onTotalPriceChange])
 
     const handleFileUpload = (moduleId: string, event: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(event.target.files || [])
@@ -91,6 +100,11 @@ export default function AddModules({
         delete newModuleFiles[moduleId]
         setModuleFiles(newModuleFiles)
 
+        // Remove price for this module
+        const newModulePrices = { ...modulePrices }
+        delete newModulePrices[moduleId]
+        setModulePrices(newModulePrices)
+
         // If no modules left, hide the form
         if (fields.length === 1) {
             setShowModuleForm(false)
@@ -104,6 +118,13 @@ export default function AddModules({
             files: []
         }
         append(newModule)
+    }
+
+    const handleModulePriceChange = (moduleId: string, price: number) => {
+        setModulePrices(prev => ({
+            ...prev,
+            [moduleId]: price
+        }))
     }
 
     return (
@@ -195,12 +216,17 @@ export default function AddModules({
 
                         {/* Course Price */}
                         <div className="space-y-2">
-                            <Label className="text-sm font-medium text-gray-700">Course</Label>
+                            <Label className="text-sm font-medium text-gray-700">Course Price <span className="text-red-500">*</span></Label>
                             <div className="relative">
                                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
                                 <Input
-                                    placeholder="00.00"
-                                    className="w-full pl-8"
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    placeholder="0.00"
+                                    value={modulePrices[module.id] || ''}
+                                    onChange={(e) => handleModulePriceChange(module.id, parseFloat(e.target.value) || 0)}
+                                    className="w-full pl-8 border-gray-300 focus:border-[#0F2598] focus:ring-[#0F2598]"
                                 />
                             </div>
                         </div>
@@ -210,8 +236,6 @@ export default function AddModules({
                             lessons={lessons}
                             onLessonsChange={setLessons}
                         />
-
-                  
                     </CardContent>
                 </Card>
             ))}

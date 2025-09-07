@@ -108,17 +108,7 @@ export default function CourseManagement() {
     if (loading) {
         return (
             <div className="space-y-6">
-                {/* Header with Create Button */}
-                <div className="flex justify-end">
-                    <Button
-                        className="bg-[#F1C27D] cursor-pointer hover:bg-[#F1C27D]/80 text-white rounded-full px-6 py-3 flex items-center gap-2"
-
-                    >
-                        <Plus className="w-5 h-5" />
-                        Create New Course
-                    </Button>
-                </div>
-
+            
                 {/* Loading Skeleton */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[1, 2, 3, 4, 5, 6].map((i) => (

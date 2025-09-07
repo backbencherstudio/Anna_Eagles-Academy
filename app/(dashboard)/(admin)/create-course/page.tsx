@@ -32,6 +32,7 @@ interface CourseFormData {
 
 export default function CreateCoursePage() {
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
+    const [totalPrice, setTotalPrice] = useState<number>(0)
 
     const {
         register,
@@ -189,25 +190,20 @@ export default function CreateCoursePage() {
                             {/* Total Price */}
                             <div className="space-y-2">
                                 <Label htmlFor="price" className="text-sm font-medium text-gray-700">
-                                    Total Price <span className="text-red-500">*</span>
+                                    Total Price
                                 </Label>
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
                                     <Input
                                         id="price"
                                         type="number"
-                                        placeholder="99.99"
-                                        {...register('price', {
-                                            required: 'Price is required',
-                                            min: { value: 0, message: 'Price must be greater than or equal to 0' }
-                                        })}
-                                        className={`w-full pl-8 border-gray-300 focus:border-blue-500 focus:ring-blue-500 ${errors.price ? 'border-red-500' : ''
-                                            }`}
+                                        placeholder="0.00"
+                                        value={totalPrice.toFixed(2)}
+                                        disabled
+                                        className="w-full pl-8 border-gray-300 bg-gray-50 text-gray-600 cursor-not-allowed"
                                     />
                                 </div>
-                                {errors.price && (
-                                    <p className="text-sm text-red-500">{errors.price.message}</p>
-                                )}
+                                <p className="text-xs text-gray-500">Total price calculated from all module prices</p>
                             </div>
                         </CardContent>
                     </Card>
@@ -218,6 +214,7 @@ export default function CreateCoursePage() {
                         control={control}
                         register={register}
                         errors={errors}
+                        onTotalPriceChange={setTotalPrice}
                     />
                 </div>
 
