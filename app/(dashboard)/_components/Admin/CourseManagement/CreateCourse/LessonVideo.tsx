@@ -135,7 +135,7 @@ export default function LessonVideo({ lessons, onLessonsChange }: LessonVideoPro
 
                         {/* Lesson Title */}
                         <div className="space-y-2 mb-5">
-                            <Label className="text-sm font-medium text-gray-700">Lesson Title</Label>
+                            <Label className="text-sm font-medium text-gray-700">Lesson Title <span className="text-red-500">*</span></Label>
                             <Input
                                 placeholder="Enter lesson title..."
                                 value={lesson.title}
@@ -184,7 +184,7 @@ export default function LessonVideo({ lessons, onLessonsChange }: LessonVideoPro
 
                         {/* Document Upload */}
                         <div className="space-y-3">
-                            <Label className="text-sm font-medium text-gray-700">Upload Documents</Label>
+                            <Label className="text-sm font-medium text-gray-700">Upload Documents <span className="text-red-500">*</span></Label>
                             <div className="flex items-center gap-3 p-3  border border-gray-200 rounded-lg">
                                 <Button
                                     type="button"

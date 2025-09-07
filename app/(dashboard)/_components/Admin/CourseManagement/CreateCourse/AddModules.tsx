@@ -2,10 +2,9 @@ import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
-import { Plus, Paperclip, Trash2, FileText } from 'lucide-react'
-import { UseFieldArrayReturn, FieldErrors, UseFormRegister, Control, useFieldArray } from 'react-hook-form'
+import { Plus,  Trash2 } from 'lucide-react'
+import {  FieldErrors, UseFormRegister, Control, useFieldArray, UseFormSetValue } from 'react-hook-form'
 import UploadVideo from './UploadVideo'
 import LessonVideo from './LessonVideo'
 
@@ -13,6 +12,7 @@ interface Module {
     id: string
     title: string
     files: File[]
+    price: number
 }
 
 interface Lesson {
@@ -40,13 +40,15 @@ interface AddModulesProps {
     register: UseFormRegister<CourseFormData>
     errors: FieldErrors<CourseFormData>
     onTotalPriceChange: (total: number) => void
+    setValue: UseFormSetValue<CourseFormData>
 }
 
 export default function AddModules({
     control,
     register,
     errors,
-    onTotalPriceChange
+    onTotalPriceChange,
+    setValue
 }: AddModulesProps) {
     const [moduleFiles, setModuleFiles] = useState<{ [key: string]: File[] }>({})
     const [showModuleForm, setShowModuleForm] = useState(false)
@@ -87,7 +89,8 @@ export default function AddModules({
         const newModule = {
             id: Date.now().toString(),
             title: '',
-            files: []
+            files: [],
+            price: 0
         }
         append(newModule)
         setShowModuleForm(true)
@@ -115,7 +118,8 @@ export default function AddModules({
         const newModule = {
             id: Date.now().toString(),
             title: '',
-            files: []
+            files: [],
+            price: 0
         }
         append(newModule)
     }
@@ -125,6 +129,12 @@ export default function AddModules({
             ...prev,
             [moduleId]: price
         }))
+        
+        // Update the form data with the module price
+        const moduleIndex = fields.findIndex(field => field.id === moduleId)
+        if (moduleIndex !== -1) {
+            setValue(`modules.${moduleIndex}.price`, price)
+        }
     }
 
     return (

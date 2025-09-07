@@ -12,6 +12,7 @@ interface SetAvailabilityProps {
     onDateRangeChange: (range: DateRange | undefined) => void
     isSubmitting: boolean
     onSubmit: () => void
+    showErrors?: boolean
 }
 
 export default function SetAvailability({
@@ -19,10 +20,11 @@ export default function SetAvailability({
     dateRange,
     onDateRangeChange,
     isSubmitting,
-    onSubmit
+    onSubmit,
+    showErrors = false
 }: SetAvailabilityProps) {
     return (
-        <Card className='border py-5 relative sticky top-0'>
+        <Card className='border py-5 sticky top-0'>
             <CardHeader>
                 <CardTitle className="text-md font-semibold">Set Availability</CardTitle>
             </CardHeader>
@@ -37,10 +39,10 @@ export default function SetAvailability({
 
                 <div className="space-y-4">
                     <div className="space-y-2">
-                        <Label className="text-sm font-medium text-gray-700">Start Date</Label>
+                        <Label className="text-sm font-medium text-gray-700">Start Date <span className="text-red-500">*</span></Label>
                         <DateRangePicker
                             value={dateRange}
-                            className="cursor-pointer"
+                            className={`cursor-pointer ${showErrors && !dateRange?.from ? 'border-red-500' : ''}`}
                             onChange={onDateRangeChange}
                             placeholder="Select start date"
                             showAs="start"
@@ -48,10 +50,10 @@ export default function SetAvailability({
                     </div>
 
                     <div className="space-y-2">
-                        <Label className="text-sm font-medium text-gray-700">End Date</Label>
+                        <Label className="text-sm font-medium text-gray-700">End Date <span className="text-red-500">*</span></Label>
                         <DateRangePicker
                             value={dateRange}
-                            className="cursor-pointer"
+                            className={`cursor-pointer ${showErrors && !dateRange?.to ? 'border-red-500' : ''}`}
                             onChange={onDateRangeChange}
                             placeholder="Select end date"
                             showAs="end"
