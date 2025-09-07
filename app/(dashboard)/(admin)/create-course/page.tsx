@@ -349,6 +349,7 @@ export default function CreateCoursePage() {
                                     <Label className="text-sm font-medium text-gray-700">Start Date</Label>
                                     <DateRangePicker
                                         value={dateRange}
+                                        className="cursor-pointer"
                                         onChange={(range) => setValue('dateRange', range)}
                                         placeholder="Select start date"
                                         showAs="start"
@@ -359,6 +360,7 @@ export default function CreateCoursePage() {
                                     <Label className="text-sm font-medium text-gray-700">End Date</Label>
                                     <DateRangePicker
                                         value={dateRange}
+                                        className="cursor-pointer"
                                         onChange={(range) => setValue('dateRange', range)}
                                         placeholder="Select end date"
                                         showAs="end"

@@ -76,9 +76,9 @@ export default function DateRangePicker({
 
     const handleDateChange = (range: DateRange | undefined) => {
         onChange(range)
-        
-        // If start date is selected, update second month to be next month
-        if (range?.from && !range?.to) {
+
+        // If start date is selected, always update second month to be next month
+        if (range?.from) {
             const nextMonth = new Date(range.from)
             nextMonth.setMonth(nextMonth.getMonth() + 1)
             setSecondMonth(nextMonth)
@@ -105,7 +105,25 @@ export default function DateRangePicker({
             } else {
                 newMonth.setMonth(newMonth.getMonth() + 1)
             }
-            setSecondMonth(newMonth)
+
+            // Prevent second calendar from showing the same month as start date
+            if (value?.from) {
+                const startMonth = value.from.getMonth()
+                const startYear = value.from.getFullYear()
+                const newMonthValue = newMonth.getMonth()
+                const newYear = newMonth.getFullYear()
+
+                // If trying to navigate to same month as start date, move to next month
+                if (newMonthValue === startMonth && newYear === startYear) {
+                    const nextMonth = new Date(newMonth)
+                    nextMonth.setMonth(nextMonth.getMonth() + 1)
+                    setSecondMonth(nextMonth)
+                } else {
+                    setSecondMonth(newMonth)
+                }
+            } else {
+                setSecondMonth(newMonth)
+            }
         }
     }
 
@@ -149,11 +167,11 @@ export default function DateRangePicker({
 
                         {/* Date Display Fields - Only show when dates are selected */}
                         {(value?.from || value?.to) && (
-                            <div className="flex gap-4 lg:w-1/2 w-full">
+                            <div className="flex gap-1 lg:w-1/2 w-full">
                                 {/* Start Date */}
                                 <div className="flex-1">
                                     <div className={`relative flex flex-col px-3 py-1 border rounded-lg  ${value?.from
-                                        ? 'border-blue-500 bg-purple-50'
+                                        ? 'border-[#0F2598] bg-[#0F2598]/10'
                                         : 'border-gray-300 bg-gray-50'
                                         }`}>
                                         <div className="flex items-center justify-between">
@@ -227,18 +245,18 @@ export default function DateRangePicker({
                             numberOfMonths={1}
                             classNames={{
                                 months: "flex gap-4 flex-col",
-                                month: "flex flex-col w-full gap-4",
-                                nav: "hidden",
-                                month_caption: "flex items-center justify-center relative",
-                                weekday: "text-[#BDC1C6] font-semibold flex-1 flex justify-center items-center text-sm select-none",
-                                week: "flex w-full",
-                                day: "h-8 w-8 text-sm font-medium flex items-center justify-center",
-                                range_start: "bg-[#1a73e8] text-white rounded-l-md font-semibold",
-                                range_end: "bg-[#1a73e8] text-white rounded-r-md font-semibold",
-                                range_middle: "bg-[#e8f0fe] text-[#1a73e8] font-medium",
-                                today: "bg-gray-100 text-gray-900 font-semibold",
-                                day_selected: "bg-[#1a73e8] text-white font-semibold",
-                                day_outside: "text-gray-400",
+                                month: "flex flex-col w-full gap-4 ",
+                                nav: "hidden ",
+                                month_caption: "flex items-center justify-center relative ",
+                                weekday: "text-black mb-2  uppercase font-semibold flex-1 flex justify-center items-center text-xs select-none",
+                                week: "flex w-full mb-2 ",
+                                day: "h-8 w-8 text-sm font-medium flex items-center justify-center ",
+                                range_start: "bg-[#0F2598]  text-white rounded-full font-semibold ",
+                                range_end: "bg-[#0F2598] text-white rounded-full font-semibold ",
+                                range_middle: "bg-[#0F2598]/10  text-[#0F2598] font-medium ",
+                                today: "bg-gray-200 text-gray-900 font-semibold rounded-full",
+                                day_selected: "bg-[#0F2598] text-white font-semibold ",
+                                day_outside: "text-gray-400 ",
                                 day_disabled: "text-gray-300 cursor-not-allowed"
                             }}
                             components={{
@@ -253,14 +271,14 @@ export default function DateRangePicker({
                                         >
                                             <ChevronLeft className="h-4 w-4 text-gray-500" />
                                         </Button>
-                                        
+
                                         <span className="text-sm font-medium text-gray-700">
-                                            {currentMonth.toLocaleDateString('en-US', { 
-                                                month: 'long', 
-                                                year: 'numeric' 
+                                            {currentMonth.toLocaleDateString('en-US', {
+                                                month: 'long',
+                                                year: 'numeric'
                                             })}
                                         </span>
-                                        
+
                                         <Button
                                             type="button"
                                             variant="ghost"
@@ -274,14 +292,33 @@ export default function DateRangePicker({
                                 )
                             }}
                         />
-                        
+
                         {/* Second Calendar */}
                         <Calendar
                             mode="range"
                             selected={value}
                             onSelect={handleDateChange}
                             month={secondMonth}
-                            onMonthChange={setSecondMonth}
+                            onMonthChange={(month) => {
+                                // Prevent second calendar from showing the same month as start date
+                                if (value?.from) {
+                                    const startMonth = value.from.getMonth()
+                                    const startYear = value.from.getFullYear()
+                                    const newMonth = month.getMonth()
+                                    const newYear = month.getFullYear()
+
+                                    // If trying to navigate to same month as start date, move to next month
+                                    if (newMonth === startMonth && newYear === startYear) {
+                                        const nextMonth = new Date(month)
+                                        nextMonth.setMonth(nextMonth.getMonth() + 1)
+                                        setSecondMonth(nextMonth)
+                                    } else {
+                                        setSecondMonth(month)
+                                    }
+                                } else {
+                                    setSecondMonth(month)
+                                }
+                            }}
                             className="rounded-md border-0"
                             showOutsideDays={false}
                             disabled={(date) => {
@@ -289,10 +326,10 @@ export default function DateRangePicker({
                                 today.setHours(0, 0, 0, 0)
                                 const checkDate = new Date(date)
                                 checkDate.setHours(0, 0, 0, 0)
-                                
+
                                 // Disable past dates
                                 if (checkDate < today) return true
-                                
+
                                 // If start date is selected, disable dates from the same month
                                 if (value?.from) {
                                     const startDate = new Date(value.from)
@@ -300,13 +337,13 @@ export default function DateRangePicker({
                                     const startYear = startDate.getFullYear()
                                     const checkMonth = checkDate.getMonth()
                                     const checkYear = checkDate.getFullYear()
-                                    
+
                                     // Disable dates from the same month as start date
                                     if (checkMonth === startMonth && checkYear === startYear) {
                                         return true
                                     }
                                 }
-                                
+
                                 return false
                             }}
                             numberOfMonths={1}
@@ -315,14 +352,14 @@ export default function DateRangePicker({
                                 month: "flex flex-col w-full gap-4",
                                 nav: "hidden",
                                 month_caption: "flex items-center justify-center relative",
-                                weekday: "text-[#BDC1C6] font-semibold flex-1 flex justify-center items-center text-sm select-none",
-                                week: "flex w-full",
+                                weekday: "text-black mb-2 uppercase font-semibold flex-1 flex justify-center items-center text-xs select-none",
+                                week: "flex w-full mb-2 ",
                                 day: "h-8 w-8 text-sm font-medium flex items-center justify-center",
-                                range_start: "bg-[#1a73e8] text-white rounded-l-md font-semibold",
-                                range_end: "bg-[#1a73e8] text-white rounded-r-md font-semibold",
-                                range_middle: "bg-[#e8f0fe] text-[#1a73e8] font-medium",
-                                today: "bg-gray-100 text-gray-900 font-semibold",
-                                day_selected: "bg-[#1a73e8] text-white font-semibold",
+                                range_start: "bg-[#0F2598] hover:bg-[#0F2598]/90 text-white rounded-full font-semibold",
+                                range_end: "bg-[#0F2598] hover:bg-[#0F2598]/90 text-white rounded-full font-semibold",
+                                range_middle: "bg-[#0F2598]/10 text-[#0F2598] font-medium",
+                                today: "bg-gray-200 text-gray-900 font-semibold rounded-full",
+                                day_selected: "bg-[#0F2598] text-white font-semibold",
                                 day_outside: "text-gray-400",
                                 day_disabled: "text-gray-300 cursor-not-allowed"
                             }}
@@ -338,14 +375,14 @@ export default function DateRangePicker({
                                         >
                                             <ChevronLeft className="h-4 w-4 text-gray-500" />
                                         </Button>
-                                        
+
                                         <span className="text-sm font-medium text-gray-700">
-                                            {secondMonth.toLocaleDateString('en-US', { 
-                                                month: 'long', 
-                                                year: 'numeric' 
+                                            {secondMonth.toLocaleDateString('en-US', {
+                                                month: 'long',
+                                                year: 'numeric'
                                             })}
                                         </span>
-                                        
+
                                         <Button
                                             type="button"
                                             variant="ghost"
@@ -362,7 +399,7 @@ export default function DateRangePicker({
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex justify-between items-center pt-4 border-t">
+                    <div className="flex justify-end gap-4 items-center ">
                         <Button
                             type="button"
                             variant="ghost"
@@ -376,7 +413,7 @@ export default function DateRangePicker({
                             type="button"
                             size="sm"
                             onClick={handleApply}
-                            className="text-sm bg-[#1a73e8] cursor-pointer hover:bg-[#1a73e8]/90 text-white px-6"
+                            className="text-sm bg-[#0F2598] cursor-pointer hover:bg-[#0F2598]/90 text-white px-6"
                         >
                             Close
                         </Button>
