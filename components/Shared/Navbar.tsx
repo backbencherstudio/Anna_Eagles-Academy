@@ -71,6 +71,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
         "calendar": 'Calendar',
         'course-management': 'Course Management',
         'create-assignments': 'Create Assignments',
+        'create-course': 'Create Course',
 
 
     };

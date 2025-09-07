@@ -99,11 +99,13 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
                     </button>
                 </div>
 
-                {/* Main Navigation */}
-                <SideBarMenu role={user.role as 'student' | 'admin'} isCollapsed={isCollapsed} onMobileMenuClose={onMobileMenuClose} />
+                {/* Main Navigation - Scrollable */}
+                <div className="flex-1 overflow-y-auto">
+                    <SideBarMenu role={user.role as 'student' | 'admin'} isCollapsed={isCollapsed} onMobileMenuClose={onMobileMenuClose} />
+                </div>
 
-                {/* Bottom Navigation - Logout */}
-                <nav className={`p-4 space-y-2 ${isCollapsed ? 'px-2' : ''}`}>
+                {/* Bottom Navigation - Logout - Fixed */}
+                <nav className={`p-1  ${isCollapsed ? 'px-2' : ''} flex-shrink-0`}>
                     <div className="border-t border-gray-200 pt-2">
                         <button
                             onClick={() => {

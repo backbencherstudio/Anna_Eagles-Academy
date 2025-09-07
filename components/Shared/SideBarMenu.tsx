@@ -33,6 +33,10 @@ import ChartIcon from '@/components/Icons/CustomIcon/DectiveIcon/ChartIcon'
 import ChartIconAc from '@/components/Icons/CustomIcon/ActiveIcon/ChartIconAc'
 import PolicyIcon from '@/components/Icons/CustomIcon/DectiveIcon/PolicyIcon'
 import PolicyIconAc from '@/components/Icons/CustomIcon/ActiveIcon/PolicyIconAc'
+import CodeGenerateAc from '../Icons/CustomIcon/ActiveIcon/CodeGenerateAc'
+import CodeGenerate from '../Icons/CustomIcon/DectiveIcon/CodeGenerate'
+import QuestionIconAc from '../Icons/CustomIcon/ActiveIcon/QuestionIconAc'
+import QuestionIcon from '../Icons/CustomIcon/DectiveIcon/QuestionIcon'
 
 export const MENU_CONFIG = {
     student: [
@@ -70,26 +74,31 @@ export const MENU_CONFIG = {
             items: [
                 { title: 'Dashboard', icon: DashboardIcon, activeIcon: DashboardIconAc, href: '/dashboard' },
                 { title: 'Calendar', icon: CalanderIcon, activeIcon: CalanderIconAt, href: '/calendar' },
-                { title: 'User Management', icon: UserManagementIcon, activeIcon: UserManagementIconAc, href: '/users-management' },
+
             ],
         },
         {
             header: 'COURSES',
             items: [
+                { title: 'User Management', icon: UserManagementIcon, activeIcon: UserManagementIconAc, href: '/users-management' },
                 { title: 'Course Management', icon: MyCourseIcon, activeIcon: MyCourseIconAc, href: '/course-management' },
+                { title: 'Code Generate', icon: CodeGenerate, activeIcon: CodeGenerateAc, href: '/code-generate' },
                 { title: 'Assignments', icon: AssignmentIcon, activeIcon: AssignmentIconAc, href: '/assignment-management' },
                 { title: 'Teacher Section', icon: AssignmentIcon, activeIcon: AssignmentIconAc, href: '/teacher-section' },
                 { title: 'Student Feedback', icon: StudentFileIcon, activeIcon: StudentFileIconAc, href: '/student-feedback' },
                 { title: 'Donations', icon: DonationIcon, activeIcon: DonationIconAc, href: '/donation' },
                 { title: 'Card Generator', icon: CardIcon, activeIcon: CardIconAc, href: '/card-generator' },
                 { title: 'Reports', icon: ChartIcon, activeIcon: ChartIconAc, href: '/reports' },
+                { title: 'Student Question', icon: QuestionIcon, activeIcon: QuestionIconAc, href: '/student-question' },
+           
+           
             ],
         },
         {
             header: 'OTHER',
             items: [
                 { title: 'Setting', icon: FiSettings, href: '/setting/profile' },
-          
+
             ],
         },
     ],
@@ -103,7 +112,8 @@ export interface SideBarMenuProps {
 
 function NavLink({ item, isCollapsed, onMobileMenuClose }: { item: any; isCollapsed: boolean; onMobileMenuClose: () => void }) {
     const pathname = usePathname()
-    const isActive = 'href' in item ? pathname === item.href : false
+    // More precise active state detection
+    const isActive = 'href' in item ? pathname === item.href || pathname.startsWith(item.href + '/') : false
     const IconComponent = isActive && item.activeIcon ? item.activeIcon : item.icon
 
     const handleLinkClick = () => {
@@ -120,13 +130,14 @@ function NavLink({ item, isCollapsed, onMobileMenuClose }: { item: any; isCollap
                     handleLinkClick()
                 }}
                 className={`
-					w-full flex items-center text-[15px] cursor-pointer font-[600] transition-all duration-200
+					w-full flex items-center text-[15px] cursor-pointer font-[600]
 					${isCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}
 					p-3 rounded-lg text-[#4A4C56] hover:bg-gray-100
+					${isActive ? 'bg-[#FEF9F2] text-[#F1C27D] border border-[#F1C27D]/30' : ''}
 				`}
                 title={isCollapsed ? item.title : ''}
             >
-                <IconComponent className="w-5 h-5 shrink-0 text-gray-500" />
+                <IconComponent className={`w-5 h-5 shrink-0 ${isActive ? 'text-[#F1C27D]' : 'text-gray-500'}`} />
                 <span
                     className={`
 						transition-all duration-300 ease-in-out
@@ -146,7 +157,7 @@ function NavLink({ item, isCollapsed, onMobileMenuClose }: { item: any; isCollap
             href={item.href}
             onClick={handleLinkClick}
             className={`
-				flex items-center text-[15px] font-[600] transition-all duration-200
+				flex items-center text-[15px] font-[600]
 				${isCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}
 				p-3 rounded-lg
 				${isActive ? 'bg-[#FEF9F2] text-[#F1C27D] border border-[#F1C27D]/30' : 'text-[#1D1F2C]/70 hover:bg-[#FEF9F2]'}
@@ -155,7 +166,7 @@ function NavLink({ item, isCollapsed, onMobileMenuClose }: { item: any; isCollap
         >
             <IconComponent className={`
 				text-xl shrink-0
-				${isActive ? '' : 'text-gray-500'}
+				${isActive ? 'text-[#F1C27D]' : 'text-gray-500'}
 			`} />
             <span
                 className={`
@@ -175,7 +186,7 @@ export default function SideBarMenu({ role, isCollapsed, onMobileMenuClose }: Si
     const menuSections = MENU_CONFIG[role] || []
 
     return (
-        <nav className={`flex-1 p-4 space-y-2 ${isCollapsed ? 'px-2' : ''}`}>
+        <nav className={`px-4  space-y-2 ${isCollapsed ? 'px-2' : ''}`}>
             {menuSections.map((section: any, sIdx: number) => (
                 <div key={sIdx} className="mb-5">
                     <div className={`text-xs font-semibold uppercase tracking-wider mb-1 ${isCollapsed ? 'hidden' : 'text-gray-400'}`}>
