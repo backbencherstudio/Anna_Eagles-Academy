@@ -1,7 +1,6 @@
 'use client'
 import React, { useState } from 'react'
 import FinancialReportsCard from '@/app/(dashboard)/_components/Admin/Report/FinancialReportsCard'
-// import TableTransactions from '@/app/(dashboard)/_components/Admin/TableTransactions'
 import { Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import ReportFilter from '@/app/(dashboard)/_components/Admin/Report/ReportFilter'
@@ -57,9 +56,7 @@ export default function ReportsPage() {
                 {activeTab === 'enrollment' && (
                     <EnrollmentCard />
                 )}  
-  
-                
-                {/* <TableTransactions /> */}
+
             </div>
 
         </>
