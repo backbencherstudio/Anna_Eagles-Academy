@@ -1,5 +1,6 @@
 "use client"
 import React from 'react'
+import PieChartSkeleton from '../ShimmerEffect/PieChartSkeleton'
 
 type Props = {
     height?: number
@@ -16,11 +17,7 @@ export default function ChartSkeleton({ height = 256, variant = 'bar' }: Props) 
             </div>
 
             {variant === 'pie' ? (
-                <div className="flex h-[256px] items-center justify-center">
-                    <div className="relative h-48 w-48 animate-pulse rounded-full border-8 border-gray-200">
-                        <div className="absolute inset-6 rounded-full border-8 border-gray-100" />
-                    </div>
-                </div>
+                <PieChartSkeleton height={256} showHeader={false} />
             ) : (
                 <div className="h-[256px] w-full">
                     <div

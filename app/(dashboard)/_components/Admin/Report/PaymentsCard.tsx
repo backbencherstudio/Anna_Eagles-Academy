@@ -66,7 +66,7 @@ export default function PaymentsCard() {
               <TabsContent 
                 key={tab.value} 
                 value={tab.value} 
-                className="mt-6 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-top-2 data-[state=inactive]:animate-out data-[state=inactive]:fade-out-0 data-[state=inactive]:slide-out-to-top-2 transition-all duration-300 ease-in-out"
+                className="mt-6"
               >
                 <Component />
               </TabsContent>

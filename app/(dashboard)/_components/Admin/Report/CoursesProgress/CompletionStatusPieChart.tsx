@@ -45,7 +45,7 @@ function CompletionLegend({ data }: { data: CompletionSlice[] }) {
 export default function CompletionStatusPieChart() {
     const [loading, setLoading] = useState(true)
     useEffect(() => {
-        const t = setTimeout(() => setLoading(false), 500)
+        const t = setTimeout(() => setLoading(false), 200)
         return () => clearTimeout(t)
     }, [])
     if (loading) return <ChartSkeleton height={256} variant="pie" />

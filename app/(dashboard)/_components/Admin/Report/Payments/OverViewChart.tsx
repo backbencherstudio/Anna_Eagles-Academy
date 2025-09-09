@@ -1,5 +1,7 @@
-import React from 'react'
+"use client"
+import React, { useEffect, useState } from 'react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
+import PieChartSkeleton from '../ShimmerEffect/PieChartSkeleton'
 
 const data = [
     { name: 'Full Paid', value: 65, color: '#10B981', percentage: '65%' },
@@ -39,6 +41,17 @@ const CustomTooltip = ({ active, payload }: any) => {
 }
 
 export default function OverViewChart() {
+    const [isLoading, setIsLoading] = useState(true)
+
+    useEffect(() => {
+        const timer = setTimeout(() => setIsLoading(false), 200)
+        return () => clearTimeout(timer)
+    }, [])
+
+    if (isLoading) {
+        return <PieChartSkeleton height={320} outerSize={220} innerInset={28} showHeader={false} />
+    }
+
     return (
         <div className="w-full h-80 md:h-80 flex flex-col items-center">
             <ResponsiveContainer width="100%" height="100%">
@@ -48,7 +61,6 @@ export default function OverViewChart() {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        // label={renderCustomizedLabel}
                         outerRadius="80%"
                         innerRadius="48%"
                         fill="#8884d8"

@@ -29,16 +29,24 @@ export default function UserManagementPage() {
     const [users, setUsers] = useState<User[]>([])
     const [searchQuery, setSearchQuery] = useState('')
     const [sortBy, setSortBy] = useState('')
+    const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
         // Load data from UserManagement.json
         const loadUsers = async () => {
+            const MIN_SKELETON_MS = 500
+            const startTime = Date.now()
             try {
                 const response = await fetch('/data/UserManagement.json')
                 const data = await response.json()
                 setUsers(data)
             } catch (error) {
                 console.error('Error loading users:', error)
+            } finally {
+                const elapsed = Date.now() - startTime
+                const remaining = Math.max(0, MIN_SKELETON_MS - elapsed)
+                const t = setTimeout(() => setIsLoading(false), remaining)
+                return () => clearTimeout(t)
             }
         }
         loadUsers()
@@ -139,6 +147,8 @@ export default function UserManagementPage() {
                 itemsPerPage={8}
                 itemsPerPageOptions={[5, 8, 10, 15]}
                 showPagination={true}
+                isLoading={isLoading}
+                skeletonRows={8}
             />
 
         </div>

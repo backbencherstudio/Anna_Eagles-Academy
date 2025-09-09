@@ -75,7 +75,7 @@ export default function CourseCompletionRatesChart() {
     }, [])
 
     useEffect(() => {
-        const t = setTimeout(() => setLoading(false), 600)
+        const t = setTimeout(() => setLoading(false), 200)
         return () => clearTimeout(t)
     }, [])
 

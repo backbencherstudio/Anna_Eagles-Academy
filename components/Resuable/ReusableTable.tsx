@@ -43,6 +43,8 @@ interface ReusableTableProps {
     selectedItems?: any[]
     onSelectionChange?: (selectedItems: any[]) => void
     customCellRenderer?: (item: any, header: TableHeader) => React.ReactNode
+    isLoading?: boolean
+    skeletonRows?: number
 }
 
 export default function ReusableTable({
@@ -55,7 +57,9 @@ export default function ReusableTable({
     showCheckbox = false,
     selectedItems = [],
     onSelectionChange,
-    customCellRenderer
+    customCellRenderer,
+    isLoading = false,
+    skeletonRows
 }: ReusableTableProps) {
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage, setItemsPerPage] = useState(initialItemsPerPage)
@@ -101,6 +105,24 @@ export default function ReusableTable({
         const endIndex = startIndex + itemsPerPage
         return sortedData.slice(startIndex, endIndex)
     }, [sortedData, currentPage, itemsPerPage])
+
+    // Precompute skeleton widths for consistent shimmer per render
+    const numberOfSkeletonRows = skeletonRows ?? itemsPerPage
+    const skeletonMatrix = useMemo(() => {
+        if (!isLoading) return [] as number[][]
+        const rows: number[][] = []
+        for (let r = 0; r < numberOfSkeletonRows; r++) {
+            const cols: number[] = []
+            for (let c = 0; c < headers.length; c++) {
+                const min = 35
+                const max = 85
+                const width = Math.floor(Math.random() * (max - min + 1)) + min
+                cols.push(width)
+            }
+            rows.push(cols)
+        }
+        return rows
+    }, [isLoading, numberOfSkeletonRows, headers.length])
 
     // Handle sorting
     const handleSort = (key: string) => {
@@ -289,49 +311,66 @@ export default function ReusableTable({
                             {showCheckbox && (
                                 <TableHead className="w-12">
                                     <Checkbox
-                                        checked={isAllSelected}
-                                        onCheckedChange={handleSelectAll}
+                                        checked={isLoading ? false : isAllSelected}
+                                        onCheckedChange={isLoading ? undefined : handleSelectAll}
                                     />
                                 </TableHead>
                             )}
                             {headers.map((header) => (
                                 <TableHead
                                     key={header.key}
-                                    className={header.sortable ? "cursor-pointer hover:bg-muted/50" : ""}
-                                    onClick={() => header.sortable && handleSort(header.key)}
+                                    className={header.sortable && !isLoading ? "cursor-pointer hover:bg-muted/50" : ""}
+                                    onClick={() => header.sortable && !isLoading && handleSort(header.key)}
                                 >
                                     <div className="flex items-center gap-2">
                                         {header.label}
-                                        {renderSortIcon(header)}
+                                        {!isLoading && renderSortIcon(header)}
                                     </div>
                                 </TableHead>
                             ))}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {paginatedData.map((item, index) => (
-                            <TableRow key={item.id || index}>
-                                {showCheckbox && (
-                                    <TableCell className="w-12">
-                                        <Checkbox
-                                            checked={selectedItems.some(selected => selected.id === item.id)}
-                                            onCheckedChange={() => handleItemSelect(item)}
-                                        />
-                                    </TableCell>
-                                )}
-                                {headers.map((header) => (
-                                    <TableCell key={header.key}>
-                                        {renderCellContent(item, header)}
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        ))}
+                        {isLoading ? (
+                            skeletonMatrix.map((row, rIdx) => (
+                                <TableRow key={`skeleton-${rIdx}`}>
+                                    {showCheckbox && (
+                                        <TableCell className="w-12">
+                                            <div className="h-4 w-4 rounded bg-gray-200 animate-pulse" />
+                                        </TableCell>
+                                    )}
+                                    {row.map((width, cIdx) => (
+                                        <TableCell key={`s-cell-${cIdx}`}>
+                                            <div className="h-4 rounded bg-gray-200 animate-pulse" style={{ width: `${width}%` }} />
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            ))
+                        ) : (
+                            paginatedData.map((item, index) => (
+                                <TableRow key={item.id || index}>
+                                    {showCheckbox && (
+                                        <TableCell className="w-12">
+                                            <Checkbox
+                                                checked={selectedItems.some(selected => selected.id === item.id)}
+                                                onCheckedChange={() => handleItemSelect(item)}
+                                            />
+                                        </TableCell>
+                                    )}
+                                    {headers.map((header) => (
+                                        <TableCell key={header.key}>
+                                            {renderCellContent(item, header)}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            ))
+                        )}
                     </TableBody>
                 </Table>
             </div>
 
             {/* Pagination */}
-            {showPagination && totalItems > 0 && (
+            {showPagination && !isLoading && totalItems > 0 && (
                 <div className="mt-4">
                     <ResuablePagination
                         currentPage={currentPage}
