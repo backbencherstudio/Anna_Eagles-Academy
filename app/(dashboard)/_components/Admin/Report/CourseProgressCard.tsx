@@ -9,7 +9,7 @@ export default function CourseProgressCard() {
   return (
     <div>
 
-      <div className='flex flex-col md:flex-row gap-4 md:gap-0 items-center justify-between mb-10'>
+      <div className='flex flex-col md:flex-row gap-4 md:gap-0 items-center justify-between mb-6'>
         <div className='flex flex-col '>
           <h1 className='text-[#1D1F2C] text-2xl font-semibold'>Course Progress Report</h1>
           <p className='text-[#777980] text-sm'>Track student completion rates and progress</p>
@@ -29,11 +29,13 @@ export default function CourseProgressCard() {
           </Select>
         </div>
       </div>
-      <div className='grid grid-cols-1 gap-6 xl:grid-cols-2'>
-        <CompletionStatusPieChart />
-        <CourseCompletionRatesChart />
+      <div className='flex flex-col gap-6'>
+        <div className='grid grid-cols-1 gap-6 xl:grid-cols-2'>
+          <CompletionStatusPieChart />
+          <CourseCompletionRatesChart />
+        </div>
+        <CourseDetailsTable />
       </div>
-      <CourseDetailsTable />
     </div>
   )
 }

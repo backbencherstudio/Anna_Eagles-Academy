@@ -42,6 +42,7 @@ interface ReusableTableProps {
     showCheckbox?: boolean
     selectedItems?: any[]
     onSelectionChange?: (selectedItems: any[]) => void
+    customCellRenderer?: (item: any, header: TableHeader) => React.ReactNode
 }
 
 export default function ReusableTable({
@@ -53,7 +54,8 @@ export default function ReusableTable({
     showPagination = true,
     showCheckbox = false,
     selectedItems = [],
-    onSelectionChange
+    onSelectionChange,
+    customCellRenderer
 }: ReusableTableProps) {
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage, setItemsPerPage] = useState(initialItemsPerPage)
@@ -175,6 +177,11 @@ export default function ReusableTable({
 
 
     const renderCellContent = (item: any, header: TableHeader) => {
+        // Use custom cell renderer if provided
+        if (customCellRenderer) {
+            return customCellRenderer(item, header)
+        }
+
         switch (header.key) {
             case 'fullName':
                 return (
