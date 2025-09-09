@@ -45,6 +45,7 @@ interface ReusableTableProps {
     customCellRenderer?: (item: any, header: TableHeader) => React.ReactNode
     isLoading?: boolean
     skeletonRows?: number
+    emptyStateMessage?: string
 }
 
 export default function ReusableTable({
@@ -59,7 +60,8 @@ export default function ReusableTable({
     onSelectionChange,
     customCellRenderer,
     isLoading = false,
-    skeletonRows
+    skeletonRows,
+    emptyStateMessage = 'No records found.'
 }: ReusableTableProps) {
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage, setItemsPerPage] = useState(initialItemsPerPage)
@@ -346,6 +348,12 @@ export default function ReusableTable({
                                     ))}
                                 </TableRow>
                             ))
+                        ) : totalItems === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={(showCheckbox ? 1 : 0) + headers.length} className="text-center text-sm text-gray-500 py-8">
+                                    {emptyStateMessage}
+                                </TableCell>
+                            </TableRow>
                         ) : (
                             paginatedData.map((item, index) => (
                                 <TableRow key={item.id || index}>
