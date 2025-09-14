@@ -9,26 +9,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search } from 'lucide-react'
 
 // Data type definition
-interface EvaluationItem {
+interface GradeItem {
     id: string
     studentName: string
     courseName: string
     assignment: string
     assignmentType: 'Quiz' | 'Essay'
-    submissionDate: string
+    gradeNumber: string
     status: string
 }
 
 // Sample data declaration
-const sampleEvaluationData: EvaluationItem[] = [
+const sampleGradeData: GradeItem[] = [
     {
         id: '1',
         studentName: 'Miles, Esther',
         courseName: 'Foundations of Faith',
         assignment: 'Quiz 1',
         assignmentType: 'Quiz',
-        submissionDate: '2024-01-16',
-        status: 'Grade'
+        gradeNumber: '10/8',
+        status: 'View'
     },
     {
         id: '2',
@@ -36,8 +36,8 @@ const sampleEvaluationData: EvaluationItem[] = [
         courseName: 'The Life and Teachings of Jesus',
         assignment: 'Essay Assignment',
         assignmentType: 'Essay',
-        submissionDate: '2024-01-14',
-        status: 'Grade'
+        gradeNumber: '10/6',
+        status: 'View'
     },
     {
         id: '3',
@@ -45,53 +45,17 @@ const sampleEvaluationData: EvaluationItem[] = [
         courseName: 'Foundations of Faith',
         assignment: 'Essay Assignment',
         assignmentType: 'Essay',
-        submissionDate: '2024-01-16',
-        status: 'Grade'
+        gradeNumber: '10/9',
+        status: 'View'
     },
     {
         id: '4',
         studentName: 'Miles, Esther',
-        courseName: 'Christian Leadership & Servanthood',
+        courseName: 'The Life and Teachings of Jesus',
         assignment: 'Quiz 2',
         assignmentType: 'Quiz',
-        submissionDate: '2024-01-16',
-        status: 'Grade'
-    },
-    {
-        id: '5',
-        studentName: 'Miles, Esther',
-        courseName: 'Understanding the Bible: Old & New Testament',
-        assignment: 'Essay Assignment',
-        assignmentType: 'Essay',
-        submissionDate: '2024-01-16',
-        status: 'Grade'
-    },
-    {
-        id: '6',
-        studentName: 'Miles, Esther',
-        courseName: 'Foundations of Faith',
-        assignment: 'Quiz 3',
-        assignmentType: 'Quiz',
-        submissionDate: '2024-01-16',
-        status: 'Grade'
-    },
-    {
-        id: '7',
-        studentName: 'Miles, Esther',
-        courseName: 'The Life and Teachings of Jesus',
-        assignment: 'Quiz 1',
-        assignmentType: 'Quiz',
-        submissionDate: '2024-01-16',
-        status: 'Grade'
-    },
-    {
-        id: '8',
-        studentName: 'Miles, Esther',
-        courseName: 'Christian Leadership & Servanthood',
-        assignment: 'Essay Assignment',
-        assignmentType: 'Essay',
-        submissionDate: '2024-01-16',
-        status: 'Grade'
+        gradeNumber: '10/10',
+        status: 'View'
     }
 ]
 
@@ -113,8 +77,8 @@ const tableHeaders = [
         sortable: true
     },
     {
-        key: 'submissionDate',
-        label: 'SUBMISSION DATE',
+        key: 'gradeNumber',
+        label: 'GRADE NUMBER',
         sortable: true
     },
     {
@@ -124,47 +88,46 @@ const tableHeaders = [
     }
 ]
 
-export default function AwaitingEvaluation() {
-    const [evaluationData, setEvaluationData] = useState<EvaluationItem[]>([])
-    const [filteredData, setFilteredData] = useState<EvaluationItem[]>([])
+export default function AssignmentGradeList() {
+    const [gradeData, setGradeData] = useState<GradeItem[]>([])
+    const [filteredData, setFilteredData] = useState<GradeItem[]>([])
     const [loading, setLoading] = useState(true)
     const [selectedCourse, setSelectedCourse] = useState<string>('all')
     const [selectedSeries, setSelectedSeries] = useState<string>('all')
     const [searchTerm, setSearchTerm] = useState<string>('')
     const router = useRouter()
 
-    const uniqueCourses = Array.from(new Set(evaluationData.map(item => item.courseName)))
+    const uniqueCourses = Array.from(new Set(gradeData.map(item => item.courseName)))
+
     useEffect(() => {
-        const fetchEvaluationData = async () => {
+        const fetchGradeData = async () => {
             try {
                 await new Promise(resolve => setTimeout(resolve, 500))
-                setEvaluationData(sampleEvaluationData)
-                setFilteredData(sampleEvaluationData)
+                setGradeData(sampleGradeData)
+                setFilteredData(sampleGradeData)
             } catch (error) {
             } finally {
                 setLoading(false)
             }
         }
 
-        fetchEvaluationData()
+        fetchGradeData()
     }, [])
 
     useEffect(() => {
-        let filtered = evaluationData
+        let filtered = gradeData
 
         // Filter by search term
         if (searchTerm.trim()) {
-            filtered = filtered.filter(item =>
+            filtered = filtered.filter(item => 
                 item.studentName.toLowerCase().includes(searchTerm.toLowerCase())
             )
         }
 
         setFilteredData(filtered)
-    }, [searchTerm, evaluationData])
+    }, [searchTerm, gradeData])
 
-
-
-    const handleGrade = (item: EvaluationItem) => {
+    const handleView = (item: GradeItem) => {
         router.push(`/assignment-evaluation/${item.id}`)
     }
 
@@ -188,25 +151,25 @@ export default function AwaitingEvaluation() {
         ),
         status: (
             <Button
-                onClick={() => handleGrade(item)}
+                onClick={() => handleView(item)}
                 className="bg-[#0F2598] hover:bg-[#0F2598]/80 cursor-pointer text-white px-4 py-2 text-sm rounded-md font-medium"
             >
-                Grade
+                View
             </Button>
         )
     }))
 
-   
+
 
     return (
         <div className="bg-white rounded-lg p-4 border border-gray-100">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-                    Assignment List
+                    Assignment Grade List
                 </h2>
-
+                
                 <div className="flex items-center gap-2">
-                    {/* Search Input - Visual Only */}
+                    {/* Search Input */}
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                         <Input
@@ -254,16 +217,14 @@ export default function AwaitingEvaluation() {
                     showPagination={true}
                     itemsPerPage={5}
                     itemsPerPageOptions={[5, 10, 15, 20]}
-                    isLoading={loading}                // onSort={handleSort}
-                // sortKey={sortKey}
-                // sortDirection={sortDirection}
+                    isLoading={loading}
                 />
             </div>
 
             {/* Empty state */}
             {filteredData.length === 0 && !loading && (
                 <div className="text-center py-12">
-                    <p className="text-gray-500 text-lg">No assignments awaiting evaluation</p>
+                    <p className="text-gray-500 text-lg">No graded assignments found</p>
                 </div>
             )}
         </div>

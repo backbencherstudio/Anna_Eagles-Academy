@@ -184,33 +184,16 @@ export default function StudentFileDownload() {
         )
     }))
 
-    if (loading) {
-        return (
-            <div className="bg-white rounded-lg p-4 border border-gray-100">
-                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">
-                    Student Files
-                </h2>
-                <div className="animate-pulse">
-                    <div className="bg-gray-100 h-12 rounded-t mb-2"></div>
-                    {[...Array(5)].map((_, index) => (
-                        <div
-                            key={index}
-                            className={`h-12 mb-2 ${index % 2 === 0 ? 'bg-gray-50' : 'bg-gray-100'}`}
-                        ></div>
-                    ))}
-                </div>
-            </div>
-        )
-    }
+
 
     return (
         <div className="bg-white rounded-lg p-6 border border-gray-100">
             <div className="mb-6">
-           
-                
+
+
                 <div className="flex justify-between items-center">
                     <h2 className="text-lg font-semibold text-gray-900">Student Files List</h2>
-                    
+
                     <div className="flex items-center gap-4">
                         <Select value={selectedSeries} onValueChange={setSelectedSeries}>
                             <SelectTrigger className="w-48">
@@ -225,7 +208,7 @@ export default function StudentFileDownload() {
                                 ))}
                             </SelectContent>
                         </Select>
-                        
+
                         <Select value={selectedCourse} onValueChange={setSelectedCourse}>
                             <SelectTrigger className="w-40">
                                 <SelectValue placeholder="All Courses" />
@@ -250,6 +233,7 @@ export default function StudentFileDownload() {
                     showPagination={true}
                     itemsPerPage={5}
                     itemsPerPageOptions={[5, 10, 15, 20]}
+                    isLoading={loading}
                 />
             </div>
 
