@@ -22,6 +22,8 @@ interface Question {
 }
 
 interface QuizFormData {
+    selectedSeries: string
+    selectedCourses: string
     question: string
     options: string[]
     correctAnswer: string
@@ -46,6 +48,8 @@ export default function CreateQuizAssignment() {
         clearErrors
     } = useForm<QuizFormData>({
         defaultValues: {
+            selectedSeries: '',
+            selectedCourses: '',
             question: '',
             options: ['', '', ''],
             correctAnswer: '',
@@ -104,6 +108,8 @@ export default function CreateQuizAssignment() {
 
             setQuestions(prev => [...prev, newQuestion])
             reset({
+                selectedSeries: getValues('selectedSeries'),
+                selectedCourses: getValues('selectedCourses'),
                 question: '',
                 options: ['', '', ''],
                 correctAnswer: '',
@@ -134,6 +140,8 @@ export default function CreateQuizAssignment() {
         setQuestions(prev => prev.filter(q => q.id !== questionId))
         if (selectedQuestionId === questionId) {
             reset({
+                selectedSeries: getValues('selectedSeries'),
+                selectedCourses: getValues('selectedCourses'),
                 question: '',
                 options: ['', '', ''],
                 correctAnswer: '',
@@ -197,6 +205,8 @@ export default function CreateQuizAssignment() {
                                 className="rounded-full w-8 h-8 p-0"
                                 onClick={() => {
                                     reset({
+                                        selectedSeries: getValues('selectedSeries'),
+                                        selectedCourses: getValues('selectedCourses'),
                                         question: '',
                                         options: ['', '', ''],
                                         correctAnswer: '',
@@ -276,6 +286,75 @@ export default function CreateQuizAssignment() {
 
                 {/* Right Side - Question Editor */}
                 <div className="flex-1 order-1 lg:order-2 ">
+                    {/* Series and Courses Selection */}
+                    <div className="bg-white rounded-xl border mb-4">
+                        <div className="p-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Selected Series */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="selectedSeries" className="text-sm font-medium text-gray-700">SELECTED SERIES</Label>
+                                    <Controller
+                                        name="selectedSeries"
+                                        control={control}
+                                        rules={{
+                                            required: "Please select a series"
+                                        }}
+                                        render={({ field }) => (
+                                            <Select
+                                                value={field.value}
+                                                onValueChange={field.onChange}
+                                            >
+                                                <SelectTrigger className="w-full">
+                                                    <SelectValue placeholder="Selected Series" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="series1">Series 1</SelectItem>
+                                                    <SelectItem value="series2">Series 2</SelectItem>
+                                                    <SelectItem value="series3">Series 3</SelectItem>
+                                                    <SelectItem value="series4">Series 4</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+                                    {errors.selectedSeries && isSubmitted && (
+                                        <span className="text-xs text-red-500">{errors.selectedSeries.message}</span>
+                                    )}
+                                </div>
+
+                                {/* Selected Courses */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="selectedCourses" className="text-sm font-medium text-gray-700">SELECTED COURSES</Label>
+                                    <Controller
+                                        name="selectedCourses"
+                                        control={control}
+                                        rules={{
+                                            required: "Please select a course"
+                                        }}
+                                        render={({ field }) => (
+                                            <Select
+                                                value={field.value}
+                                                onValueChange={field.onChange}
+                                            >
+                                                <SelectTrigger className="w-full">
+                                                    <SelectValue placeholder="Selected Courses" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="course1">Course 1</SelectItem>
+                                                    <SelectItem value="course2">Course 2</SelectItem>
+                                                    <SelectItem value="course3">Course 3</SelectItem>
+                                                    <SelectItem value="course4">Course 4</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+                                    {errors.selectedCourses && isSubmitted && (
+                                        <span className="text-xs text-red-500">{errors.selectedCourses.message}</span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Question Section */}
                     <div className='bg-white rounded-xl border'>
                         <h3 className="text-sm font-semibold text-center text-gray-400 mb-4 px-4  py-4 rounded-t-xl bg-[#FEF9F2]">QUESTION</h3>

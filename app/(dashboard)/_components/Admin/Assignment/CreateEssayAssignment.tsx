@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
@@ -19,6 +19,8 @@ interface Essay {
 }
 
 interface EssayFormData {
+    selectedSeries: string
+    selectedCourses: string
     assignmentTitle: string
     points: number
     submissionDeadline: Date
@@ -48,6 +50,8 @@ export default function CreateEssayAssignment() {
         clearErrors
     } = useForm<EssayFormData>({
         defaultValues: {
+            selectedSeries: '',
+            selectedCourses: '',
             assignmentTitle: '',
             points: 20,
             submissionDeadline: new Date()
@@ -93,6 +97,8 @@ export default function CreateEssayAssignment() {
 
             // Reset main form
             reset({
+                selectedSeries: getValues('selectedSeries'),
+                selectedCourses: getValues('selectedCourses'),
                 assignmentTitle: '',
                 points: 20,
                 submissionDeadline: getValues('submissionDeadline')
@@ -124,6 +130,8 @@ export default function CreateEssayAssignment() {
         setEssays(prev => prev.filter(e => e.id !== essayId))
         if (selectedEssayId === essayId) {
             reset({
+                selectedSeries: getValues('selectedSeries'),
+                selectedCourses: getValues('selectedCourses'),
                 assignmentTitle: '',
                 points: 20,
                 submissionDeadline: getValues('submissionDeadline')
@@ -196,6 +204,8 @@ export default function CreateEssayAssignment() {
                                 className="rounded-full w-8 h-8 p-0"
                                 onClick={() => {
                                     reset({
+                                        selectedSeries: getValues('selectedSeries'),
+                                        selectedCourses: getValues('selectedCourses'),
                                         assignmentTitle: '',
                                         points: 20,
                                         submissionDeadline: getValues('submissionDeadline')
@@ -277,6 +287,70 @@ export default function CreateEssayAssignment() {
                     <div className="bg-white rounded-xl border">
                         <h3 className="text-sm font-semibold text-center text-gray-400 mb-4 px-4 py-4 rounded-t-xl bg-[#FEF9F2]">ASSIGNMENT (ESSAY)</h3>
                         <div className="p-4 space-y-4">
+                            {/* Series and Courses Selection */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                {/* Selected Series */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="selectedSeries" className="text-sm font-medium text-gray-700">SELECTED SERIES</Label>
+                                    <Controller
+                                        name="selectedSeries"
+                                        control={control}
+                                        rules={{
+                                            required: "Please select a series"
+                                        }}
+                                        render={({ field }) => (
+                                            <Select
+                                                value={field.value}
+                                                onValueChange={field.onChange}
+                                            >
+                                                <SelectTrigger className="w-full">
+                                                    <SelectValue placeholder="Selected Series" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="series1">Series 1</SelectItem>
+                                                    <SelectItem value="series2">Series 2</SelectItem>
+                                                    <SelectItem value="series3">Series 3</SelectItem>
+                                                    <SelectItem value="series4">Series 4</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+                                    {errors.selectedSeries && isSubmitted && (
+                                        <span className="text-xs text-red-500">{errors.selectedSeries.message}</span>
+                                    )}
+                                </div>
+
+                                {/* Selected Courses */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="selectedCourses" className="text-sm font-medium text-gray-700">SELECTED COURSES</Label>
+                                    <Controller
+                                        name="selectedCourses"
+                                        control={control}
+                                        rules={{
+                                            required: "Please select a course"
+                                        }}
+                                        render={({ field }) => (
+                                            <Select
+                                                value={field.value}
+                                                onValueChange={field.onChange}
+                                            >
+                                                <SelectTrigger className="w-full">
+                                                    <SelectValue placeholder="Selected Courses" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="course1">Course 1</SelectItem>
+                                                    <SelectItem value="course2">Course 2</SelectItem>
+                                                    <SelectItem value="course3">Course 3</SelectItem>
+                                                    <SelectItem value="course4">Course 4</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+                                    {errors.selectedCourses && isSubmitted && (
+                                        <span className="text-xs text-red-500">{errors.selectedCourses.message}</span>
+                                    )}
+                                </div>
+                            </div>
                             {/* Question 1 */}
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
@@ -294,12 +368,12 @@ export default function CreateEssayAssignment() {
                                             minLength: { value: 5, message: "Assignment title must be at least 5 characters" }
                                         }}
                                         render={({ field }) => (
-                                            <Input
+                                            <Textarea
                                                 id="assignmentTitle"
                                                 placeholder="Enter your assignment title here..."
                                                 value={field.value}
                                                 onChange={field.onChange}
-                                                className={`${errors.assignmentTitle && isSubmitted && watchedTitle.trim() ? 'border-red-500' : ''}`}
+                                                className={`min-h-[100px] ${errors.assignmentTitle && isSubmitted && watchedTitle.trim() ? 'border-red-500' : ''}`}
                                             />
                                         )}
                                     />
@@ -309,7 +383,7 @@ export default function CreateEssayAssignment() {
                                 </div>
 
                                 {/* Point Selection */}
-                                <div className="flex items-center space-x-4">
+                                <div className="flex items-center space-x-4 justify-end">
                                     <Label htmlFor="points" className="text-sm">Point <span className='text-red-500'>*</span></Label>
                                     <Controller
                                         name="points"
@@ -360,16 +434,17 @@ export default function CreateEssayAssignment() {
                                             {/* Assignment Title */}
                                             <div className="space-y-2">
                                                 <Label htmlFor={`additional-title-${question.id}`}>Assignment Title <span className='text-red-500'>*</span></Label>
-                                                <Input
+                                                <Textarea
                                                     id={`additional-title-${question.id}`}
                                                     placeholder="Enter your assignment title here..."
                                                     value={question.assignmentTitle}
                                                     onChange={(e) => updateAdditionalQuestion(question.id, 'assignmentTitle', e.target.value)}
+                                                    className="min-h-[100px]"
                                                 />
                                             </div>
 
                                             {/* Point Selection */}
-                                            <div className="flex items-center space-x-4">
+                                            <div className="flex items-center space-x-4 justify-end">
                                                 <Label htmlFor={`additional-points-${question.id}`} className="text-sm">Point <span className='text-red-500'>*</span></Label>
                                                 <Select
                                                     value={question.points.toString()}
