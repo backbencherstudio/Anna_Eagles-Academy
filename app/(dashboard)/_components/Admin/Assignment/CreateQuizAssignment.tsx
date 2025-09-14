@@ -9,10 +9,8 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
-import { Plus, Trash2, GripVertical, CalendarIcon } from 'lucide-react'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
-import { format } from 'date-fns'
+import { Plus, Trash2, GripVertical } from 'lucide-react'
+import QuizCreateDate from '@/components/Resuable/QuizCreateDate'
 
 
 interface Question {
@@ -24,7 +22,6 @@ interface Question {
 }
 
 interface QuizFormData {
-    submissionDeadline: Date
     question: string
     options: string[]
     correctAnswer: string
@@ -49,7 +46,6 @@ export default function CreateQuizAssignment() {
         clearErrors
     } = useForm<QuizFormData>({
         defaultValues: {
-            submissionDeadline: new Date(),
             question: '',
             options: ['', '', ''],
             correctAnswer: '',
@@ -77,7 +73,7 @@ export default function CreateQuizAssignment() {
         if (currentOptions.length > 2) {
             const updatedOptions = currentOptions.filter((_, i) => i !== index)
             setValue('options', updatedOptions)
-            // Clear correct answer if it was the removed option
+           
             const currentCorrectAnswer = getValues('correctAnswer')
             if (currentCorrectAnswer === String.fromCharCode(65 + index)) {
                 setValue('correctAnswer', '')
@@ -86,18 +82,10 @@ export default function CreateQuizAssignment() {
     }
 
     const addQuiz = handleSubmit((data) => {
-        // console.log('Add Quiz clicked!')
-        // console.log('Form data:', data)
-        // console.log('Form errors:', errors)
-        // console.log('Watched question:', watchedQuestion)
-        // console.log('Watched options:', watchedOptions)
-
-        // Additional validation for options
+    
         const validOptions = data.options.filter(option => option.trim().length > 0)
-        // console.log('Valid options:', validOptions)
 
         if (validOptions.length < 2) {
-            // console.log('Not enough valid options')
             setError('question', {
                 type: 'manual',
                 message: 'At least 2 options must be filled'
@@ -116,23 +104,19 @@ export default function CreateQuizAssignment() {
 
             setQuestions(prev => [...prev, newQuestion])
             reset({
-                submissionDeadline: getValues('submissionDeadline'),
                 question: '',
                 options: ['', '', ''],
                 correctAnswer: '',
                 points: 10
             })
             setSelectedQuestionId('')
-            // Clear all errors after successful submission
             clearErrors()
-            // console.log('Question added successfully!')
+           
         } else {
-            // console.log('Validation failed - question or correct answer missing')
-            // console.log('Question trimmed:', data.question.trim())
-            // console.log('Correct answer:', data.correctAnswer)
+            
         }
     }, (errors) => {
-        // console.log('Form validation errors:', errors)
+       
     })
 
     const selectQuestion = (questionId: string) => {
@@ -150,7 +134,6 @@ export default function CreateQuizAssignment() {
         setQuestions(prev => prev.filter(q => q.id !== questionId))
         if (selectedQuestionId === questionId) {
             reset({
-                submissionDeadline: getValues('submissionDeadline'),
                 question: '',
                 options: ['', '', ''],
                 correctAnswer: '',
@@ -179,90 +162,28 @@ export default function CreateQuizAssignment() {
         return text.substring(0, maxLength) + '...'
     }
 
+
+    // handle publish
+    const handlePublish = async () => {
+        if (questions.length === 0) {
+            setError('question', {
+                type: 'manual',
+                message: 'Please add at least one question before publishing'
+            })
+        }
+        await trigger('question')
+        return
+    }
+
     return (
         <div className=" bg-white p-5 rounded-xl">
             {/* Header */}
-            <div className="mb-5">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-                    <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
-                        <div className="flex flex-col space-y-2">
-                            <span className="text-sm font-medium text-gray-500">Submission Deadline <span className='text-red-500'>*</span></span>
-                            <Controller
-                                name="submissionDeadline"
-                                control={control}
-                                rules={{
-                                    required: "Submission deadline is required",
-                                    validate: (value) => {
-                                        if (!value) return "Submission deadline is required"
-                                        const today = new Date()
-                                        today.setHours(0, 0, 0, 0)
-                                        const selectedDate = new Date(value)
-                                        selectedDate.setHours(0, 0, 0, 0)
-
-                                        if (selectedDate < today) {
-                                            return "Submission deadline cannot be in the past"
-                                        }
-                                        return true
-                                    }
-                                }}
-                                render={({ field }) => (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <div className="relative">
-                                                <Input
-                                                    value={field.value ? format(field.value, "MM/dd/yyyy") : ""}
-                                                    placeholder="Select date"
-                                                    readOnly
-                                                    className={`pr-10 cursor-pointer bg-gray-50 border-gray-200 w-full sm:w-auto ${errors.submissionDeadline && isSubmitted ? 'border-red-500' : ''}`}
-                                                />
-                                                <CalendarIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                                            </div>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start">
-                                            <Calendar
-                                                mode="single"
-                                                selected={field.value}
-                                                onSelect={(date: Date | undefined) => field.onChange(date || new Date())}
-                                                disabled={(date) => {
-                                                    const today = new Date()
-                                                    today.setHours(0, 0, 0, 0)
-                                                    const selectedDate = new Date(date)
-                                                    selectedDate.setHours(0, 0, 0, 0)
-                                                    return selectedDate < today
-                                                }}
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
-                                )}
-                            />
-                            {errors.submissionDeadline && isSubmitted && (
-                                <span className="text-xs text-red-500">{errors.submissionDeadline.message}</span>
-                            )}
-                        </div>
-                    </div>
-                    <Button
-                        className="bg-[#F1C27D] hover:bg-[#F1C27D]/90 text-white w-full sm:w-auto cursor-pointer"
-                        onClick={async () => {
-                            if (questions.length === 0) {
-                                // Set error on question field to show validation error
-                                setError('question', {
-                                    type: 'manual',
-                                    message: 'Please add at least one question before publishing'
-                                })
-                                // Trigger validation to show the error
-                                await trigger('question')
-                                return
-                            }
-                            // console.log('Publishing quiz with questions:', questions)
-                            // You can add your publish logic here
-                            // console.log('Quiz published successfully!')
-                        }}
-                    >
-                        + Publish
-                    </Button>
-                </div>
-            </div>
+            <QuizCreateDate
+                onPublish={handlePublish}
+                publishButtonText="+ Publish"
+                publishButtonDisabled={false}
+                showValidation={true}
+            />
 
             <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
                 {/* Left Sidebar - Question Management */}
@@ -276,7 +197,6 @@ export default function CreateQuizAssignment() {
                                 className="rounded-full w-8 h-8 p-0"
                                 onClick={() => {
                                     reset({
-                                        submissionDeadline: getValues('submissionDeadline'),
                                         question: '',
                                         options: ['', '', ''],
                                         correctAnswer: '',
@@ -515,7 +435,7 @@ export default function CreateQuizAssignment() {
                             <div className="flex justify-end p-4">
                                 <Button
                                     onClick={addQuiz}
-                                    className="bg-[#F1C27D] cursor-pointer hover:bg-[#F1C27D]/90 text-white w-full sm:w-auto"
+                                    className="bg-[#0F2598] cursor-pointer hover:bg-[#0F2598]/90 text-white w-full sm:w-auto"
                                     disabled={false}
                                     type="button"
                                 >

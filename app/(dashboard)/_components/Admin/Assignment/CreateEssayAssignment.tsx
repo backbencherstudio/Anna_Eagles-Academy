@@ -8,10 +8,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
-import { Plus, Trash2, GripVertical, CalendarIcon } from 'lucide-react'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
-import { format } from 'date-fns'
+import { Plus, Trash2, GripVertical, } from 'lucide-react'
+import QuizCreateDate from '@/components/Resuable/QuizCreateDate'
 
 interface Essay {
     id: string
@@ -105,12 +103,11 @@ export default function CreateEssayAssignment() {
 
             setSelectedEssayId('')
             clearErrors()
-            //   console.log('All essays added successfully!', essaysToAdd.length, 'essays')
         } else {
-            //   console.log('No valid essays to add')
+
         }
     }, (errors) => {
-        // console.log('Form validation errors:', errors)
+
     })
 
     const selectEssay = (essayId: string) => {
@@ -169,87 +166,23 @@ export default function CreateEssayAssignment() {
         return text.substring(0, maxLength) + '...'
     }
 
+    const handlePublish = async () => {
+        if (essays.length === 0) {
+            setError('assignmentTitle', {
+                type: 'manual',
+                message: 'Please add at least one essay before publishing'
+            })
+        }
+    }
+
     return (
         <div className="bg-white p-5 rounded-xl">
             {/* Header */}
-            <div className="mb-5">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-                    <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
-                        <div className="flex flex-col space-y-2">
-                            <span className="text-sm font-medium text-gray-500">Submission Deadline <span className='text-red-500'>*</span></span>
-                            <Controller
-                                name="submissionDeadline"
-                                control={control}
-                                rules={{
-                                    required: "Submission deadline is required",
-                                    validate: (value) => {
-                                        if (!value) return "Submission deadline is required"
-                                        const today = new Date()
-                                        today.setHours(0, 0, 0, 0)
-                                        const selectedDate = new Date(value)
-                                        selectedDate.setHours(0, 0, 0, 0)
-
-                                        if (selectedDate < today) {
-                                            return "Submission deadline cannot be in the past"
-                                        }
-                                        return true
-                                    }
-                                }}
-                                render={({ field }) => (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <div className="relative">
-                                                <Input
-                                                    value={field.value ? format(field.value, "MM/dd/yyyy") : ""}
-                                                    placeholder="Select date"
-                                                    readOnly
-                                                    className={`pr-10 cursor-pointer bg-gray-50 border-gray-200 w-full sm:w-auto ${errors.submissionDeadline && isSubmitted ? 'border-red-500' : ''}`}
-                                                />
-                                                <CalendarIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                                            </div>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start">
-                                            <Calendar
-                                                mode="single"
-                                                selected={field.value}
-                                                onSelect={(date: Date | undefined) => field.onChange(date || new Date())}
-                                                disabled={(date) => {
-                                                    const today = new Date()
-                                                    today.setHours(0, 0, 0, 0)
-                                                    const selectedDate = new Date(date)
-                                                    selectedDate.setHours(0, 0, 0, 0)
-                                                    return selectedDate < today
-                                                }}
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
-                                )}
-                            />
-                            {errors.submissionDeadline && isSubmitted && (
-                                <span className="text-xs text-red-500">{errors.submissionDeadline.message}</span>
-                            )}
-                        </div>
-                    </div>
-                    <Button
-                        className="bg-[#F1C27D] hover:bg-[#F1C27D]/90 text-white w-full sm:w-auto cursor-pointer"
-                        onClick={async () => {
-                            if (essays.length === 0) {
-                                setError('assignmentTitle', {
-                                    type: 'manual',
-                                    message: 'Please add at least one essay before publishing'
-                                })
-                                await trigger('assignmentTitle')
-                                return
-                            }
-                            // console.log('Publishing essay assignment with essays:', essays)
-                            // console.log('Essay assignment published successfully!')
-                        }}
-                    >
-                        + Publish
-                    </Button>
-                </div>
-            </div>
+            <QuizCreateDate
+                onPublish={handlePublish}
+                publishButtonText="+ Publish"
+                publishButtonDisabled={false}
+            />
 
             <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
                 {/* Left Sidebar - Question Management */}
@@ -463,7 +396,7 @@ export default function CreateEssayAssignment() {
                             <div className="flex justify-end pt-4">
                                 <Button
                                     onClick={addEssay}
-                                    className="bg-[#F1C27D] cursor-pointer hover:bg-[#F1C27D]/90 text-white w-full sm:w-auto"
+                                    className="bg-[#0F2598] cursor-pointer hover:bg-[#0F2598]/90 text-white w-full sm:w-auto"
                                     disabled={false}
                                     type="button"
                                 >

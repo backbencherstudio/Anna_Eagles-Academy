@@ -14,6 +14,8 @@ interface Assignment {
     dueDate?: string
     scheduledDate?: string
     status: 'active' | 'draft' | 'scheduled'
+    submissions: number
+    totalStudents: number
 }
 
 // Sample data declaration
@@ -24,21 +26,27 @@ const sampleAssignments: Assignment[] = [
         title: 'Pre-Lab Exercise: Recording Chemical Reaction Data',
         type: 'published',
         dueDate: 'Due in 1 hours',
-        status: 'active'
+        status: 'active',
+        submissions: 10,
+        totalStudents: 34
     },
     {
         id: '2',
         title: 'Weekly Test: The Role of Catalysts in Chemical Reactions',
         type: 'published',
         dueDate: 'Due in 1 days',
-        status: 'active'
+        status: 'active',
+        submissions: 10,
+        totalStudents: 34
     },
     {
         id: '3',
         title: 'Lab Completion Quiz: Chemical Reactions',
         type: 'published',
         dueDate: 'Due in 5 days',
-        status: 'active'
+        status: 'active',
+        submissions: 10,
+        totalStudents: 34
     },
     // Unpublished Assignments
     {
@@ -46,14 +54,18 @@ const sampleAssignments: Assignment[] = [
         title: 'Daily Task: Applying Stoichiometry to Predicting Chemical Reaction',
         type: 'unpublished',
         scheduledDate: 'Scheduled for: 28, September - 10.00 AM',
-        status: 'scheduled'
+        status: 'scheduled',
+        submissions: 10,
+        totalStudents: 34
     },
     {
         id: '5',
         title: 'Thermodynamics and Kinetics Fundamentals Quiz',
         type: 'unpublished',
         scheduledDate: 'Scheduled for: 1, October - 08.20 AM',
-        status: 'scheduled'
+        status: 'scheduled',
+        submissions: 10,
+        totalStudents: 34
     }
 ]
 
@@ -65,13 +77,7 @@ export default function AssignmentEssay() {
     useEffect(() => {
         const fetchAssignments = async () => {
             try {
-                // Simulate API call delay
                 await new Promise(resolve => setTimeout(resolve, 1000))
-
-                // In real implementation, you would fetch from your API
-                // const response = await fetch('/api/assignments/essay')
-                // const data = await response.json()
-
                 setAssignments(sampleAssignments)
             } catch (error) {
                 console.error('Error fetching assignments:', error)
@@ -104,73 +110,78 @@ export default function AssignmentEssay() {
             <div className="bg-white rounded-lg p-4">
                 <div className="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
                     <h1 className="text-lg sm:text-xl font-semibold text-gray-900">Assignments (Essay)</h1>
-                    <Button disabled className="bg-[#F1C27D] hover:bg-[#F1C27D]/80">
+                    <Button disabled className="bg-[#0F2598] cursor-pointer hover:bg-[#0F2598]/80">
                         <Plus className="w-4 h-4 mr-2" />
                         Create new Assignment
                     </Button>
                 </div>
-                <div className="space-y-6">
-                    {/* Published Section Skeleton */}
-                    <div>
-                        <h2 className="text-gray-400 text-md font-medium mb-4">Published Quiz</h2>
-                        <div className="space-y-3">
-                            {[...Array(3)].map((_, index) => (
-                                <Card key={index} className="animate-pulse">
-                                    <CardContent className="p-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-4 h-4 bg-gray-200 rounded"></div>
-                                            <div className="flex-1">
-                                                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                                                <div className="h-3 bg-gray-200 rounded w-1/3"></div>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
-                    </div>
-                    {/* Unpublished Section Skeleton */}
-                    <div>
-                        <h2 className="text-gray-400 text-md font-medium mb-4">Unpublished Quiz</h2>
-                        <div className="space-y-3">
-                            {[...Array(2)].map((_, index) => (
-                                <Card key={index} className="animate-pulse">
-                                    <CardContent className="p-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-4 h-4 bg-gray-200 rounded"></div>
-                                            <div className="flex-1">
-                                                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                                                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                                            </div>
-                                            <div className="w-4 h-4 bg-gray-200 rounded"></div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
-                    </div>
+
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[...Array(6)].map((_, index) => (
+                        <Card key={index} className="animate-pulse">
+                            <CardContent className="p-4">
+                                <div className="w-4 h-4 bg-gray-200 rounded mb-3"></div>
+                                <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                            </CardContent>
+                        </Card>
+                    ))}
                 </div>
             </div>
         )
     }
 
     return (
-        <div className="bg-white rounded-lg p-4 border border-gray-100">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b border-gray-200 pb-4">
-                <h1 className="text-lg sm:text-xl font-semibold text-gray-900">
-                    Assignments (Essay)
-                </h1>
-                <Button
-                    onClick={handleCreateAssignment}
-                    className="bg-[#F1C27D] cursor-pointer hover:bg-[#F1C27D]/80 text-white px-4 py-2 rounded-lg flex items-center gap-2 w-full sm:w-auto"
-                >
-                    <Plus className="w-4 h-4" />
-                    Create new Assignment
-                </Button>
+        <>
+            <div className="bg-white rounded-lg p-4 border border-gray-100">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b border-gray-200 pb-4">
+                    <h1 className="text-lg sm:text-xl font-semibold text-gray-900">
+                        Assignments (Essay)
+                    </h1>
+                    <Button
+                        onClick={handleCreateAssignment}
+                        className="bg-[#0F2598] cursor-pointer hover:bg-[#0F2598]/80 text-white px-4 py-2 rounded-lg flex items-center gap-2 w-full sm:w-auto"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Create new Assignment
+                    </Button>
+                </div>
+
+                {/* Assignment Cards Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                    {assignments.map((assignment) => (
+                        <Card
+                            key={assignment.id}
+                            className="hover:shadow-lg transition-shadow duration-200 cursor-pointer border border-gray-200"
+                        >
+                            <CardContent className="p-4">
+                                {/* Orange square indicator */}
+                                <div className="w-4 h-4 bg-[#F1C27D] rounded mb-3"></div>
+
+                                {/* Assignment title */}
+                                <h3 className="font-semibold text-gray-900 text-xs sm:text-sm mb-2 line-clamp-2">
+                                    {assignment.title}
+                                </h3>
+
+                                {/* Submission status */}
+                                <p className="text-sm text-gray-600">
+                                    {assignment.submissions}/{assignment.totalStudents} Submission
+                                </p>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+
+
+
             </div>
 
-            <div className="space-y-8">
+            <div className="bg-white rounded-lg p-4 border border-gray-100 mt-5">
+                <div className='space-y-5'>
+
+                </div>
                 {/* Published Quiz Section */}
                 <div>
                     <h2 className="text-gray-400 text-md font-medium mb-4">Published Quiz</h2>
@@ -182,22 +193,25 @@ export default function AssignmentEssay() {
                                 onClick={() => handleCardClick(assignment)}
                             >
                                 <CardContent className="p-4">
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-3 group">
                                         {/* Orange square indicator */}
                                         <div className="w-4 h-4 bg-[#F1C27D] rounded flex-shrink-0"></div>
 
                                         <div className="flex-1 min-w-0">
                                             {/* Assignment title */}
-                                            <h3 className="font-semibold text-gray-900 text-sm sm:text-base mb-1 line-clamp-2">
+                                            <h3 className="font-semibold text-[#1D1F2C] text-sm  mb-1 line-clamp-2">
                                                 {assignment.title}
                                             </h3>
 
                                             {/* Due date */}
-                                            <p className="text-sm text-gray-400">
+                                            <p className="text-sm text-[#4A4C56]">
                                                 {assignment.dueDate}
                                             </p>
                                         </div>
+                                        {/* Arrow icon */}
+                                        <ArrowRight className="w-4 h-4 group-hover:text-[#0F2598] group-hover:-rotate-45 transition-all duration-100 text-[#4A4C56] flex-shrink-0" />
                                     </div>
+
                                 </CardContent>
                             </Card>
                         ))}
@@ -205,7 +219,7 @@ export default function AssignmentEssay() {
                 </div>
 
                 {/* Unpublished Quiz Section */}
-                <div>
+                <div className='mt-5'>
                     <h2 className="text-gray-400 text-md font-medium mb-4">Unpublished Quiz</h2>
                     <div className="space-y-3">
                         {unpublishedAssignments.map((assignment) => (
@@ -214,7 +228,7 @@ export default function AssignmentEssay() {
                                 className="hover:shadow-lg transition-shadow duration-200 cursor-pointer border border-gray-200"
                                 onClick={() => handleCardClick(assignment)}
                             >
-                                <CardContent className="p-4">
+                                <CardContent className="p-4 group">
                                     <div className="flex items-center gap-3">
                                         {/* Orange square indicator */}
                                         <div className="w-4 h-4 bg-[#F1C27D] rounded flex-shrink-0"></div>
@@ -226,13 +240,13 @@ export default function AssignmentEssay() {
                                             </h3>
 
                                             {/* Scheduled date */}
-                                            <p className="text-sm text-gray-400">
+                                            <p className="text-sm text-[#4A4C56]">
                                                 {assignment.scheduledDate}
                                             </p>
                                         </div>
 
                                         {/* Arrow icon */}
-                                        <ArrowRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                        <ArrowRight className="w-4 h-4 group-hover:text-[#0F2598] group-hover:-rotate-45 transition-all duration-100 text-[#4A4C56] flex-shrink-0" />
                                     </div>
                                 </CardContent>
                             </Card>
@@ -254,6 +268,8 @@ export default function AssignmentEssay() {
                     </Button>
                 </div>
             )}
-        </div>
+
+        </>
     )
+
 }
