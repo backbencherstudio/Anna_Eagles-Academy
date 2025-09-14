@@ -131,7 +131,7 @@ export default function TeacherSection() {
       {/* Header */}
       <div className='flex items-center flex-col md:flex-row gap-4 justify-between mb-5'>
         <div className='flex flex-col gap-1'>
-          <h2 className='text-xl font-semibold text-gray-900'>Teacher Section</h2>
+          <h2 className='text-xl font-semibold text-[#1D1F2C]'>Teacher Section</h2>
           <p className='text-sm text-[#777980]'>Manage teacher videos, announcements, and student communications.</p>
         </div>
         <Button

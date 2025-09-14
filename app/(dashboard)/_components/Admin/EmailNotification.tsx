@@ -103,7 +103,7 @@ export default function EmailNotification() {
                 <div className="flex justify-end">
                     <Button
                         onClick={handleSend}
-                        className="bg-[#F1C27D] hover:bg-[#F1C27D]/80 cursor-pointer text-white px-8 py-2 rounded-md"
+                        className="bg-[#0F2598] hover:bg-[#0F2598]/80 cursor-pointer text-white px-8 py-2 rounded-md"
                     >
                         Send
                     </Button>

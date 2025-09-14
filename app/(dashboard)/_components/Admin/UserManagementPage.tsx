@@ -134,7 +134,7 @@ export default function UserManagementPage() {
                     {/* Send Email Notification Button */}
                     <Button
                         onClick={handleSendEmailNotification}
-                        className="bg-[#F1C27D] hover:bg-[#F1C27D]/80 cursor-pointer text-white rounded-md px-3 sm:px-4 py-2 w-full sm:w-auto text-sm sm:text-base"
+                        className="bg-[#0F2598] hover:bg-[#0F2598]/80 cursor-pointer text-white rounded-md px-3 sm:px-4 py-2 w-full sm:w-auto text-sm sm:text-base"
                     >
                         Send Email Notification
                     </Button>
