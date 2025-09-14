@@ -1,4 +1,4 @@
-import AssignmentEvaluationPage from '@/app/(dashboard)/_components/Admin/AssignmentEvaluationPage'
+import AssignmentEvaluationPage from '@/app/(dashboard)/_components/Admin/Assignment/AssignmentEvaluationPage'
 import React from 'react'
 
 

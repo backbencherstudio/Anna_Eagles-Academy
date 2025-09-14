@@ -1,4 +1,4 @@
-import CreateEssayAssignment from '@/app/(dashboard)/_components/Admin/CreateEssayAssignment'
+import CreateEssayAssignment from '@/app/(dashboard)/_components/Admin/Assignment/CreateEssayAssignment'
 import React from 'react'
 
 

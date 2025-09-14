@@ -189,7 +189,7 @@ export default function AssignmentEvaluationPage() {
     }
 
     const handleBack = () => {
-        router.push('/assignment-management')
+        router.push('/assignment-evaluation')
     }
 
     if (loading) {
@@ -215,7 +215,7 @@ export default function AssignmentEvaluationPage() {
             <div className="bg-white rounded-lg p-6 border border-gray-100 ">
                 <div className="text-center py-12">
                     <p className="text-gray-500 text-lg">Submission not found</p>
-                    <Button onClick={handleBack} className="mt-4">
+                    <Button onClick={handleBack} className="mt-4 cursor-pointer">
                         Go Back
                     </Button>
                 </div>
@@ -231,7 +231,7 @@ export default function AssignmentEvaluationPage() {
                     <Button
                         variant="ghost"
                         onClick={handleBack}
-                        className="p-2 hover:bg-gray-100"
+                        className="p-2 hover:bg-gray-100 cursor-pointer"
                     >
                         <ArrowLeft className="h-5 w-5" />
                     </Button>

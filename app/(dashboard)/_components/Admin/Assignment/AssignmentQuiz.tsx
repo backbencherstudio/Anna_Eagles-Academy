@@ -98,7 +98,7 @@ export default function AssignmentQuiz() {
             <div className="bg-white rounded-lg p-4">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-lg sm:text-xl font-semibold text-gray-900">Assignments (Quiz)</h1>
-                    <Button disabled className="bg-[#F1C27D] cursor-pointer hover:bg-[#F1C27D]/80 text-white px-4 py-2 rounded-lg flex items-center gap-2 w-full sm:w-auto">
+                    <Button disabled className="bg-[#0F2598] cursor-pointer hover:bg-[#0F2598]/80 text-white px-4 py-2 rounded-lg flex items-center gap-2 w-full sm:w-auto">
                         <Plus className="w-4 h-4 mr-2" />
                         Create new Assignment
                     </Button>
@@ -127,7 +127,7 @@ export default function AssignmentQuiz() {
                 </h1>
                 <Button
                     onClick={handleCreateAssignment}
-                    className="bg-[#F1C27D] cursor-pointer hover:bg-[#F1C27D]/80 text-white px-4 py-2 rounded-lg flex items-center gap-2 w-full sm:w-auto"
+                    className="bg-[#0F2598] cursor-pointer hover:bg-[#0F2598]/80 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 gap-2 w-full sm:w-auto"
                 >
                     <Plus className="w-4 h-4" />
                     Create new Assignment
@@ -135,7 +135,7 @@ export default function AssignmentQuiz() {
             </div>
 
             {/* Assignment Cards Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                 {assignments.map((assignment) => (
                     <Card
                         key={assignment.id}
@@ -146,7 +146,7 @@ export default function AssignmentQuiz() {
                             <div className="w-4 h-4 bg-[#FC4B0E] rounded mb-3"></div>
 
                             {/* Assignment title */}
-                            <h3 className="font-semibold text-gray-900 text-sm sm:text-base mb-2 line-clamp-2">
+                            <h3 className="font-semibold text-gray-900 text-xs sm:text-sm mb-2 line-clamp-2">
                                 {assignment.title}
                             </h3>
 

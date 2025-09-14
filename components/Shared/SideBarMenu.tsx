@@ -96,9 +96,9 @@ export const MENU_CONFIG = {
                     activeIcon: AssignmentIconAc,
                     hasDropdown: true,
                     subItems: [
-                        { title: 'Create new Assignment', href: '/create-assignment' },
+                        { title: 'Create new Assignment', href: '/assignment-management' },
                         { title: 'Awaiting Evaluation', href: '/assignment-evaluation' },
-                        { title: 'Student file download', href: '/assignment-management' }
+                        { title: 'Student file download', href: '/student-file-download' }
                     ]
                 },
                 { title: 'User Management', icon: UserManagementIcon, activeIcon: UserManagementIconAc, href: '/users-management' },
