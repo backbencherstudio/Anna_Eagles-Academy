@@ -1,8 +1,8 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import { FiSettings } from 'react-icons/fi'
 import { usePathname } from 'next/navigation'
-
+import { MdKeyboardArrowDown } from 'react-icons/md'
 import DashboardIcon from '@/components/Icons/CustomIcon/DectiveIcon/DashboardIcon'
 import DashboardIconAc from '@/components/Icons/CustomIcon/ActiveIcon/DashboardIconAc'
 import CalanderIcon from '@/components/Icons/CustomIcon/DectiveIcon/CalanderIcon'
@@ -68,37 +68,53 @@ export const MENU_CONFIG = {
             ],
         },
     ],
+
     admin: [
         {
             header: 'GENERAL',
             items: [
                 { title: 'Dashboard', icon: DashboardIcon, activeIcon: DashboardIconAc, href: '/dashboard' },
                 { title: 'Calendar', icon: CalanderIcon, activeIcon: CalanderIconAt, href: '/calendar' },
-
             ],
         },
         {
             header: 'COURSES',
             items: [
+                {
+                    title: 'Course Management',
+                    icon: MyCourseIcon,
+                    activeIcon: MyCourseIconAc,
+                    hasDropdown: true,
+                    subItems: [
+                        { title: 'Course List', href: '/course-management' },
+                        { title: 'Materials Upload', href: '/materials-upload' }
+                    ]
+                },
+                {
+                    title: 'Assignments',
+                    icon: AssignmentIcon,
+                    activeIcon: AssignmentIconAc,
+                    hasDropdown: true,
+                    subItems: [
+                        { title: 'Create new Assignment', href: '/create-assignment' },
+                        { title: 'Awaiting Evaluation', href: '/assignment-evaluation' },
+                        { title: 'Student file download', href: '/assignment-management' }
+                    ]
+                },
                 { title: 'User Management', icon: UserManagementIcon, activeIcon: UserManagementIconAc, href: '/users-management' },
-                { title: 'Course Management', icon: MyCourseIcon, activeIcon: MyCourseIconAc, href: '/course-management' },
                 { title: 'Code Generate', icon: CodeGenerate, activeIcon: CodeGenerateAc, href: '/code-generate' },
-                { title: 'Assignments', icon: AssignmentIcon, activeIcon: AssignmentIconAc, href: '/assignment-management' },
                 { title: 'Teacher Section', icon: AssignmentIcon, activeIcon: AssignmentIconAc, href: '/teacher-section' },
                 { title: 'Student Feedback', icon: StudentFileIcon, activeIcon: StudentFileIconAc, href: '/student-feedback' },
                 { title: 'Donations', icon: DonationIcon, activeIcon: DonationIconAc, href: '/donation' },
                 { title: 'Card Generator', icon: CardIcon, activeIcon: CardIconAc, href: '/card-generator' },
                 { title: 'Reports', icon: ChartIcon, activeIcon: ChartIconAc, href: '/reports' },
                 { title: 'Student Question', icon: QuestionIcon, activeIcon: QuestionIconAc, href: '/student-question' },
-           
-           
             ],
         },
         {
             header: 'OTHER',
             items: [
                 { title: 'Setting', icon: FiSettings, href: '/setting/profile' },
-
             ],
         },
     ],
@@ -110,15 +126,86 @@ export interface SideBarMenuProps {
     onMobileMenuClose: () => void
 }
 
-function NavLink({ item, isCollapsed, onMobileMenuClose }: { item: any; isCollapsed: boolean; onMobileMenuClose: () => void }) {
+function DropdownItem({ subItem, isCollapsed, onMobileMenuClose, isActive, isLast }: {
+    subItem: any;
+    isCollapsed: boolean;
+    onMobileMenuClose: () => void;
+    isActive: boolean;
+    isLast: boolean;
+}) {
+    const handleLinkClick = () => {
+        if (typeof window !== 'undefined' && window.innerWidth < 768) {
+            onMobileMenuClose()
+        }
+    }
+
+    return (
+        <div className="relative">
+            <Link
+                href={subItem.href}
+                onClick={handleLinkClick}
+                className={`
+                    relative flex items-center text-[14px] font-[500] ml-8
+                    ${isCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}
+                    p-2.5 rounded-lg transition-all duration-200 group
+                    ${isActive ? 'text-[#F1C27D]' : 'text-[#1D1F2C]/70 hover:text-[#F1C27D]'}
+                `}
+                title={isCollapsed ? subItem.title : ''}
+            >
+                {/* Tree node indicator */}
+                {!isCollapsed && (
+                    <div className={`
+                        w-1.5 h-1.5 rounded-full mr-3 flex-shrink-0 transition-colors duration-200
+                        ${isActive ? 'bg-[#F1C27D]' : 'bg-gray-400 group-hover:bg-[#F1C27D]'}
+                    `}></div>
+                )}
+
+                <span
+                    className={`
+                        transition-all duration-300 ease-in-out
+                        ${isCollapsed ? 'opacity-0 max-w-0 ml-0' : 'opacity-100 max-w-[200px] ml-1'}
+                        ${isActive ? 'font-medium' : ''}
+                        overflow-hidden whitespace-nowrap align-middle inline-block
+                    `}
+                >
+                    {subItem.title}
+                </span>
+            </Link>
+        </div>
+    )
+}
+
+function NavLink({ item, isCollapsed, onMobileMenuClose, isDropdownOpen, onToggleDropdown }: {
+    item: any;
+    isCollapsed: boolean;
+    onMobileMenuClose: () => void;
+    isDropdownOpen: boolean;
+    onToggleDropdown: () => void;
+}) {
     const pathname = usePathname()
-    // More precise active state detection
-    const isActive = 'href' in item ? pathname === item.href || pathname.startsWith(item.href + '/') : false
+
+    // Check if any sub-item is active
+    const isSubItemActive = item.subItems?.some((subItem: any) =>
+        pathname === subItem.href || pathname.startsWith(subItem.href + '/')
+    ) || false
+
+    // Check if main item is active (for items without dropdown)
+    const isMainItemActive = 'href' in item ? pathname === item.href || pathname.startsWith(item.href + '/') : false
+
+    const isActive = isMainItemActive || isSubItemActive
     const IconComponent = isActive && item.activeIcon ? item.activeIcon : item.icon
 
     const handleLinkClick = () => {
         if (typeof window !== 'undefined' && window.innerWidth < 768) {
             onMobileMenuClose()
+        }
+    }
+
+    const handleMainItemClick = () => {
+        if (item.hasDropdown) {
+            onToggleDropdown()
+        } else {
+            handleLinkClick()
         }
     }
 
@@ -152,6 +239,82 @@ function NavLink({ item, isCollapsed, onMobileMenuClose }: { item: any; isCollap
         )
     }
 
+    // Handle dropdown items
+    if (item.hasDropdown) {
+        return (
+            <div className="space-y-0 relative">
+                <button
+                    onClick={handleMainItemClick}
+                    className={`
+                        w-full flex items-center text-[15px] cursor-pointer font-[600] group
+                        ${isCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}
+                        p-3 rounded-lg transition-all duration-200
+                        ${isActive ? 'bg-[#FEF9F2] text-[#F1C27D] border border-[#F1C27D]/30 shadow-sm' : 'text-[#1D1F2C]/70 hover:bg-[#FEF9F2] hover:text-[#F1C27D] hover:shadow-sm'}
+                    `}
+                    title={isCollapsed ? item.title : ''}
+                >
+                    <IconComponent className={`
+                        text-xl shrink-0 transition-colors duration-200
+                        ${isActive ? 'text-[#F1C27D]' : 'text-gray-500 group-hover:text-[#F1C27D]'}
+                    `} />
+                    <span
+                        className={`
+                            transition-all duration-300 ease-in-out
+                            ${isCollapsed ? 'opacity-0 max-w-0 ml-0' : 'opacity-100 max-w-[220px] ml-2'}
+                            ${isActive ? 'font-medium' : ''}
+                            overflow-hidden whitespace-nowrap align-middle inline-block
+                        `}
+                    >
+                        {item.title}
+                    </span>
+                    {!isCollapsed && (
+                        <div className="ml-auto transition-transform duration-200">
+                            <MdKeyboardArrowDown className={`
+                                w-4 h-4 transition-all duration-200
+                                ${isDropdownOpen ? 'text-[#F1C27D] rotate-0' : 'text-gray-500 -rotate-90'}
+                            `} />
+                        </div>
+                    )}
+                </button>
+
+                {/* Dropdown sub-items with smooth animation */}
+                <div className={`
+                    overflow-hidden transition-all duration-300 ease-in-out
+                    ${isCollapsed ? 'max-h-0 opacity-0' : isDropdownOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}
+                `}>
+                    {!isCollapsed && item.subItems && (
+                        <div className="space-y-0.5 pt-1 pb-2 relative">
+                            {/* Single tree line for all sub-items */}
+                            {isDropdownOpen && (
+                                <div className="absolute left-6 top-0 bottom-0 w-px bg-gray-200"></div>
+                            )}
+                            {item.subItems.map((subItem: any, subIndex: number) => {
+                                const isSubActive = pathname === subItem.href || pathname.startsWith(subItem.href + '/')
+                                const isLast = subIndex === item.subItems.length - 1
+                                return (
+                                    <div key={subIndex} className="relative">
+                                        {/* Horizontal connector line for each item */}
+                                        {isDropdownOpen && (
+                                            <div className="absolute left-6 top-4 w-3 h-px bg-gray-200"></div>
+                                        )}
+                                        <DropdownItem
+                                            subItem={subItem}
+                                            isCollapsed={isCollapsed}
+                                            onMobileMenuClose={onMobileMenuClose}
+                                            isActive={isSubActive}
+                                            isLast={isLast}
+                                        />
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    )}
+                </div>
+            </div>
+        )
+    }
+
+    // Regular link items
     return (
         <Link
             href={item.href}
@@ -171,7 +334,7 @@ function NavLink({ item, isCollapsed, onMobileMenuClose }: { item: any; isCollap
             <span
                 className={`
 					transition-all duration-300 ease-in-out
-					${isCollapsed ? 'opacity-0 max-w-0 ml-0' : 'opacity-100 max-w-[160px] ml-2'}
+					${isCollapsed ? 'opacity-0 max-w-0 ml-0' : 'opacity-100 max-w-[220px] ml-2'}
 					${isActive ? 'font-medium' : ''}
 					overflow-hidden whitespace-nowrap align-middle inline-block
 				`}
@@ -184,9 +347,43 @@ function NavLink({ item, isCollapsed, onMobileMenuClose }: { item: any; isCollap
 
 export default function SideBarMenu({ role, isCollapsed, onMobileMenuClose }: SideBarMenuProps) {
     const menuSections = MENU_CONFIG[role] || []
+    const [openDropdowns, setOpenDropdowns] = useState<{ [key: string]: boolean }>({})
+    const pathname = usePathname()
+
+    // Auto-open dropdowns when sub-items are active
+    React.useEffect(() => {
+        const newOpenDropdowns: { [key: string]: boolean } = {}
+
+        menuSections.forEach((section: any) => {
+            section.items.forEach((item: any) => {
+                if (item.hasDropdown && item.subItems) {
+                    // Check if any sub-item is active
+                    const hasActiveSubItem = item.subItems.some((subItem: any) =>
+                        pathname === subItem.href || pathname.startsWith(subItem.href + '/')
+                    )
+
+                    if (hasActiveSubItem) {
+                        newOpenDropdowns[item.title] = true
+                    }
+                }
+            })
+        })
+
+        setOpenDropdowns(prev => ({
+            ...prev,
+            ...newOpenDropdowns
+        }))
+    }, [pathname, menuSections])
+
+    const toggleDropdown = (itemTitle: string) => {
+        setOpenDropdowns(prev => ({
+            ...prev,
+            [itemTitle]: !prev[itemTitle]
+        }))
+    }
 
     return (
-        <nav className={`px-4  space-y-2 ${isCollapsed ? 'px-2' : ''}`}>
+        <nav className={`px-3 space-y-2 ${isCollapsed ? 'px-2' : ''}`}>
             {menuSections.map((section: any, sIdx: number) => (
                 <div key={sIdx} className="mb-5">
                     <div className={`text-xs font-semibold uppercase tracking-wider mb-1 ${isCollapsed ? 'hidden' : 'text-gray-400'}`}>
@@ -194,7 +391,14 @@ export default function SideBarMenu({ role, isCollapsed, onMobileMenuClose }: Si
                     </div>
                     <div className='space-y-2 text-sm'>
                         {section.items.map((item: any, iIdx: number) => (
-                            <NavLink key={iIdx} item={item} isCollapsed={isCollapsed} onMobileMenuClose={onMobileMenuClose} />
+                            <NavLink
+                                key={iIdx}
+                                item={item}
+                                isCollapsed={isCollapsed}
+                                onMobileMenuClose={onMobileMenuClose}
+                                isDropdownOpen={openDropdowns[item.title] || false}
+                                onToggleDropdown={() => toggleDropdown(item.title)}
+                            />
                         ))}
                     </div>
                 </div>

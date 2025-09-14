@@ -46,7 +46,7 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
           fixed top-0 left-0 z-40 h-screen transition-all duration-300 ease-in-out
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
           md:relative md:translate-x-0
-          ${isCollapsed ? 'md:w-16' : 'w-64'}
+          ${isCollapsed ? 'md:w-16' : 'w-72'}
           bg-white border-r border-[#E9EAEC] overflow-hidden
           flex flex-col
         `}
@@ -55,7 +55,7 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
                 <div className="flex relative items-center justify-between p-5 pb-5">
                     <div className={`
             transition-all duration-300 ease-in-out
-            ${isCollapsed ? 'opacity-0 max-w-0 w-0' : 'opacity-100 max-w-[220px] w-full'}
+            ${isCollapsed ? 'opacity-0 max-w-0 w-0' : 'opacity-100 max-w-[240px] w-full'}
           `}>
                         <div className="flex items-center gap-4">
                             <Logo />

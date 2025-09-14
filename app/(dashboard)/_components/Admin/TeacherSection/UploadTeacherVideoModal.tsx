@@ -133,7 +133,7 @@ export default function UploadTeacherVideoModal({
                             <Label>Release Date</Label>
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                                    <Button variant="outline" className="w-full cursor-pointer justify-start text-left font-normal">
                                         <CalendarIcon className="mr-2 h-4 w-4" />
                                         {releaseDate ? (
                                             releaseDate.toLocaleDateString()
