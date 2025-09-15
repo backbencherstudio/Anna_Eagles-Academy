@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { FileText, Download } from 'lucide-react'
 import FilesIcon from '@/components/Icons/DownloadMaterials/FilesIcon'
 import Image from 'next/image'
+import FilterDropdown from '@/components/Resuable/FilterDropdown'
 
 type OtherDocument = {
   id: string
@@ -84,6 +85,8 @@ const getFileIcon = (type: string) => {
 }
 
 export default function OtherDocument() {
+  const [series, setSeries] = React.useState<string>('')
+  const [docType, setDocType] = React.useState<string>('')
   const handleDownload = async (docItem: OtherDocument) => {
     try {
       const response = await fetch(docItem.url)
@@ -112,16 +115,47 @@ export default function OtherDocument() {
   return (
     <div className="space-y-6 bg-white rounded-xl p-4">
       {/* Files Section Header */}
-      <div className="flex items-center gap-3">
-        <div>
-          <FilesIcon />
+      <div className='flex items-center justify-between'>
+        <div className="flex items-center gap-3">
+          <div>
+            <FilesIcon />
+          </div>
+          <h2 className="text-lg font-semibold text-gray-800">Documents</h2>
         </div>
-        <h2 className="text-lg font-semibold text-gray-800">Documents</h2>
+        <div className='flex items-center gap-3'>
+          <FilterDropdown
+            options={[
+              { label: 'Select Series', value: '' },
+              { label: 'Series A', value: 'a' },
+              { label: 'Series B', value: 'b' },
+              { label: 'Series C', value: 'c' },
+            ]}
+            value={series}
+            onChange={setSeries}
+            placeholder="Select Series"
+            className='w-48'
+          />
+          <FilterDropdown
+            options={[
+              { label: 'All Types', value: '' },
+              { label: 'PDF', value: 'pdf' },
+              { label: 'DOC', value: 'doc' },
+              { label: 'TXT', value: 'txt' },
+              { label: 'Other', value: 'other' },
+            ]}
+            value={docType}
+            onChange={setDocType}
+            placeholder="Courses Type"
+            className='w-48'
+          />
+        </div>
       </div>
 
       {/* Other Documents List */}
       <div className="space-y-4">
-        {mockOtherDocuments.map((document) => (
+        {mockOtherDocuments
+          .filter(d => (docType ? d.type === docType : true))
+          .map((document) => (
           <Card key={document.id} className="rounded-xl border border-gray-200 transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-center gap-4">

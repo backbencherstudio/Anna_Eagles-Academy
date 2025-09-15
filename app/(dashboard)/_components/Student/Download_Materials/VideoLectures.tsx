@@ -7,6 +7,7 @@ import Image from 'next/image'
 import VideoIcon from '@/components/Icons/DownloadMaterials/VideoIcon'
 import PlayIcon from '@/components/Icons/DownloadMaterials/PlayIcon'
 import VideoModal from '@/components/Resuable/VideoModal'
+import FilterDropdown from '@/components/Resuable/FilterDropdown'
 
 type VideoLecture = {
     id: string
@@ -53,6 +54,8 @@ const mockVideoLectures: VideoLecture[] = [
 export default function VideoLectures() {
     const [open, setOpen] = useState(false)
     const [currentUrl, setCurrentUrl] = useState<string>('')
+    const [series, setSeries] = useState<string>('')
+    const [videoType, setVideoType] = useState<string>('')
 
     const handlePlayClick = (videoUrl: string) => {
         setCurrentUrl(videoUrl)
@@ -62,14 +65,43 @@ export default function VideoLectures() {
     return (
         <div className="space-y-6 bg-white rounded-xl p-4">
             {/* Files Section Header */}
-            <div className="flex items-center gap-3">
-                <VideoIcon />
-                <h2 className="text-lg font-semibold text-gray-800">Video Lectures</h2>
+            <div className='flex items-center justify-between'>
+                <div className="flex items-center gap-3">
+                    <VideoIcon />
+                    <h2 className="text-lg font-semibold text-gray-800">Video Lectures</h2>
+                </div>
+                <div className='flex items-center gap-3'>
+                    <FilterDropdown
+                        options={[
+                            { label: 'Select Series', value: '' },
+                            { label: 'Series A', value: 'a' },
+                            { label: 'Series B', value: 'b' },
+                            { label: 'Series C', value: 'c' },
+                        ]}
+                        value={series}
+                        onChange={setSeries}
+                        placeholder="Select Series"
+                        className='w-48'
+                    />
+                    <FilterDropdown
+                        options={[
+                            { label: 'All Types', value: '' },
+                            { label: 'Short', value: 'short' },
+                            { label: 'Long', value: 'long' },
+                        ]}
+                        value={videoType}
+                        onChange={setVideoType}
+                        placeholder="Courses Type"
+                        className='w-48'
+                    />
+                </div>
             </div>
 
             {/* Video Lectures Grid */}
             <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
-                {mockVideoLectures.map((video, index) => (
+                {mockVideoLectures
+                    .filter(video => (videoType ? (videoType === 'short' ? true : true) : true))
+                    .map((video, index) => (
                     <Card key={video.id} className="rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
                         <CardContent className="p-0">
                             {/* Video Thumbnail */}

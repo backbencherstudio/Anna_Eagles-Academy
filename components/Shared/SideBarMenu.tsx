@@ -249,7 +249,7 @@ function NavLink({ item, isCollapsed, onMobileMenuClose, isDropdownOpen, onToggl
                         w-full flex items-center text-[15px] cursor-pointer font-[600] group
                         ${isCollapsed ? 'justify-center px-0' : 'px-3 gap-3'}
                         p-3 rounded-lg transition-all duration-200
-                        ${isActive ? 'bg-[#FEF9F2] text-[#F1C27D] border border-[#F1C27D]/30 shadow-sm' : 'text-[#1D1F2C]/70 hover:bg-[#FEF9F2] hover:text-[#F1C27D] hover:shadow-sm'}
+                        ${isActive ? 'bg-[#FEF9F2] text-[#F1C27D] border border-[#F1C27D]/30 shadow-sm' : 'text-[#1D1F2C]/70 hover:bg-[#FEF9F2]  hover:shadow-sm'}
                     `}
                     title={isCollapsed ? item.title : ''}
                 >

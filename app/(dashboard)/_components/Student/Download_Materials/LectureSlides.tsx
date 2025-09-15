@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { FileText, Eye, X, Maximize2, Minimize2 } from 'lucide-react'
 import FilesIcon from '@/components/Icons/DownloadMaterials/FilesIcon'
 import Image from 'next/image'
+import FilterDropdown from '@/components/Resuable/FilterDropdown'
 
 type LectureSlide = {
     id: string
@@ -56,6 +57,8 @@ export default function LectureSlides() {
     const [previewSlide, setPreviewSlide] = useState<LectureSlide | null>(null)
     const [previewError, setPreviewError] = useState(false)
     const [isFullscreen, setIsFullscreen] = useState(false)
+    const [series, setSeries] = useState<string>('')
+    const [courseType, setCourseType] = useState<string>('')
 
     const handlePreview = (slide: LectureSlide) => {
         if (slide.previewUrl) {
@@ -103,16 +106,47 @@ export default function LectureSlides() {
     return (
         <div className="space-y-6 bg-white rounded-xl p-4">
             {/* Files Section Header */}
-            <div className="flex items-center gap-3">
-                <div >
-                    <FilesIcon />
+            <div className='flex items-center justify-between'>
+                <div className="flex items-center gap-3">
+                    <div >
+                        <FilesIcon />
+                    </div>
+                    <h2 className="text-lg font-semibold text-gray-800">Files</h2>
                 </div>
-                <h2 className="text-lg font-semibold text-gray-800">Files</h2>
+                {/* filter options */}
+                <div className='flex items-center gap-3'>
+                    <FilterDropdown
+                        options={[
+                            { label: 'Select Series', value: '' },
+                            { label: 'Series A', value: 'a' },
+                            { label: 'Series B', value: 'b' },
+                            { label: 'Series C', value: 'c' },
+                        ]}
+                        value={series}
+                        onChange={setSeries}
+                        placeholder="Select Series"
+                        className='w-48'
+                    />
+                    <FilterDropdown
+                        options={[
+                            { label: 'All Types', value: '' },
+                            { label: 'PowerPoint', value: 'powerpoint' },
+                            { label: 'PDF', value: 'pdf' },
+                            { label: 'Document', value: 'document' },
+                        ]}
+                        value={courseType}
+                        onChange={setCourseType}
+                        placeholder="Courses Type"
+                        className='w-48'
+                    />
+                </div>
             </div>
 
             {/* Lecture Slides List */}
             <div className="space-y-4">
-                {mockLectureSlides.map((slide) => (
+                {mockLectureSlides
+                    .filter(slide => (courseType ? slide.type === courseType as any : true))
+                    .map((slide) => (
                     <Card key={slide.id} className="rounded-xl border border-gray-200 transition-shadow">
                         <CardContent className="p-6">
                             <div className="flex items-center gap-4">

@@ -5,6 +5,7 @@ import AudioIcon from '@/components/Icons/DownloadMaterials/AudioIcon'
 import AutoPlayer from '@/components/Resuable/AutoPlayer'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { setCurrentAudio, playAudio, pauseAudio } from '@/lib/store/audioSlice'
+import FilterDropdown from '@/components/Resuable/FilterDropdown'
 
 
 type AudioLesson = {
@@ -42,6 +43,8 @@ const mockAudioLessons: AudioLesson[] = [
 export default function AudioLessons() {
     const dispatch = useAppDispatch()
     const { currentPlayingId, isPlaying } = useAppSelector((state) => state.audio)
+    const [series, setSeries] = React.useState<string>('')
+    const [weekFilter, setWeekFilter] = React.useState<string>('')
     const handlePrimaryButtonClick = (lesson: AudioLesson) => {
         const isCurrent = currentPlayingId === lesson.id
         if (!isCurrent) {
@@ -59,49 +62,78 @@ export default function AudioLessons() {
     return (
         <div className="space-y-6 bg-white rounded-xl p-4">
             {/* Files Section Header */}
-            <div className="flex items-center gap-3">
-                <AudioIcon />
-                <h2 className="text-lg font-semibold text-gray-800">Audio Lessons</h2>
+            <div className='flex items-center justify-between'>
+                <div className="flex items-center gap-3">
+                    <AudioIcon />
+                    <h2 className="text-lg font-semibold text-gray-800">Audio Lessons</h2>
+                </div>
+                <div className='flex items-center gap-3'>
+                    <FilterDropdown
+                        options={[
+                            { label: 'Select Series', value: '' },
+                            { label: 'Series A', value: 'a' },
+                            { label: 'Series B', value: 'b' },
+                            { label: 'Series C', value: 'c' },
+                        ]}
+                        value={series}
+                        onChange={setSeries}
+                        placeholder="Select Series"
+                        className='w-48'
+                    />
+                    <FilterDropdown
+                        options={[
+                            { label: 'All Weeks', value: '' },
+                            { label: 'Week 1', value: 'Week 1' },
+                            { label: 'Week 2', value: 'Week 2' },
+                            { label: 'Week 3', value: 'Week 3' },
+                        ]}
+                        value={weekFilter}
+                        onChange={setWeekFilter}
+                        placeholder="Week"
+                        className='w-48'
+                    />
+                </div>
             </div>
 
             {/* Audio Lessons Grid */}
             <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-                {mockAudioLessons.map((lesson, index) => {
-                    const isCurrentlyPlaying = currentPlayingId === lesson.id
-                    
-                    return (
-                        <div key={lesson.id} className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow">
-                            {/* Audio Player Area */}
-                            <AutoPlayer
-                                audioUrl={lesson.audio_url}
-                                title={lesson.title}
-                                audioId={lesson.id}
-                            />
+                {mockAudioLessons
+                    .filter(lesson => (weekFilter ? lesson.week === weekFilter : true))
+                    .map((lesson, index) => {
+                        const isCurrentlyPlaying = currentPlayingId === lesson.id
 
-                            {/* Lesson Details */}
-                            <div className="mb-3 sm:mb-4">
-                                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">
-                                    {lesson.title}
-                                </h3>
-                                <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                                    {lesson.description}
-                                </p>
+                        return (
+                            <div key={lesson.id} className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow">
+                                {/* Audio Player Area */}
+                                <AutoPlayer
+                                    audioUrl={lesson.audio_url}
+                                    title={lesson.title}
+                                    audioId={lesson.id}
+                                />
+
+                                {/* Lesson Details */}
+                                <div className="mb-3 sm:mb-4">
+                                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">
+                                        {lesson.title}
+                                    </h3>
+                                    <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                                        {lesson.description}
+                                    </p>
+                                </div>
+
+                                {/* Action Button */}
+                                <button
+                                    onClick={() => handlePrimaryButtonClick(lesson)}
+                                    className={`w-full cursor-pointer py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors text-sm sm:text-base ${isCurrentlyPlaying
+                                            ? (isPlaying ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-[#0F2598] text-white hover:bg-[#0F2598]/90')
+                                            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                                        }`}
+                                >
+                                    {isCurrentlyPlaying ? (isPlaying ? 'Pause Audio' : 'Play Audio') : 'Only listen'}
+                                </button>
                             </div>
-
-                            {/* Action Button */}
-                            <button 
-                                onClick={() => handlePrimaryButtonClick(lesson)}
-                                className={`w-full cursor-pointer py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors text-sm sm:text-base ${
-                                    isCurrentlyPlaying
-                                        ? (isPlaying ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-[#0F2598] text-white hover:bg-[#0F2598]/90')
-                                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                                }`}
-                            >
-                                {isCurrentlyPlaying ? (isPlaying ? 'Pause Audio' : 'Play Audio') : 'Only listen'}
-                            </button>
-                        </div>
-                    );
-                })}
+                        );
+                    })}
             </div>
 
 
