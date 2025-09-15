@@ -89,7 +89,7 @@ export default function ProfilePage() {
                 <div className="flex justify-end px-5">
                     <Button
                         onClick={handleSaveChanges}
-                        className="bg-[#F1C27D] cursor-pointer hover:bg-[#F1C27D]/80 text-white px-6 md:px-8 py-2 rounded-lg font-medium w-full md:w-auto"
+                        className="bg-[#0F2598] cursor-pointer hover:bg-[#0F2598]/80 text-white px-6 md:px-8 py-2 rounded-lg font-medium w-full md:w-auto"
                     >
                         Save Changes
                     </Button>

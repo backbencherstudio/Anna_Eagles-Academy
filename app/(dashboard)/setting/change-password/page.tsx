@@ -177,7 +177,7 @@ export default function ChangePasswordPage() {
                             <Button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="bg-[#F1C27D] hover:bg-[#F1C27D]/80 cursor-pointer text-white px-6 lg:px-8 py-2 rounded-lg font-medium w-full lg:w-auto"
+                                className="bg-[#0F2598] hover:bg-[#0F2598]/80 cursor-pointer text-white px-6 lg:px-8 py-2 rounded-lg font-medium w-full lg:w-auto"
                             >
                                 {isSubmitting ? 'Changing Password...' : 'Change Password'}
                             </Button>
