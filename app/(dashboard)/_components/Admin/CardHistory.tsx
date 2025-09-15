@@ -10,10 +10,8 @@ interface CardHistoryItem {
     id: string
     type: string
     recipient: string
-    sender: 'One Time' | 'Monthly'
+    email: string
     createdDate: string
-    status: 'draft' | 'sent'
-    downloads: number
 }
 
 // Sample data for card history
@@ -22,37 +20,29 @@ const sampleCardHistory: CardHistoryItem[] = [
         id: '1',
         type: 'Type',
         recipient: 'John Doe',
-        sender: 'One Time',
-        createdDate: '2024-01-15',
-        status: 'draft',
-        downloads: 0
+        email: 'test@gmail.com',
+        createdDate: '2024-01-15'
     },
     {
         id: '2',
         type: 'Thank You',
         recipient: 'Jane Smith',
-        sender: 'Monthly',
-        createdDate: '2024-01-14',
-        status: 'sent',
-        downloads: 12
+        email: 'test@gmail.com',
+        createdDate: '2024-01-14'
     },
     {
         id: '3',
         type: 'Congratulations',
         recipient: 'Mike Johnson',
-        sender: 'Monthly',
-        createdDate: '2024-01-13',
-        status: 'sent',
-        downloads: 3
+        email: 'test@gmail.com',
+        createdDate: '2024-01-13'
     },
     {
         id: '4',
         type: 'Birthday',
         recipient: 'Jane Smith',
-        sender: 'One Time',
-        createdDate: '2024-01-13',
-        status: 'draft',
-        downloads: 0
+        email: 'test@gmail.com',
+        createdDate: '2024-01-13'
     }
 ]
 
@@ -60,10 +50,8 @@ const sampleCardHistory: CardHistoryItem[] = [
 const tableHeaders = [
     { key: 'type', label: 'Type', sortable: true },
     { key: 'recipient', label: 'Recipient', sortable: true },
-    { key: 'sender', label: 'SENDER', sortable: true },
+    { key: 'email', label: 'Email', sortable: true },
     { key: 'createdDate', label: 'Created Date', sortable: true },
-    { key: 'status', label: 'Status', sortable: true },
-    { key: 'downloads', label: 'Downloads', sortable: true },
     { key: 'actions', label: 'Actions', sortable: false }
 ]
 
@@ -87,43 +75,40 @@ export default function CardHistory() {
     }, [])
 
     const transformedHistoryData = cardHistory.map(item => ({
-        ...item,
-        sender: (
-            <span className={`px-3 py-1 text-sm rounded font-medium ${item.sender === 'One Time'
-                ? 'bg-blue-100 text-blue-700'
-                : 'bg-purple-100 text-purple-700'
-                }`}>
-                {item.sender}
-            </span>
-        ),
-        status: (
-            <span className={`px-3 py-1 text-sm rounded font-medium ${item.status === 'sent'
-                ? 'bg-green-100 text-green-700'
-                : 'bg-yellow-100 text-yellow-700'
-                }`}>
-                {item.status}
-            </span>
-        ),
-        actions: (
-            <div className="flex items-center gap-2">
-                <Button size="sm" variant="outline" className="w-8 h-8 p-0">
-                    <Download className="h-4 w-4" />
-                </Button>
-                <Button size="sm" variant="outline" className="w-8 h-8 p-0">
-                    <Printer className="h-4 w-4" />
-                </Button>
-            </div>
-        )
+        ...item
     }))
+
+    // Define table actions
+    const tableActions = [
+        {
+            label: 'Download',
+            icon: <Download className="h-4 w-4 mr-2" />,
+            onClick: (item: CardHistoryItem) => {
+                console.log('Downloading card:', item.id)
+                // Add your download logic here
+                // For example: downloadCard(item.id)
+            }
+        },
+        {
+            label: 'Print',
+            icon: <Printer className="h-4 w-4 mr-2" />,
+            onClick: (item: CardHistoryItem) => {
+                console.log('Printing card:', item.id)
+                // Add your print logic here
+                // For example: printCard(item.id)
+            }
+        }
+    ]
 
     return (
         <div className="bg-white rounded-lg p-6 border border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900 mb-2">Generated Cards</h2>
             <p className="text-gray-600 text-sm mb-6">History of all generated cards</p>
-            
+
             <ReusableTable
                 headers={tableHeaders}
                 data={transformedHistoryData}
+                actions={tableActions}
                 showPagination={true}
                 itemsPerPage={5}
                 itemsPerPageOptions={[5, 10, 15, 20]}
