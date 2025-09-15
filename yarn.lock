@@ -1831,6 +1831,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tinymce/tinymce-react@npm:^6.3.0":
+  version: 6.3.0
+  resolution: "@tinymce/tinymce-react@npm:6.3.0"
+  dependencies:
+    prop-types: "npm:^15.6.2"
+  peerDependencies:
+    react: ^19.0.0 || ^18.0.0 || ^17.0.1 || ^16.7.0
+    react-dom: ^19.0.0 || ^18.0.0 || ^17.0.1 || ^16.7.0
+    tinymce: ^8.0.0 || ^7.0.0 || ^6.0.0 || ^5.5.1
+  peerDependenciesMeta:
+    tinymce:
+      optional: true
+  checksum: 10c0/467937194f956ac4981b15b5b5ebf38bf1adacd8472026cbb1de3d6464ec1190f5c7318ce52e1b48df3d282cb100d0c8e06fd74ec10d4f7048633cdc099dd431
+  languageName: node
+  linkType: hard
+
 "@tybys/wasm-util@npm:^0.10.0":
   version: 0.10.0
   resolution: "@tybys/wasm-util@npm:0.10.0"
@@ -2333,6 +2349,7 @@ __metadata:
     "@radix-ui/react-tabs": "npm:^1.1.13"
     "@reduxjs/toolkit": "npm:^2.9.0"
     "@tailwindcss/postcss": "npm:^4"
+    "@tinymce/tinymce-react": "npm:^6.3.0"
     "@types/file-saver": "npm:^2"
     "@types/node": "npm:^20"
     "@types/react": "npm:^19"
@@ -2361,6 +2378,7 @@ __metadata:
     recharts: "npm:^3.1.0"
     tailwind-merge: "npm:^3.3.1"
     tailwindcss: "npm:^4"
+    tinymce: "npm:^8.0.2"
     tw-animate-css: "npm:^1.3.5"
     typescript: "npm:^5"
   languageName: unknown
@@ -5129,7 +5147,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prop-types@npm:^15.7.2, prop-types@npm:^15.8.1":
+"prop-types@npm:^15.6.2, prop-types@npm:^15.7.2, prop-types@npm:^15.8.1":
   version: 15.8.1
   resolution: "prop-types@npm:15.8.1"
   dependencies:
@@ -6038,6 +6056,13 @@ __metadata:
     fdir: "npm:^6.4.4"
     picomatch: "npm:^4.0.2"
   checksum: 10c0/f789ed6c924287a9b7d3612056ed0cda67306cd2c80c249fd280cf1504742b12583a2089b61f4abbd24605f390809017240e250241f09938054c9b363e51c0a6
+  languageName: node
+  linkType: hard
+
+"tinymce@npm:^8.0.2":
+  version: 8.0.2
+  resolution: "tinymce@npm:8.0.2"
+  checksum: 10c0/bffa052b09e93b218b95541ca8294069b0d9f38572c735aa66dd8d3bec4cb510f445644999919b7724c8f5956046ce5ccab4bb29f17b192f3d3f9ec140c4749f
   languageName: node
   linkType: hard
 
