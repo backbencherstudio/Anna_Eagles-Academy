@@ -13,6 +13,7 @@ export default function ProfilePage() {
 
     const [formData, setFormData] = useState({
         name: user?.name || 'Peter Parker',
+        email: user?.email || 'peter.parker@example.com',
         title: 'Jr. Web/Mobile Developer',
         avatar: user?.profileImage || ''
     });
@@ -50,6 +51,19 @@ export default function ProfilePage() {
                                 value={formData.name}
                                 onChange={(e) => handleInputChange('name', e.target.value)}
                                 placeholder="Enter your full name"
+                                className="w-full"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="email" className="text-sm font-medium">
+                                Email
+                            </Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                value={formData.email}
+                                onChange={(e) => handleInputChange('email', e.target.value)}
+                                placeholder="Enter your email address"
                                 className="w-full"
                             />
                         </div>
