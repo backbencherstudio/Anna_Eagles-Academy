@@ -105,6 +105,40 @@ export default function EnrollmentCard() {
     return () => clearTimeout(t)
   }, [])
 
+  const transformedStudentData = rows.map(item => ({
+    ...item,
+    number: item.hasWhatsapp ? (
+      <a
+        href={buildWhatsappLink(item.number)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-2 text-green-600 hover:underline hover:text-green-700 transition-colors duration-200"
+        title="Click to open WhatsApp"
+      >
+        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-100 hover:bg-green-200 transition-colors duration-200">
+          <IoLogoWhatsapp className="text-green-600 text-sm" />
+        </span>
+        {item.number}
+      </a>
+    ) : (
+      <span className="text-gray-900">{item.number}</span>
+    ),
+    enrollment: (
+      <span className={`px-3 py-1 rounded-full text-xs font-medium ${item.enrollment.includes('Fully') ? 'text-green-700 bg-green-50' :
+          item.enrollment.includes('Free') ? 'text-amber-700 bg-amber-50' :
+            'text-blue-700 bg-blue-50'
+        }`}>
+        {item.enrollment}
+      </span>
+    ),
+    type: (
+      <span className={`px-3 py-1 rounded-full text-xs font-medium ${item.type === 'Bootcamp' ? 'text-purple-700 bg-purple-50' : 'text-gray-700 bg-gray-100'
+        }`}>
+        {item.type}
+      </span>
+    )
+  }))
+
   return (
     <div className="bg-white rounded-xl p-4">
       <div className='mb-6'>
@@ -112,39 +146,11 @@ export default function EnrollmentCard() {
       </div>
       <ReusableTable
         headers={headers}
-        data={rows}
-        itemsPerPage={8}
+        data={transformedStudentData}
+        itemsPerPage={5}
         itemsPerPageOptions={[5, 8, 10, 15]}
         showPagination
         isLoading={isLoading}
-        skeletonRows={8}
-        customCellRenderer={(item: EnrollmentRow, header) => {
-          if (header.key === 'number') {
-            if (item.hasWhatsapp) {
-              const href = buildWhatsappLink(item.number)
-              return (
-                <a href={href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-green-600 hover:underline">
-                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-100">
-                  <IoLogoWhatsapp />
-                  </span>
-                  {item.number}
-                </a>
-              )
-            }
-            return item.number
-          }
-          if (header.key === 'enrollment') {
-            const status = item.enrollment
-            const color = status.includes('Fully') ? 'text-green-700 bg-green-50' : status.includes('Free') ? 'text-amber-700 bg-amber-50' : 'text-blue-700 bg-blue-50'
-            return <span className={`px-3 py-1 rounded-full text-xs font-medium ${color}`}>{status}</span>
-          }
-          if (header.key === 'type') {
-            const type = item.type
-            const color = type === 'Bootcamp' ? 'text-purple-700 bg-purple-50' : 'text-gray-700 bg-gray-100'
-            return <span className={`px-3 py-1 rounded-full text-xs font-medium ${color}`}>{type}</span>
-          }
-          return (item as any)[header.key]
-        }}
       />
     </div>
   )
