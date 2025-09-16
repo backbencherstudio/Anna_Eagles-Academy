@@ -13,37 +13,37 @@ export default function SettingsSidebar() {
         {
             label: 'Edit Profile',
             icon: <UserIcon size={20} />,
-            href: '/setting/profile',
+            href: '/user/setting/profile',
             role: 'student'
         },
         {
             label: 'Edit Profile',
             icon: <UserIcon size={20} />,
-            href: '/setting/profile',
+            href: '/admin/setting/profile',
             role: 'admin'
         },
         {
             label: 'Change Password',
             icon: <LockIcon size={20} />,
-            href: '/setting/change-password',
+            href: '/user/setting/change-password',
             role: 'student'
         },
         {
             label: 'Change Password',
             icon: <LockIcon size={20} />,
-            href: '/setting/change-password',
+            href: '/admin/setting/change-password',
             role: 'admin'
         },
         {
             label: 'Notification',
             icon: <BellIcon size={20} />,
-            href: '/setting/notification',
+            href: '/user/setting/notification',
             role: 'student'
         },
         {
             label: 'Payment Details',
             icon: <CreditCardIcon size={20} />,
-            href: '/setting/payment',
+            href: '/user/setting/payment',
             role: 'student'
         },
     ]
@@ -52,7 +52,7 @@ export default function SettingsSidebar() {
         {
             label: 'Language',
             icon: <FileTextIcon size={20} />,
-            href: '/setting/language',
+            href: '/user/setting/language',
             role: 'student'
         },
     ]
@@ -87,7 +87,7 @@ export default function SettingsSidebar() {
                             {item.label}
                         </Link>
                     ))}
-                    
+
                     {/* Preference Items */}
                     {filteredPreferenceItems.map((item) => (
                         <Link

@@ -43,28 +43,28 @@ export const MENU_CONFIG = {
         {
             header: 'GENERAL',
             items: [
-                { title: 'Dashboard', icon: DashboardIcon, activeIcon: DashboardIconAc, href: '/dashboard' },
+                { title: 'Dashboard', icon: DashboardIcon, activeIcon: DashboardIconAc, href: '/user/dashboard' },
                 { title: 'Calander', icon: CalanderIcon, activeIcon: CalanderIconAt, href: '/schedule' },
             ],
         },
         {
             header: 'COURSES',
             items: [
-                { title: 'Discover', icon: DiscoverIcon, activeIcon: DiscoverIconAc, href: '/discover' },
-                { title: 'My Courses', icon: MyCourseIcon, activeIcon: MyCourseIconAc, href: '/my-courses' },
-                { title: 'Assignments', icon: AssignmentIcon, activeIcon: AssignmentIconAc, href: '/assignments' },
-                { title: 'Student Files', icon: StudentFileIcon, activeIcon: StudentFileIconAc, href: '/student-files' },
-                { title: 'Download Materials', icon: DownloadMaterialsIcon, activeIcon: DownloadMaterialsIconAc, href: '/download-materials' },
-                { title: 'Contact Teacher', icon: ContactTeacherIcon, activeIcon: ContactTeacherIconAc, href: '/contact-teacher' },
-                { title: 'Diploma', icon: DiplomaIcon, activeIcon: DiplomaIconAc, href: '/diploma' },
-                { title: 'Donations', icon: DonationIcon, activeIcon: DonationIconAc, href: '/donations' },
+                { title: 'Discover', icon: DiscoverIcon, activeIcon: DiscoverIconAc, href: '/user/discover' },
+                { title: 'My Courses', icon: MyCourseIcon, activeIcon: MyCourseIconAc, href: '/user/my-courses' },
+                { title: 'Assignments', icon: AssignmentIcon, activeIcon: AssignmentIconAc, href: '/user/assignments' },
+                { title: 'Student Files', icon: StudentFileIcon, activeIcon: StudentFileIconAc, href: '/user/student-files' },
+                { title: 'Download Materials', icon: DownloadMaterialsIcon, activeIcon: DownloadMaterialsIconAc, href: '/user/download-materials' },
+                { title: 'Contact Teacher', icon: ContactTeacherIcon, activeIcon: ContactTeacherIconAc, href: '/user/contact-teacher' },
+                { title: 'Diploma', icon: DiplomaIcon, activeIcon: DiplomaIconAc, href: '/user/diploma' },
+                { title: 'Donations', icon: DonationIcon, activeIcon: DonationIconAc, href: '/user/donations' },
             ],
         },
         {
             header: 'OTHER',
             items: [
-                { title: 'Setting', icon: SettingsIcon, activeIcon: SettingsIconAc, href: '/setting/profile' },
-                { title: 'Privacy Policy', icon: PolicyIcon, activeIcon: PolicyIconAc, href: '/privacy-policy' },
+                { title: 'Setting', icon: SettingsIcon, activeIcon: SettingsIconAc, href: '/user/setting/profile' },
+                { title: 'Privacy Policy', icon: PolicyIcon, activeIcon: PolicyIconAc, href: '/user/privacy-policy' },
             ],
         },
     ],
@@ -73,8 +73,8 @@ export const MENU_CONFIG = {
         {
             header: 'GENERAL',
             items: [
-                { title: 'Dashboard', icon: DashboardIcon, activeIcon: DashboardIconAc, href: '/dashboard' },
-                { title: 'Calendar', icon: CalanderIcon, activeIcon: CalanderIconAt, href: '/calendar' },
+                { title: 'Dashboard', icon: DashboardIcon, activeIcon: DashboardIconAc, href: '/admin/dashboard' },
+                { title: 'Calendar', icon: CalanderIcon, activeIcon: CalanderIconAt, href: '/admin/calendar' },
             ],
         },
         {
@@ -86,8 +86,8 @@ export const MENU_CONFIG = {
                     activeIcon: MyCourseIconAc,
                     hasDropdown: true,
                     subItems: [
-                        { title: 'Course List', href: '/course-management' },
-                        { title: 'Materials Upload', href: '/materials-upload' }
+                        { title: 'Course List', href: '/admin/course-management' },
+                        { title: 'Materials Upload', href: '/admin/materials-upload' }
                     ]
                 },
                 {
@@ -96,25 +96,26 @@ export const MENU_CONFIG = {
                     activeIcon: AssignmentIconAc,
                     hasDropdown: true,
                     subItems: [
-                        { title: 'Create new Assignment', href: '/assignment-management' },
-                        { title: 'Awaiting Evaluation', href: '/assignment-evaluation' },
-                        { title: 'Student file download', href: '/student-file-download' }
+                        { title: 'Create new Assignment', href: '/admin/assignment-management' },
+                        { title: 'Awaiting Evaluation', href: '/admin/assignment-evaluation' },
+                        { title: 'Student file download', href: '/admin/student-file-download' }
                     ]
                 },
-                { title: 'User Management', icon: UserManagementIcon, activeIcon: UserManagementIconAc, href: '/users-management' },
-                { title: 'Code Generate', icon: CodeGenerate, activeIcon: CodeGenerateAc, href: '/code-generate' },
-                { title: 'Teacher Section', icon: AssignmentIcon, activeIcon: AssignmentIconAc, href: '/teacher-section' },
-                { title: 'Student Feedback', icon: StudentFileIcon, activeIcon: StudentFileIconAc, href: '/student-feedback' },
-                { title: 'Donations', icon: DonationIcon, activeIcon: DonationIconAc, href: '/donation' },
-                { title: 'Card Generator', icon: CardIcon, activeIcon: CardIconAc, href: '/card-generator' },
-                { title: 'Reports', icon: ChartIcon, activeIcon: ChartIconAc, href: '/reports' },
-                { title: 'Student Question', icon: QuestionIcon, activeIcon: QuestionIconAc, href: '/student-question' },
+                { title: 'User Management', icon: UserManagementIcon, activeIcon: UserManagementIconAc, href: '/admin/users-management' },
+                { title: 'Code Generate', icon: CodeGenerate, activeIcon: CodeGenerateAc, href: '/admin/code-generate' },
+                { title: 'Teacher Section', icon: AssignmentIcon, activeIcon: AssignmentIconAc, href: '/admin/teacher-section' },
+                { title: 'Student Feedback', icon: StudentFileIcon, activeIcon: StudentFileIconAc, href: '/admin/student-feedback' },
+                { title: 'Donations', icon: DonationIcon, activeIcon: DonationIconAc, href: '/admin/donation' },
+                { title: 'Card Generator', icon: CardIcon, activeIcon: CardIconAc, href: '/admin/card-generator' },
+                { title: 'Reports', icon: ChartIcon, activeIcon: ChartIconAc, href: '/admin/reports' },
+                { title: 'Student Question', icon: QuestionIcon, activeIcon: QuestionIconAc, href: '/admin/student-question' },
             ],
         },
         {
             header: 'OTHER',
             items: [
-                { title: 'Setting', icon: FiSettings, href: '/setting/profile' },
+                { title: 'Setting', icon: FiSettings, href: '/admin/setting/profile' },
+                
             ],
         },
     ],

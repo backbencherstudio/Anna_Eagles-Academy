@@ -17,9 +17,9 @@ export default function AuthGuard({ children }: AuthGuardProps) {
         if (!isLoading && isAuthenticated && user) {
             // Redirect authenticated users to their appropriate dashboard
             if (user.role === 'admin') {
-                router.push('/dashboard');
+                router.push('/admin/dashboard');
             } else {
-                router.push('/dashboard');
+                router.push('/user/dashboard');
             }
         }
     }, [isAuthenticated, isLoading, user, router]);

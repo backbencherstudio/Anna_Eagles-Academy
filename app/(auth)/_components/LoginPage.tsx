@@ -42,9 +42,9 @@ export default function LoginPage() {
                 // Redirect based on user role
                 setTimeout(() => {
                     if (result.user?.role === 'admin') {
-                        router.push('/dashboard');
+                        router.push('/admin/dashboard');
                     } else {
-                        router.push('/dashboard');
+                        router.push('/user/dashboard');
                     }
                 }, 1000);
             } else {
