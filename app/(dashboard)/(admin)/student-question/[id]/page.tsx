@@ -1,16 +1,11 @@
 import React from 'react'
 import StudentQuestionDetail from '../../../_components/Admin/StudentQuestionDetail'
 
-interface StudentQuestionDetailPageProps {
-    params: {
-        id: string
-    }
-}
-
-export default function StudentQuestionDetailPage({ params }: StudentQuestionDetailPageProps) {
+export default async function StudentQuestionDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params
     return (
         <div>
-            <StudentQuestionDetail studentId={params.id} />
+            <StudentQuestionDetail studentId={id} />
         </div>
     )
 }
