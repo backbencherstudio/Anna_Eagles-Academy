@@ -1,10 +1,10 @@
 "use client"
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, Clock, Briefcase, Play, Music, FileText, Video, Search, Users, Calendar } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { FaPlayCircle } from "react-icons/fa";
-import { PiCheckCircleLight, PiBookOpenTextFill } from "react-icons/pi";
+
 
 function CourseSkeleton() {
     return (
@@ -64,6 +64,7 @@ export default function DiscoverCourses() {
     const [course, setCourse] = useState<any>(null);
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    const [discountCode, setDiscountCode] = useState("");
 
     useEffect(() => {
         fetch("/data/CourseData.json")
@@ -91,11 +92,17 @@ export default function DiscoverCourses() {
         }, 1000);
     }
 
+    // handle discount code apply
+    const handleApplyCode = () => {
+        // Add your discount code logic here
+        console.log("Applying discount code:", discountCode);
+    }
+
     return (
         <div className="flex flex-col xl:flex-row gap-8 px-1  ">
             {/* Left Side */}
             <div className="flex-1 w-full xl:w-9/12">
-                <div className="bg-white rounded-2xl shadow p-6">
+                <div className="bg-white rounded-2xl p-6">
                     <h1 className="text-xl md:text-2xl font-medium mb-4">
                         Master Class: {course?.course_title}
                     </h1>
@@ -128,46 +135,120 @@ export default function DiscoverCourses() {
 
             {/* Right Side */}
             <div className="w-full xl:w-3/12 flex flex-col gap-6">
-                {/* Overview Card */}
-                <div className="bg-white rounded-2xl shadow p-6">
-                    <div className="font-semibold text-lg mb-4">Overview</div>
-                    <div className="bg-[#FEF9F2] rounded-xl flex flex-col items-center py-2 mb-4">
-                        <PiBookOpenTextFill className="text-2xl text-[#F1C27D] mb-1" />
-                        <div className="flex gap-1 items-center">
-                            <span className="text-xl font-semibold">{course?.total_modules}</span>
-                            <span className="text-gray-400 text-base mt-1">Modules</span>
+                {/* Course Card */}
+                <div className="bg-white rounded-2xl  overflow-hidden ">
+                    {/* Course Image with Title Overlay */}
+                    <div className=" aspect-video p-4">
+                        {course?.course_thumbnail && (
+                            <Image
+                                src={course.course_thumbnail}
+                                alt={course.course_title || "Course"}
+                                className="w-full h-full object-cover rounded-2xl"
+                                width={400}
+                                height={192}
+                                priority
+                            />
+                        )}
+
+                    </div>
+
+                    {/* Price and Enroll Button */}
+                    <div className="px-4 mt-2">
+                        <div className="text-3xl font-bold text-gray-900 mb-4">
+                            ${course?.course_price.toFixed(1)}
+                        </div>
+                        <Button
+                            disabled={isLoading}
+                            onClick={handleBuyNow}
+                            className="w-full cursor-pointer bg-[#0F2598] hover:bg-[#0F2598]/80 text-white font-bold py-5 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                            {isLoading ? (
+                                <div className="flex items-center gap-2">
+                                    <Loader2 className="animate-spin h-5 w-5" />
+                                    <span>Processing...</span>
+                                </div>
+                            ) : (
+                                "Enroll Now"
+                            )}
+                        </Button>
+                    </div>
+
+                    {/* Course Details */}
+                    <div className="px-6 py-4">
+                        <h4 className="font-medium text-[#070707] text-base lg:text-lg mb-4">What's in this course</h4>
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-3">
+                                <Clock className="h-4 w-4 text-[#1D1F2C]" />
+                                <span className="text-[#1D1F2C] text-sm">Total Time 6hr 10min 2sec</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Briefcase className="h-4 w-4 text-[#1D1F2C]" />
+                                <span className="text-[#1D1F2C] text-sm">3 Course</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Play className="h-4 w-4 text-[#1D1F2C]" />
+                                <span className="text-[#1D1F2C] text-sm">24 Videos</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Music className="h-4 w-4 text-[#1D1F2C]" />
+                                <span className="text-[#1D1F2C] text-sm">4 Audios</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <FileText className="h-4 w-4 text-[#1D1F2C]" />
+                                <span className="text-[#1D1F2C] text-sm">8 Doc File</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Video className="h-4 w-4 text-[#1D1F2C]" />
+                                <span className="text-[#1D1F2C] text-sm">Video-only version available</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Search className="h-4 w-4 text-[#AD0AFD]" />
+                                <span className="text-[#AD0AFD] text-sm">Bootcamp Type Course</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Users className="h-4 w-4 text-[#1D1F2C]" />
+                                <span className="text-[#1D1F2C] text-sm">12 Seat Left</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Calendar className="h-4 w-4 text-[#1D1F2C]" />
+                                <span className="text-[#1D1F2C] text-sm">Start: 2024-09-01 | End: 2024-12-01</span>
+                            </div>
                         </div>
                     </div>
-                    <div className="bg-[#FEF9F2] rounded-xl flex flex-col items-center py-2 mb-4">
-                        <FaPlayCircle className="text-2xl text-[#F1C27D] mb-1" />
-                        <div className="flex gap-1 items-center">
-                            <span className="text-xl font-semibold">{course?.total_videos}</span>
-                            <span className="text-gray-400 text-base mt-1">Videos</span>
+
+                    {/* Discount Code Section */}
+                    <div className="px-6 pb-6">
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="text"
+                                placeholder="Apply Code"
+                                value={discountCode}
+                                onChange={(e) => setDiscountCode(e.target.value)}
+                                className="flex-1 border border-dashed border-[#D2D2D5] px-3 py-2  bg-[#F6F8FA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F2598] focus:border-transparent"
+                            />
+                            <Button
+                                onClick={handleApplyCode}
+                                className="px-4 cursor-pointer py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200"
+                            >
+                                Apply
+                            </Button>
                         </div>
                     </div>
-                    <div className="flex justify-between items-center mb-4">
-                        <span className="text-gray-500">Price</span>
-                        <span className="text-[#F1C27D] text-xl font-bold">${course?.course_price.toFixed(2)}</span>
+
+                    {/* Financial Hardship Section */}
+                    <div className="px-6 pb-6">
+                        <div className="bg-pink-50 rounded-lg p-4">
+                            <p className="text-sm text-[#1D1F2C] mb-2 text-center">
+                                If you're unable to enroll in any of the courses due to financial hardship, please email
+                            </p>
+                            <a
+                                href="mailto:info@thewhiteeaglesacademy@gmail.com"
+                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                            >
+                                <span className="text-[#1D1F2C]">info</span> @thewhiteeaglesacademy@gmail.com
+                            </a>
+                        </div>
                     </div>
-                    <button disabled={isLoading} onClick={handleBuyNow} className="w-full cursor-pointer bg-[#F1C27D] hover:bg-[#F1C27D]/80 text-white font-bold py-2 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed items-center justify-center flex gap-2">
-                        {isLoading ? <div className="flex items-center gap-2">
-                            <Loader2 className="animate-spin" />
-                            <span>Processing...</span>
-                        </div> : "Buy Now"}
-                    </button>
-                </div>
-                {/* Modules List */}
-                <div className="bg-white rounded-2xl shadow p-6">
-                    <div className="font-semibold mb-4 text-lg">Course Modules</div>
-                    <ul className="space-y-2">
-                        {course?.modules.map((mod: any, idx: number) => (
-                            <li key={mod?.module_id} className="flex items-center gap-2">
-                                <span className="text-gray-400 font-mono w-6 text-right">{String(idx + 1).padStart(2, "0")}</span>
-                                <span className="flex-1 text-gray-700">{mod?.module_title}</span>
-                                <PiCheckCircleLight className="text-xl text-gray-400" />
-                            </li>
-                        ))}
-                    </ul>
                 </div>
             </div>
         </div>

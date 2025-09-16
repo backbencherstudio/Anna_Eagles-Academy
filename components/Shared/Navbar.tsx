@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { HiMenuAlt3 } from "react-icons/hi";
 import { IoNotificationsOutline } from "react-icons/io5";
 import { useUserData } from '@/context/UserDataContext';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import MainNotification from './MainNotification';
 import Language from './Laguage';
 import ProfileNav from './ProfileNav';
@@ -20,6 +20,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const { user } = useUserData();
     const currentNotificationCount = useNotificationCount();
+    const searchParams = useSearchParams();
 
     const handleLanguageChange = (languageCode: string) => {
         // Here you can add logic to change the app language
@@ -33,55 +34,105 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
     const currentPath = pathSegments[pathSegments.length - 1] || 'dashboard';
 
     const titleMap = {
+        // common
         'dashboard': 'Hi, ' + user?.name,
-        'schedule': 'My Schedule',
-        'discover': 'Discover Courses',
+        // admin
+        'calendar': 'Calendar',
+        'course-management': 'Course Management',
+        'create-course': 'Create Course',
+        'materials-upload': 'Materials Upload',
+        'assignment-management': 'Assignment Management',
+        'assignment-evaluation': 'Assignment Evaluation',
+        'student-file-download': 'Student File Download',
+        'users-management': 'Users Management',
+        'code-generate': 'Code Generate',
+        'teacher-section': 'Teacher Section',
+        'student-feedback': 'Student Feedback',
+        'donation': 'Donation',
+        'card-generator': 'Card Generator',
+        'reports': 'Reports',
+        'student-question': 'Student Question',
+
+
+        // student
+        'schedule': 'Schedule',
+        'discover': 'Discover',
+        'payment-success': 'Payment Success',
+        'my-courses': 'My Courses',
+        'assignments': 'Assignments',
         'student-files': 'Student Files',
         'download-materials': 'Download Materials',
         'contact-teacher': 'Contact Teacher',
         'diploma': 'Diploma',
         'donations': 'Donations',
-        'card-generator': 'Card Generator',
-        'reports': 'Reports',
-        'teacher-section': 'Teacher Section',
-        'student-feedback': 'Student Feedback',
-        'donation': 'Donation',
-        'checkout': 'Checkout',
-        'my-courses': 'My Courses',
-        'assignments': 'Assignments',
-        'setting': 'Setting',
-        'payment-success': 'Payment Success',
-        'profile': 'Profile',
-        'notification': 'Notification',
-        'payment': 'Payment',
-        'change-password': 'Change Password',
-        'payment-method': 'Payment Method',
-        'billing': 'Billing',
-        'email-address': 'Email Address',
-        'courses-modules': 'Course Modules',
-        'courses': 'Courses',
-        'modules': 'Modules',
-        'quiz': 'Quiz',
-        'test': 'Test',
-        'video': 'Video',
-        'lesson': 'Lesson',
-        'chapter': 'Chapter',
-        'users-management': 'Users Management',
-        'email-notification': 'Email Notification',
-        "calendar": 'Calendar',
-        'course-management': 'Course Management',
-        'create-assignments': 'Create Assignments',
-        'create-course': 'Create Course',
-
-
+        'privacy-policy': 'Privacy Policy',
     };
 
-    // Function to get dynamic title based on pathname
+
+    // admin dyanmic titles
+    const assignmentTabTitles = {
+        'quiz': 'Quiz Management',
+    };
+
+    const cardGeneratorTabTitles = {
+        'createCard': 'Create Card',
+        'cardHistory': 'Card History',
+    };
+
+    // Tab-specific titles for reports
+    const reportsTabTitles = {
+        'website-usage': 'Website Usage',
+        'financial-reports': 'Financial Reports',
+        'course-progress': 'Course Progress',
+        'payments': 'Payments',
+        'enrollment': 'Enrollment',
+        'overview': 'Payments > Overview',
+        'fully-paid': 'Payments > Fully Paid',
+        'sponsored': 'Payments > Sponsored',
+        'free-enrolled': 'Payments > Free Enrolled',
+    };
+
+    // Function to get dynamic title based on pathname for admin
     const getDynamicTitle = () => {
         // Special case for dashboard
         if (currentPath === 'dashboard') {
             return `Welcome Back, ${user?.name}`;
         }
+
+        if (currentPath === 'assignment-management') {
+            const tab = searchParams.get('tab');
+            if (tab && assignmentTabTitles[tab as keyof typeof assignmentTabTitles]) {
+                return assignmentTabTitles[tab as keyof typeof assignmentTabTitles];
+            }
+            return 'Assignment Management';
+        }
+
+        if (currentPath === 'card-generator') {
+            const tab = searchParams.get('tab');
+            if (tab && cardGeneratorTabTitles[tab as keyof typeof cardGeneratorTabTitles]) {
+                return cardGeneratorTabTitles[tab as keyof typeof cardGeneratorTabTitles];
+            }
+            return 'Card Generator';
+        }
+        if (currentPath === 'reports') {
+            const tab = searchParams.get('tab');
+            const paymentTab = searchParams.get('paymentTab');
+
+            if (tab === 'payments' && paymentTab && reportsTabTitles[paymentTab as keyof typeof reportsTabTitles]) {
+                return reportsTabTitles[paymentTab as keyof typeof reportsTabTitles];
+            }
+
+            if (tab && reportsTabTitles[tab as keyof typeof reportsTabTitles]) {
+                return reportsTabTitles[tab as keyof typeof reportsTabTitles];
+            }
+            return 'Reports';
+        }
+
+
+
+
+
+
 
         // Handle specific routes with dynamic titles
         if (pathname.includes('courses-modules')) {

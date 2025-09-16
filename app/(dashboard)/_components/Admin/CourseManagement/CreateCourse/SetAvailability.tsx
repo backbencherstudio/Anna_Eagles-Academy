@@ -67,7 +67,7 @@ export default function SetAvailability({
                     type="submit"
                     disabled={isSubmitting}
                     onClick={onSubmit}
-                    className="w-full bg-[#F1C27D] cursor-pointer hover:bg-[#F1C27D]/80 text-white"
+                    className="w-full bg-[#0F2598] cursor-pointer transition-all duration-300 hover:bg-[#0F2598]/80 text-white"
                     size="lg"
                 >
                     {isSubmitting ? 'Publishing...' : 'Publish Course'}

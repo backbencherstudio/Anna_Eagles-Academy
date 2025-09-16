@@ -242,7 +242,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
                                 <Link href="#" className="font-semibold text-[#F1C27D] ml-1 hover:underline" style={{ textDecoration: 'none' }}>Privacy Policy</Link>.
                             </label>
                         </div>
-                        <Button className="w-full cursor-pointer mt-6 py-6 bg-[#F1C27D] hover:bg-[#F1C27D]/80 text-white font-semibold text-lg" onClick={handlePay} disabled={payLoading}>
+                        <Button className="w-full cursor-pointer mt-6 py-6 bg-[#0F2598] hover:bg-[#0F2598]/80 text-white font-semibold text-lg" onClick={handlePay} disabled={payLoading}>
                             {payLoading ? <div className='flex items-center gap-2'>
                                 <Loader2 className="w-4 h-4 animate-spin" />
                                 <span>Processing...</span>

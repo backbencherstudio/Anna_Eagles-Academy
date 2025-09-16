@@ -26,7 +26,7 @@ export default function Calendar() {
             </div>
             <div className=' w-full lg:w-5/12 '>
                 <Button 
-                    className='w-full cursor-pointer bg-[#F1C27D] hover:bg-[#F1C27D]/80'
+                    className='w-full py-5 cursor-pointer bg-[#0F2598] hover:bg-[#0F2598]/80'
                     onClick={handleOpenModal}
                 >
                     <span className='bg-white/30 rounded-full p-1'>

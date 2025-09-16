@@ -1,5 +1,6 @@
 'use client'
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import CardData from './Payments/CardData'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import OverViewChart from './Payments/OverViewChart'
@@ -36,6 +37,28 @@ const tabData = [
 ]
 
 export default function PaymentsCard() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+  
+  // Get the current tab from URL or default to 'overview'
+  const currentTab = searchParams.get('paymentTab') || 'overview'
+  const [activeTab, setActiveTab] = useState(currentTab)
+
+  // Update local state when URL changes
+  useEffect(() => {
+    const tab = searchParams.get('paymentTab') || 'overview'
+    setActiveTab(tab)
+  }, [searchParams])
+
+  // Handle tab change and update URL
+  const handleTabChange = (tabValue: string) => {
+    setActiveTab(tabValue)
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('paymentTab', tabValue)
+    router.replace(`${pathname}?${params.toString()}`)
+  }
+
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
@@ -43,7 +66,7 @@ export default function PaymentsCard() {
  
       <div className='bg-white rounded-xl p-6'>
         {/* Tab Navigation and Content */}
-        <Tabs defaultValue="overview" className="w-full">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <div className="border-b border-gray-200">
             <div className="overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0 scroll-smooth">
               <TabsList className="flex bg-transparent p-0 h-auto gap-6 md:gap-0 whitespace-nowrap w-max min-w-max md:w-full md:min-w-0 md:justify-between">
