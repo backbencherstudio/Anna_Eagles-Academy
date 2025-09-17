@@ -36,3 +36,15 @@ export const authCheckMe = async () => {
 }
 
 
+
+
+// forgot password
+export const forgotPassword = async (data: any) => {
+    try {
+        const response = await axiosClient.post('/api/auth/forgot-password', data);
+        return response.data;
+    } catch (error: any) {
+        throw error;
+    }
+}
+

@@ -96,11 +96,11 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
     // Function to get dynamic title based on pathname for admin
     const getDynamicTitle = () => {
         // Special case for dashboard
-        if (currentPath === '/user/dashboard') {
+        if (pathname === '/user/dashboard') {
             return `Welcome Back, ${userData?.name || 'User'}`;
         }
 
-        if (currentPath === '/admin/assignment-management') {
+        if (pathname === '/admin/assignment-management') {
             const tab = searchParams.get('tab');
             if (tab && assignmentTabTitles[tab as keyof typeof assignmentTabTitles]) {
                 return assignmentTabTitles[tab as keyof typeof assignmentTabTitles];
@@ -108,14 +108,14 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
             return 'Assignment Management';
         }
 
-        if (currentPath === '/admin/card-generator') {
+        if (pathname === '/admin/card-generator') {
             const tab = searchParams.get('tab');
             if (tab && cardGeneratorTabTitles[tab as keyof typeof cardGeneratorTabTitles]) {
                 return cardGeneratorTabTitles[tab as keyof typeof cardGeneratorTabTitles];
             }
             return 'Card Generator';
         }
-        if (currentPath === '/admin/reports') {
+        if (pathname === '/admin/reports') {
             const tab = searchParams.get('tab');
             const paymentTab = searchParams.get('paymentTab');
 
@@ -128,11 +128,6 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
             }
             return 'Reports';
         }
-
-
-
-
-
 
 
         // Handle specific routes with dynamic titles
@@ -193,7 +188,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
                                 <h1 className="text-[18px] xl:text-[20px] font-semibold text-[#111827] hidden sm:block">
                                     {getDynamicTitle()}
                                 </h1>
-                                {currentPath === '/user/dashboard' && userData?.role === 'user' && (
+                                {pathname === '/user/dashboard' && userData?.role === 'user' && (
                                     <span className="text-[12px] xl:text-[14px] text-[#777980] mt-1 hidden lg:block">
                                         Let's boost your knowledge today and learn a new things
                                     </span>
@@ -207,7 +202,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
 
                 {/* Quote chip (poem section) */}
                 {
-                    currentPath === '/user/dashboard' && isAuthenticated && userData?.role === 'user' && (
+                    pathname === '/user/dashboard' && isAuthenticated && userData?.role === 'user' && (
                         <div className="hidden xl:flex items-center justify-center">
                             <div className="max-w-[860px] w-full bg-[#F1C27D1A] px-4 sm:px-6 py-3 sm:py-4 rounded-tl-[48px] rounded-br-[48px] rounded-tr-[10px] rounded-bl-[10px]">
                                 <p className="text-[#0F172A] italic text-[13px] leading-relaxed text-center font-medium">

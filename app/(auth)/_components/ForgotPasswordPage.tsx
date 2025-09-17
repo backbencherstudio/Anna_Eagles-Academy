@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import Logo from '@/components/Icons/Logo';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';

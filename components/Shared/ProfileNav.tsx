@@ -23,7 +23,7 @@ interface ProfileNavProps {
 export default function ProfileNav({ className = "" }: ProfileNavProps) {
     const dispatch = useAppDispatch();
     const router = useRouter();
-    
+
     // Get user data from Redux store
     const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
@@ -37,6 +37,18 @@ export default function ProfileNav({ className = "" }: ProfileNavProps) {
         }
     };
 
+
+    const hanldeProfile = () => {
+        if (user?.role === 'admin') {
+            router.push('/admin/setting/profile');
+        } else if (user?.role === 'user') {
+            router.push('/user/setting/profile');
+        }
+    }
+
+    const hanldeLogout = () => {
+        handleLogout();
+    }
     return (
         <div className={`flex items-center gap-3 ${className}`}>
             <DropdownMenu>
@@ -63,12 +75,12 @@ export default function ProfileNav({ className = "" }: ProfileNavProps) {
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuItem className='cursor-pointer' onClick={() => router.push('/setting/profile')}>
+                    <DropdownMenuItem className='cursor-pointer' onClick={hanldeProfile}>
                         <FaRegUser className="mr-2 h-4 w-4" />
                         <span>Profile</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
+                    <DropdownMenuItem onClick={hanldeLogout} className="text-red-600 cursor-pointer">
                         <FiLogOut className="mr-2 h-4 w-4" />
                         <span>Logout</span>
                     </DropdownMenuItem>
@@ -80,17 +92,16 @@ export default function ProfileNav({ className = "" }: ProfileNavProps) {
                 <div className="text-left">
                     <p className="text-sm font-medium text-[#111827]">{user?.name || 'User'}</p>
                     <div className="flex items-center gap-1 mt-1">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                            user?.role === 'admin' 
-                                ? 'bg-blue-100 text-blue-800' 
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${user?.role === 'admin'
+                                ? 'bg-blue-100 text-blue-800'
                                 : 'text-white bg-[#22C55E]'
-                        }`}>
-                            {user?.role === 'admin' ? 'Admin' : 'Paid Student'}
+                            }`}>
+                            {user?.role === 'admin' ? 'Admin' : 'Student'}
                         </span>
                     </div>
                 </div>
             </div>
-          
+
         </div>
     );
 }
