@@ -3,10 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, Upload } from 'lucide-react';
 import { useState } from 'react';
-import { useUserData } from '@/context/UserDataContext';
+
 
 export default function ProfileImage() {
-    const { user } = useUserData();
+    const user = {
+        name: 'John Doe',
+        profileImage: 'https://via.placeholder.com/150'
+    }
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [formData, setFormData] = useState({

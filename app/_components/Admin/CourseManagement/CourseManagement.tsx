@@ -49,7 +49,7 @@ export default function CourseManagement() {
 
     const handleCreateCourse = () => {
         // TODO: Implement create course functionality
-        router.push('/create-course')
+        router.push('/admin/create-course')
         console.log('Create new course clicked')
     }
 

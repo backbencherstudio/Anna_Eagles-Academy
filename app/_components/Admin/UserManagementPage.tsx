@@ -88,7 +88,7 @@ export default function UserManagementPage() {
     ]
 
     const handleSendEmailNotification = () => {
-        router.push('/email-notification')
+        router.push('/admin/email-notification')
         // Implement email notification functionality
     }
 

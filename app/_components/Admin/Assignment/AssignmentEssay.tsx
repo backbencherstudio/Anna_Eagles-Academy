@@ -90,7 +90,7 @@ export default function AssignmentEssay() {
     }, [])
 
     const handleCreateAssignment = () => {
-        router.push('/create-assignment')
+        router.push('/admin/create-assignment')
         // Handle create new assignment logic
         console.log('Create new assignment clicked')
     }

@@ -85,7 +85,7 @@ export default function AssignmentQuiz() {
     }, [])
 
     const handleCreateAssignment = () => {
-        router.push('/create-quiz')
+        router.push('/admin/create-quiz')
         // Handle create new assignment logic
         // console.log('Create new assignment clicked')
     }

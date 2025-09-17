@@ -102,8 +102,8 @@ export default function PaymentsSuccess() {
                     </div>
                 </div>
                 <div className="flex gap-4 mt-4 max-w-lg mx-auto">
-                    <Link href="/dashboard" className=" text-center py-2 px-4 rounded-lg border border-[#F1C27D] text-[#F1C27D] font-medium hover:bg-[#F1C27D]/10 transition">Back to Dashboard</Link>
-                    <Link href="/my-courses" className=" text-center py-2 px-4 rounded-lg bg-[#F1C27D] text-white font-medium hover:bg-[#F1C27D]/80 transition">Start Learning</Link>
+                    <Link href="/user/dashboard" className=" text-center py-2 px-4 rounded-lg border border-[#F1C27D] text-[#F1C27D] font-medium hover:bg-[#F1C27D]/10 transition">Back to Dashboard</Link>
+                    <Link href="/user/my-courses" className=" text-center py-2 px-4 rounded-lg bg-[#F1C27D] text-white font-medium hover:bg-[#F1C27D]/80 transition">Start Learning</Link>
                 </div>
             </div>
         </div>

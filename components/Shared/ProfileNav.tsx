@@ -2,7 +2,7 @@ import React from 'react';
 import { FaRegUser } from "react-icons/fa";
 import { FiLogOut } from "react-icons/fi";
 import Image from 'next/image';
-import { useUserData } from '@/context/UserDataContext';
+
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,11 +18,13 @@ interface ProfileNavProps {
 }
 
 export default function ProfileNav({ className = "" }: ProfileNavProps) {
-    const { user, logout } = useUserData();
+    const user = {
+        role: 'user'
+    }
     const router = useRouter();
 
     const handleLogout = () => {
-        logout();
+ 
         router.push('/login');
     };
 

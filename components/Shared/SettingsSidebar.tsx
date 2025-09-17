@@ -3,18 +3,20 @@ import { UserIcon, LockIcon, BellIcon, CreditCardIcon, FileTextIcon } from 'luci
 import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useUserData } from '@/context/UserDataContext'
+ 
 
 export default function SettingsSidebar() {
     const pathname = usePathname()
-    const { user } = useUserData()
+    const user = {
+        role: 'admin'
+    }
 
     const profileItems = [
         {
             label: 'Edit Profile',
             icon: <UserIcon size={20} />,
             href: '/user/setting/profile',
-            role: 'student'
+            role: 'user'
         },
         {
             label: 'Edit Profile',
@@ -26,7 +28,7 @@ export default function SettingsSidebar() {
             label: 'Change Password',
             icon: <LockIcon size={20} />,
             href: '/user/setting/change-password',
-            role: 'student'
+            role: 'user'
         },
         {
             label: 'Change Password',
@@ -38,13 +40,13 @@ export default function SettingsSidebar() {
             label: 'Notification',
             icon: <BellIcon size={20} />,
             href: '/user/setting/notification',
-            role: 'student'
+            role: 'user'
         },
         {
             label: 'Payment Details',
             icon: <CreditCardIcon size={20} />,
             href: '/user/setting/payment',
-            role: 'student'
+            role: 'user'
         },
     ]
 
@@ -53,7 +55,7 @@ export default function SettingsSidebar() {
             label: 'Language',
             icon: <FileTextIcon size={20} />,
             href: '/user/setting/language',
-            role: 'student'
+            role: 'user'
         },
     ]
 

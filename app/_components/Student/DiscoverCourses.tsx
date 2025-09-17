@@ -87,7 +87,7 @@ export default function DiscoverCourses() {
         setIsLoading(true);
 
         setTimeout(() => {
-            router.push(`/checkout/${course.course_id}`);
+            router.push(`/user/checkout/${course.course_id}`);
             setIsLoading(false);
         }, 1000);
     }

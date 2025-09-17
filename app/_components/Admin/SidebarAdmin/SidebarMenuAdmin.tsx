@@ -1,80 +1,41 @@
-import React, { useState } from 'react'
-import Link from 'next/link'
-import { FiSettings } from 'react-icons/fi'
-import { usePathname } from 'next/navigation'
-import { MdKeyboardArrowDown } from 'react-icons/md'
-import DashboardIcon from '@/components/Icons/CustomIcon/DectiveIcon/DashboardIcon'
-import DashboardIconAc from '@/components/Icons/CustomIcon/ActiveIcon/DashboardIconAc'
-import CalanderIcon from '@/components/Icons/CustomIcon/DectiveIcon/CalanderIcon'
-import CalanderIconAt from '@/components/Icons/CustomIcon/ActiveIcon/CalanderIconAt'
-import DiscoverIcon from '@/components/Icons/CustomIcon/DectiveIcon/DiscoverIcon'
-import DiscoverIconAc from '@/components/Icons/CustomIcon/ActiveIcon/DiscoverIconAc'
-import MyCourseIcon from '@/components/Icons/CustomIcon/DectiveIcon/MyCourseIcon'
-import MyCourseIconAc from '@/components/Icons/CustomIcon/ActiveIcon/MyCourseIconAc'
-import AssignmentIcon from '@/components/Icons/CustomIcon/DectiveIcon/AssignmentIcon'
+
 import AssignmentIconAc from '@/components/Icons/CustomIcon/ActiveIcon/AssignmentIconAc'
-import StudentFileIcon from '@/components/Icons/CustomIcon/DectiveIcon/StudentFileIcon'
-import StudentFileIconAc from '../Icons/CustomIcon/ActiveIcon/StudentFileIconAc'
-import DownloadMaterialsIcon from '@/components/Icons/CustomIcon/DectiveIcon/DownloadMaterialsIcon'
-import DownloadMaterialsIconAc from '@/components/Icons/CustomIcon/ActiveIcon/DownloadMaterialsIconAc'
-import ContactTeacherIcon from '@/components/Icons/CustomIcon/DectiveIcon/ContactTeacherIcon'
-import ContactTeacherIconAc from '@/components/Icons/CustomIcon/ActiveIcon/ContactTeacherIconAc'
-import DiplomaIcon from '@/components/Icons/CustomIcon/DectiveIcon/DiplomaIcon'
-import DiplomaIconAc from '@/components/Icons/CustomIcon/ActiveIcon/DiplomaIconAc'
-import DonationIcon from '@/components/Icons/CustomIcon/DectiveIcon/DonationIcon'
-import DonationIconAc from '@/components/Icons/CustomIcon/ActiveIcon/DonationIconAc'
-import SettingsIcon from '@/components/Icons/CustomIcon/DectiveIcon/SettingsIcon'
-import SettingsIconAc from '@/components/Icons/CustomIcon/ActiveIcon/SettingsIconAc'
-import UserManagementIcon from '@/components/Icons/CustomIcon/DectiveIcon/UserManagementIcon'
-import UserManagementIconAc from '@/components/Icons/CustomIcon/ActiveIcon/UserManagementIconAc'
-import CardIcon from '@/components/Icons/CustomIcon/DectiveIcon/CardIcon'
+import CalanderIconAt from '@/components/Icons/CustomIcon/ActiveIcon/CalanderIconAt'
 import CardIconAc from '@/components/Icons/CustomIcon/ActiveIcon/CardIconAc'
-import ChartIcon from '@/components/Icons/CustomIcon/DectiveIcon/ChartIcon'
 import ChartIconAc from '@/components/Icons/CustomIcon/ActiveIcon/ChartIconAc'
-import PolicyIcon from '@/components/Icons/CustomIcon/DectiveIcon/PolicyIcon'
-import PolicyIconAc from '@/components/Icons/CustomIcon/ActiveIcon/PolicyIconAc'
-import CodeGenerateAc from '../Icons/CustomIcon/ActiveIcon/CodeGenerateAc'
-import CodeGenerate from '../Icons/CustomIcon/DectiveIcon/CodeGenerate'
-import QuestionIconAc from '../Icons/CustomIcon/ActiveIcon/QuestionIconAc'
-import QuestionIcon from '../Icons/CustomIcon/DectiveIcon/QuestionIcon'
+import CodeGenerateAc from '@/components/Icons/CustomIcon/ActiveIcon/CodeGenerateAc'
+import DashboardIconAc from '@/components/Icons/CustomIcon/ActiveIcon/DashboardIconAc'
+import DonationIconAc from '@/components/Icons/CustomIcon/ActiveIcon/DonationIconAc'
+import MyCourseIconAc from '@/components/Icons/CustomIcon/ActiveIcon/MyCourseIconAc'
+import QuestionIconAc from '@/components/Icons/CustomIcon/ActiveIcon/QuestionIconAc'
+import StudentFileIconAc from '@/components/Icons/CustomIcon/ActiveIcon/StudentFileIconAc'
+import UserManagementIconAc from '@/components/Icons/CustomIcon/ActiveIcon/UserManagementIconAc'
+import AssignmentIcon from '@/components/Icons/CustomIcon/DectiveIcon/AssignmentIcon'
+import CalanderIcon from '@/components/Icons/CustomIcon/DectiveIcon/CalanderIcon'
+import CardIcon from '@/components/Icons/CustomIcon/DectiveIcon/CardIcon'
+import ChartIcon from '@/components/Icons/CustomIcon/DectiveIcon/ChartIcon'
+import CodeGenerate from '@/components/Icons/CustomIcon/DectiveIcon/CodeGenerate'
+import DashboardIcon from '@/components/Icons/CustomIcon/DectiveIcon/DashboardIcon'
+import DonationIcon from '@/components/Icons/CustomIcon/DectiveIcon/DonationIcon'
+import MyCourseIcon from '@/components/Icons/CustomIcon/DectiveIcon/MyCourseIcon'
+import QuestionIcon from '@/components/Icons/CustomIcon/DectiveIcon/QuestionIcon'
+import StudentFileIcon from '@/components/Icons/CustomIcon/DectiveIcon/StudentFileIcon'
+import UserManagementIcon from '@/components/Icons/CustomIcon/DectiveIcon/UserManagementIcon'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import React, { useState } from 'react'
+import { FiSettings } from 'react-icons/fi'
+import { MdKeyboardArrowDown } from 'react-icons/md'
+
+
 
 export const MENU_CONFIG = {
-    student: [
-        {
-            header: 'GENERAL',
-            items: [
-                { title: 'Dashboard', icon: DashboardIcon, activeIcon: DashboardIconAc, href: '/user/dashboard' },
-                { title: 'Calander', icon: CalanderIcon, activeIcon: CalanderIconAt, href: '/schedule' },
-            ],
-        },
-        {
-            header: 'COURSES',
-            items: [
-                { title: 'Discover', icon: DiscoverIcon, activeIcon: DiscoverIconAc, href: '/user/discover' },
-                { title: 'My Courses', icon: MyCourseIcon, activeIcon: MyCourseIconAc, href: '/user/my-courses' },
-                { title: 'Assignments', icon: AssignmentIcon, activeIcon: AssignmentIconAc, href: '/user/assignments' },
-                { title: 'Student Files', icon: StudentFileIcon, activeIcon: StudentFileIconAc, href: '/user/student-files' },
-                { title: 'Download Materials', icon: DownloadMaterialsIcon, activeIcon: DownloadMaterialsIconAc, href: '/user/download-materials' },
-                { title: 'Contact Teacher', icon: ContactTeacherIcon, activeIcon: ContactTeacherIconAc, href: '/user/contact-teacher' },
-                { title: 'Diploma', icon: DiplomaIcon, activeIcon: DiplomaIconAc, href: '/user/diploma' },
-                { title: 'Donations', icon: DonationIcon, activeIcon: DonationIconAc, href: '/user/donations' },
-            ],
-        },
-        {
-            header: 'OTHER',
-            items: [
-                { title: 'Setting', icon: SettingsIcon, activeIcon: SettingsIconAc, href: '/user/setting/profile' },
-                { title: 'Privacy Policy', icon: PolicyIcon, activeIcon: PolicyIconAc, href: '/user/privacy-policy' },
-            ],
-        },
-    ],
-
     admin: [
         {
             header: 'GENERAL',
             items: [
-                { title: 'Dashboard', icon: DashboardIcon, activeIcon: DashboardIconAc, href: '/admin/dashboard' },
-                { title: 'Calendar', icon: CalanderIcon, activeIcon: CalanderIconAt, href: '/admin/calendar' },
+                { title: 'Dashboard', icon: DashboardIcon, activeIcon: DashboardIconAc, href: '/admin/dashboard', role: 'admin' },
+                { title: 'Calendar', icon: CalanderIcon, activeIcon: CalanderIconAt, href: '/admin/calendar', role: 'admin' },
             ],
         },
         {
@@ -86,8 +47,8 @@ export const MENU_CONFIG = {
                     activeIcon: MyCourseIconAc,
                     hasDropdown: true,
                     subItems: [
-                        { title: 'Course List', href: '/admin/course-management' },
-                        { title: 'Materials Upload', href: '/admin/materials-upload' }
+                        { title: 'Course List', href: '/admin/course-management', role: 'admin' },
+                        { title: 'Materials Upload', href: '/admin/materials-upload', role: 'admin' }
                     ]
                 },
                 {
@@ -96,33 +57,32 @@ export const MENU_CONFIG = {
                     activeIcon: AssignmentIconAc,
                     hasDropdown: true,
                     subItems: [
-                        { title: 'Create new Assignment', href: '/admin/assignment-management' },
-                        { title: 'Awaiting Evaluation', href: '/admin/assignment-evaluation' },
-                        { title: 'Student file download', href: '/admin/student-file-download' }
+                        { title: 'Create new Assignment', href: '/admin/assignment-management', role: 'admin' },
+                        { title: 'Awaiting Evaluation', href: '/admin/assignment-evaluation', role: 'admin' },
+                        { title: 'Student file download', href: '/admin/student-file-download', role: 'admin' }
                     ]
                 },
-                { title: 'User Management', icon: UserManagementIcon, activeIcon: UserManagementIconAc, href: '/admin/users-management' },
-                { title: 'Code Generate', icon: CodeGenerate, activeIcon: CodeGenerateAc, href: '/admin/code-generate' },
-                { title: 'Teacher Section', icon: AssignmentIcon, activeIcon: AssignmentIconAc, href: '/admin/teacher-section' },
-                { title: 'Student Feedback', icon: StudentFileIcon, activeIcon: StudentFileIconAc, href: '/admin/student-feedback' },
-                { title: 'Donations', icon: DonationIcon, activeIcon: DonationIconAc, href: '/admin/donation' },
-                { title: 'Card Generator', icon: CardIcon, activeIcon: CardIconAc, href: '/admin/card-generator' },
-                { title: 'Reports', icon: ChartIcon, activeIcon: ChartIconAc, href: '/admin/reports' },
-                { title: 'Student Question', icon: QuestionIcon, activeIcon: QuestionIconAc, href: '/admin/student-question' },
+                { title: 'User Management', icon: UserManagementIcon, activeIcon: UserManagementIconAc, href: '/admin/users-management', role: 'admin' },
+                { title: 'Code Generate', icon: CodeGenerate, activeIcon: CodeGenerateAc, href: '/admin/code-generate', role: 'admin' },
+                { title: 'Teacher Section', icon: AssignmentIcon, activeIcon: AssignmentIconAc, href: '/admin/teacher-section', role: 'admin' },
+                { title: 'Student Feedback', icon: StudentFileIcon, activeIcon: StudentFileIconAc, href: '/admin/student-feedback', role: 'admin' },
+                { title: 'Donations', icon: DonationIcon, activeIcon: DonationIconAc, href: '/admin/donation', role: 'admin' },
+                { title: 'Card Generator', icon: CardIcon, activeIcon: CardIconAc, href: '/admin/card-generator', role: 'admin' },
+                { title: 'Reports', icon: ChartIcon, activeIcon: ChartIconAc, href: '/admin/reports', role: 'admin' },
+                { title: 'Student Question', icon: QuestionIcon, activeIcon: QuestionIconAc, href: '/admin/student-question', role: 'admin' },
             ],
         },
         {
             header: 'OTHER',
             items: [
-                { title: 'Setting', icon: FiSettings, href: '/admin/setting/profile' },
-                
+                { title: 'Setting', icon: FiSettings, href: '/admin/setting/profile', role: 'admin' },
+
             ],
         },
     ],
-} as const
-
+}
 export interface SideBarMenuProps {
-    role: 'student' | 'admin'
+    role: 'admin'
     isCollapsed: boolean
     onMobileMenuClose: () => void
 }
@@ -346,7 +306,9 @@ function NavLink({ item, isCollapsed, onMobileMenuClose, isDropdownOpen, onToggl
     )
 }
 
-export default function SideBarMenu({ role, isCollapsed, onMobileMenuClose }: SideBarMenuProps) {
+
+
+export default function SideBarMenuAdmin({ role, isCollapsed, onMobileMenuClose }: SideBarMenuProps) {
     const menuSections = MENU_CONFIG[role] || []
     const [openDropdowns, setOpenDropdowns] = useState<{ [key: string]: boolean }>({})
     const pathname = usePathname()

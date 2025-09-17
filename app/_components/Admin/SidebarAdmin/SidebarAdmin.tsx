@@ -4,10 +4,11 @@ import { useRouter } from 'next/navigation';
 import { IoMdClose } from "react-icons/io";
 import { MdArrowForwardIos } from 'react-icons/md';
 import { FiLogOut } from 'react-icons/fi';
-import LoadingOverlay from '../Resuable/LoadingOverlay';
-import Logo from '../Icons/Logo';
-import { useUserData } from '@/context/UserDataContext'; 
-import SideBarMenu from './SideBarMenu';
+import LoadingOverlay from '@/components/Resuable/LoadingOverlay';
+import Logo from '@/components/Icons/Logo';
+
+import SideBarMenu from '@/components/Shared/SideBarMenu';
+import SideBarMenuAdmin from './SidebarMenuAdmin';
 
 // Menu configuration and item rendering are encapsulated in SideBarMenu
 
@@ -16,13 +17,16 @@ interface SidebarProps {
     onMobileMenuClose: () => void;
 }
 
-export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: SidebarProps) {
+export default function SidebarAdmin({ isMobileMenuOpen, onMobileMenuClose }: SidebarProps) {
     const router = useRouter();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const { user, logout } = useUserData();
+    const data = {
+        name: 'John Doe',
+        role: 'admin'
+    }
 
-    if (!user?.role) {
+    if (!data?.role) {
         return null;
     }
 
@@ -32,7 +36,6 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
 
     const handleLogout = () => {
         setIsLoading(true);
-        logout();
         router.push('/login');
     };
 
@@ -101,7 +104,7 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
 
                 {/* Main Navigation - Scrollable */}
                 <div className="flex-1 overflow-y-auto">
-                    <SideBarMenu role={user.role as 'student' | 'admin'} isCollapsed={isCollapsed} onMobileMenuClose={onMobileMenuClose} />
+                    <SideBarMenuAdmin role={data?.role as 'admin'} isCollapsed={isCollapsed} onMobileMenuClose={onMobileMenuClose} />
                 </div>
 
                 {/* Bottom Navigation - Logout - Fixed */}
@@ -111,7 +114,7 @@ export default function Sidebar({ isMobileMenuOpen, onMobileMenuClose }: Sidebar
                             onClick={() => {
                                 handleLogout();
                                 // Close mobile sidebar when logout is clicked
-                                if (window.innerWidth < 768) { 
+                                if (window.innerWidth < 768) {
                                     onMobileMenuClose();
                                 }
                             }}

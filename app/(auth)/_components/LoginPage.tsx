@@ -14,8 +14,7 @@ import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
-import { useUserData } from '@/context/UserDataContext'
-import { useRouter } from 'next/navigation'
+
 
 interface LoginFormData {
     email: string;
@@ -24,37 +23,15 @@ interface LoginFormData {
 
 export default function LoginPage() {
     const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>();
-    const { login } = useUserData();
-    const router = useRouter();
+
+
 
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
     const onSubmit = async (data: LoginFormData) => {
-        setIsLoading(true);
-
-        try {
-            const result = await login(data.email, data.password);
-
-            if (result.success && result?.user) {
-                toast.success(result.message);
-
-                // Redirect based on user role
-                setTimeout(() => {
-                    if (result.user?.role === 'admin') {
-                        router.push('/admin/dashboard');
-                    } else {
-                        router.push('/user/dashboard');
-                    }
-                }, 1000);
-            } else {
-                toast.error(result.message);
-            }
-        } catch (error) {
-            toast.error('Login failed. Please try again.');
-        } finally {
-            setIsLoading(false);
-        }
+        console.log(data);
+        toast.success('Login successful');
     };
 
     return (

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { useUserData } from '@/context/UserDataContext';
+
 import {
     Calendar,
     Award,
@@ -34,7 +34,9 @@ interface MainNotificationProps {
 
 export default function MainNotification({ isOpen = true, onClose, isDropdown = false }: MainNotificationProps) {
     const router = useRouter();
-    const { user } = useUserData();
+    const user = {
+        role: 'user'
+    }
     const [showAll, setShowAll] = useState(false);
 
     // All notifications with role-based filtering

@@ -61,7 +61,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
     const handlePay = () => {
         setPayLoading(true);
         setTimeout(() => {
-            router.push('/payment-success');
+            router.push('/user/payment-success');
             setPayLoading(false);
         }, 2000);
     }

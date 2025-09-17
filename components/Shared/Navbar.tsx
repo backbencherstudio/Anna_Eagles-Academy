@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { HiMenuAlt3 } from "react-icons/hi";
 import { IoNotificationsOutline } from "react-icons/io5";
-import { useUserData } from '@/context/UserDataContext';
+
 import { usePathname, useSearchParams } from 'next/navigation';
 import MainNotification from './MainNotification';
 import Language from './Laguage';
@@ -14,11 +14,13 @@ interface NavbarProps {
     notificationCount?: number;
 }
 
-
+const userData = {
+    name: 'John Doe',
+    role: 'user'
+}
 
 export default function Navbar({ onMobileMenuToggle, notificationCount }: NavbarProps) {
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-    const { user } = useUserData();
     const currentNotificationCount = useNotificationCount();
     const searchParams = useSearchParams();
 
@@ -35,7 +37,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
 
     const titleMap = {
         // common
-        'dashboard': 'Hi, ' + user?.name,
+        'dashboard': 'Hi, ' + userData?.name,
         // admin
         'calendar': 'Calendar',
         'course-management': 'Course Management',
@@ -54,7 +56,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
         'student-question': 'Student Question',
 
 
-        // student
+        // user
         'schedule': 'Schedule',
         'discover': 'Discover',
         'payment-success': 'Payment Success',
@@ -95,11 +97,11 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
     // Function to get dynamic title based on pathname for admin
     const getDynamicTitle = () => {
         // Special case for dashboard
-        if (currentPath === 'dashboard') {
-            return `Welcome Back, ${user?.name}`;
+        if (currentPath === '/user/dashboard') {
+            return `Welcome Back, ${userData?.name}`;
         }
 
-        if (currentPath === 'assignment-management') {
+        if (currentPath === '/admin/assignment-management') {
             const tab = searchParams.get('tab');
             if (tab && assignmentTabTitles[tab as keyof typeof assignmentTabTitles]) {
                 return assignmentTabTitles[tab as keyof typeof assignmentTabTitles];
@@ -107,14 +109,14 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
             return 'Assignment Management';
         }
 
-        if (currentPath === 'card-generator') {
+        if (currentPath === '/admin/card-generator') {
             const tab = searchParams.get('tab');
             if (tab && cardGeneratorTabTitles[tab as keyof typeof cardGeneratorTabTitles]) {
                 return cardGeneratorTabTitles[tab as keyof typeof cardGeneratorTabTitles];
             }
             return 'Card Generator';
         }
-        if (currentPath === 'reports') {
+        if (currentPath === '/admin/reports') {
             const tab = searchParams.get('tab');
             const paymentTab = searchParams.get('paymentTab');
 
@@ -187,12 +189,12 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
 
                     {/* poem section */}
                     <div className='flex flex-col'>
-                        {user ? (
+                        {userData ? (
                             <>
                                 <h1 className="text-[18px] xl:text-[20px] font-semibold text-[#111827] hidden sm:block">
                                     {getDynamicTitle()}
                                 </h1>
-                                {currentPath === 'dashboard' && user.role === 'student' && (
+                                {currentPath === '/user/dashboard' && user.role === 'user' && (
                                     <span className="text-[12px] xl:text-[14px] text-[#777980] mt-1 hidden lg:block">
                                         Let's boost your knowledge today and learn a new things
                                     </span>
@@ -206,7 +208,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
 
                 {/* Quote chip (poem section) */}
                 {
-                    currentPath === 'dashboard' && user?.role === 'student' && (
+                    currentPath === '/user/dashboard' && userData?.role === 'user' && (
                         <div className="hidden xl:flex items-center justify-center">
                             <div className="max-w-[860px] w-full bg-[#F1C27D1A] px-4 sm:px-6 py-3 sm:py-4 rounded-tl-[48px] rounded-br-[48px] rounded-tr-[10px] rounded-bl-[10px]">
                                 <p className="text-[#0F172A] italic text-[13px] leading-relaxed text-center font-medium">

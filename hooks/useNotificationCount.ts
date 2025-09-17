@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useUserData } from '@/context/UserDataContext';
+
 
 interface NotificationItem {
     id: string;
@@ -9,7 +9,9 @@ interface NotificationItem {
 }
 
 export const useNotificationCount = () => {
-    const { user } = useUserData();
+    const user = {
+        role: 'user'
+    }
     const [notificationCount, setNotificationCount] = useState(0);
 
     // All notifications with role-based filtering
