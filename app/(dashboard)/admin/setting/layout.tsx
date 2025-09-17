@@ -1,6 +1,7 @@
 
-import SettingsLayout from '@/components/Shared/SettingsLayout';
 
+
+import SettingsLayoutAdmin from '@/app/_components/Admin/SidebarAdmin/SettingsLayoutAdmin';
 import React from 'react'
 
 
@@ -10,10 +11,10 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
     return (
-  
-            <SettingsLayout>
-                {children}
-            </SettingsLayout>
+
+        <SettingsLayoutAdmin>
+            {children}
+        </SettingsLayoutAdmin>
 
 
     )

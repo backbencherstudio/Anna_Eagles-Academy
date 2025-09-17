@@ -1,21 +1,17 @@
 import React, { useRef } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, Upload } from 'lucide-react';
 import { useState } from 'react';
+import { useAppSelector } from '@/redux/hooks';
 
 
 export default function ProfileImage() {
-    const user = {
-        name: 'John Doe',
-        profileImage: 'https://via.placeholder.com/150'
-    }
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const user = useAppSelector((state) => state.auth.user)
 
     const [formData, setFormData] = useState({
-        name: user?.name || 'Peter Parker',
-        title: 'Jr. Web/Mobile Developer',
-        avatar: user?.profileImage || ''
+        name: user?.name || 'John Doe',
+        avatar: user?.avatar || ''
     });
 
     const [isUploading, setIsUploading] = useState(false);
@@ -54,16 +50,19 @@ export default function ProfileImage() {
         }
     };
     return (
-        <div className="border-0">
-            <CardHeader className="pb-4 md:pb-6">
-                <CardTitle className="text-lg md:text-xl font-semibold">Profile Picture</CardTitle>
-                <p className="text-md text-gray-400">Choose your best picture that represents you</p>
-            </CardHeader>
-            <CardContent>
-                <div className="flex flex-col md:flex-row md:items-start space-y-4 md:space-y-0 md:space-x-6">
+        <div className="border-0 p-6">
+            <h1 className="text-lg md:text-2xl font-semibold text-[#1D1F2C]">Edit Profile</h1>
+            <div className="flex flex-col xl:flex-row justify-between items-center gap-4">
+                <div className="w-full xl:w-1/2">
+                    <h1 className="text-lg md:text-xl font-semibold text-[#1D1F2C]">Profile Picture</h1>
+                    <p className="text-md text-[#80868B]">Choose your best picture that represents you</p>
+                </div>
+
+
+                <div className='flex flex-col lg:flex-row items-center gap-4 w-full xl:w-1/2'>
                     {/* Current Avatar */}
                     <div className="flex flex-col items-center space-y-2">
-                        <Avatar className="w-16 h-16 md:w-20 md:h-20">
+                        <Avatar className="w-32 h-32 xl:w-32 xl:h-32">
                             <AvatarImage src={formData.avatar} alt={formData.name} />
                             <AvatarFallback className="bg-orange-50 text-[#F1C27D]">
                                 <User className="w-6 h-6 md:w-8 md:h-8" />
@@ -75,7 +74,7 @@ export default function ProfileImage() {
                     {/* Upload Area */}
                     <div className="flex-1">
                         <div
-                            className="border-2 border-dashed border-gray-300 rounded-lg p-4 md:p-8 text-center cursor-pointer hover:border-orange-400 hover:bg-orange-50 transition-colors"
+                            className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-orange-400 hover:bg-orange-50 transition-colors"
                             onClick={handleUploadClick}
                             onDragOver={handleDragOver}
                             onDrop={handleDrop}
@@ -109,7 +108,7 @@ export default function ProfileImage() {
                         </div>
                     </div>
                 </div>
-            </CardContent>
+            </div>
         </div>
     )
 }

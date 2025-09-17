@@ -10,6 +10,11 @@ export interface User {
   avatar?: string;
   createdAt?: string;
   updatedAt?: string;
+  date_of_birth?: string;
+  phone_number?: string;
+  gender?: string;
+  address?: string;
+  type?: string;
 }
 
 export interface AuthState {
@@ -20,6 +25,44 @@ export interface AuthState {
   error: string | null;
   isInitialized: boolean;
   lastAuthCheck: number | null;
+}
+
+// Normalize any backend/user shape into our User type
+function normalizeUserData(input: any): User {
+  return {
+    id: input?.id || input?._id || 'unknown',
+    name: input?.name || input?.username || input?.fullName || 'User',
+    email: input?.email || input?.emailAddress || 'unknown@example.com',
+    role: (input?.type === 'admin' || input?.role === 'admin') ? 'admin' : 'user',
+    avatar: input?.avatar || input?.profileImage || input?.image || undefined,
+    createdAt: input?.created_at || input?.createdAt || input?.created || new Date().toISOString(),
+    updatedAt: input?.updated_at || input?.updatedAt || input?.updated || new Date().toISOString(),
+    date_of_birth: input?.date_of_birth || input?.dateOfBirth || undefined,
+    phone_number: input?.phone_number || input?.phoneNumber || undefined,
+    gender: input?.gender || undefined,
+    address: input?.address || undefined,
+    type: input?.type || undefined,
+  };
+}
+
+// Normalize various error response shapes into a single message
+function normalizeErrorMessage(error: any): string {
+  if (error?.response?.data?.message?.message) return error.response.data.message.message;
+  if (error?.response?.data?.message) return error.response.data.message;
+  if (error?.response?.data?.error) return error.response.data.error;
+  if (error?.message) return error.message;
+  return 'Unexpected error';
+}
+
+// Reset the auth state consistently
+function resetAuthState(state: AuthState) {
+  state.user = null;
+  state.token = null;
+  state.isAuthenticated = false;
+  state.error = null;
+  state.isLoading = false;
+  state.isInitialized = true;
+  state.lastAuthCheck = null;
 }
 
 // Initial state
@@ -60,22 +103,7 @@ export const loginUser = createAsyncThunk(
 
       return { login: response, me: meResponse } as any;
     } catch (error: any) {
-
-      let errorMessage = 'Login failed';
-
-      if (error.response?.data?.message?.message) {
-
-        errorMessage = error.response.data.message.message;
-      } else if (error.response?.data?.message) {
-
-        errorMessage = error.response.data.message;
-      } else if (error.response?.data?.error) {
-        errorMessage = error.response.data.error;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(normalizeErrorMessage(error) || 'Login failed');
     }
   }
 );
@@ -96,19 +124,7 @@ export const checkAuth = createAsyncThunk(
       const response = await authCheckMe();
       return response;
     } catch (error: any) {
-      let errorMessage = 'Authentication check failed';
-
-      if (error.response?.data?.message?.message) {
-        errorMessage = error.response.data.message.message;
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.response?.data?.error) {
-        errorMessage = error.response.data.error;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(normalizeErrorMessage(error) || 'Authentication check failed');
     }
   }
 );
@@ -145,13 +161,7 @@ const authSlice = createSlice({
       state.isAuthenticated = true;
     },
     clearAuth: (state) => {
-      state.user = null;
-      state.token = null;
-      state.isAuthenticated = false;
-      state.error = null;
-      state.isLoading = false;
-      state.isInitialized = true;
-      state.lastAuthCheck = null;
+      resetAuthState(state);
     },
   },
   extraReducers: (builder) => {
@@ -163,7 +173,6 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.isAuthenticated = true;
         const loginPayload = action.payload?.login ?? action.payload;
         const mePayload = action.payload?.me;
 
@@ -181,26 +190,12 @@ const authSlice = createSlice({
         }
 
         if (userData) {
-          state.user = {
-            id: userData.id || userData._id || 'unknown',
-            name: userData.name || userData.username || userData.fullName || 'User',
-            email: userData.email || userData.emailAddress || 'unknown@example.com',
-            role: (userData.type === 'admin' || userData.role === 'admin') ? 'admin' : 'user',
-            avatar: userData.avatar || userData.profileImage || userData.image || undefined,
-            createdAt: userData.created_at || userData.createdAt || userData.created || new Date().toISOString(),
-            updatedAt: userData.updated_at || userData.updatedAt || userData.updated || new Date().toISOString()
-          };
+          state.user = normalizeUserData(userData);
+          state.isAuthenticated = true;
         } else {
-          // Create default user object if not provided in either response
-          state.user = {
-            id: 'temp-id',
-            name: 'User',
-            email: 'user@example.com',
-            role: loginPayload?.type === 'admin' ? 'admin' : 'user',
-            avatar: undefined,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          };
+          // Do not create a placeholder user; keep it null until real data arrives
+          state.user = null;
+          state.isAuthenticated = Boolean(state.token);
         }
 
         state.error = null;
@@ -244,26 +239,12 @@ const authSlice = createSlice({
         }
 
         if (userData) {
-          state.user = {
-            id: userData.id || userData._id || 'unknown',
-            name: userData.name || userData.username || userData.fullName || 'User',
-            email: userData.email || userData.emailAddress || 'unknown@example.com',
-            role: (userData.type === 'admin' || userData.role === 'admin') ? 'admin' : 'user',
-            avatar: userData.avatar || userData.profileImage || userData.image || undefined,
-            createdAt: userData.created_at || userData.createdAt || userData.created || new Date().toISOString(),
-            updatedAt: userData.updated_at || userData.updatedAt || userData.updated || new Date().toISOString()
-          };
+          state.user = normalizeUserData(userData);
+          state.isAuthenticated = true;
         } else {
-
-          state.user = {
-            id: 'unknown',
-            name: 'User',
-            email: 'unknown@example.com',
-            role: 'user',
-            avatar: undefined,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          };
+          // Keep user null instead of fabricating a placeholder
+          state.user = null;
+          state.isAuthenticated = false;
         }
 
         state.error = null;
@@ -285,11 +266,7 @@ const authSlice = createSlice({
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.isLoading = false;
-        state.isAuthenticated = false;
-        state.user = null;
-        state.token = null;
-        state.error = null;
-        state.isInitialized = true;
+        resetAuthState(state);
       })
       .addCase(logoutUser.rejected, (state, action) => {
         state.isLoading = false;

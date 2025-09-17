@@ -1,15 +1,14 @@
 'use client'
-import { UserIcon, LockIcon, BellIcon, CreditCardIcon, FileTextIcon } from 'lucide-react'
+import { UserIcon, LockIcon, BellIcon, CreditCardIcon } from 'lucide-react'
 import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
- 
+import { useAppSelector } from '@/redux/hooks'
 
-export default function SettingsSidebar() {
+
+export default function SettingsSidebarUser() {
     const pathname = usePathname()
-    const user = {
-        role: 'admin'
-    }
+    const user = useAppSelector((state) => state.auth.user)
 
     const profileItems = [
         {
@@ -18,24 +17,14 @@ export default function SettingsSidebar() {
             href: '/user/setting/profile',
             role: 'user'
         },
-        {
-            label: 'Edit Profile',
-            icon: <UserIcon size={20} />,
-            href: '/admin/setting/profile',
-            role: 'admin'
-        },
+
         {
             label: 'Change Password',
             icon: <LockIcon size={20} />,
             href: '/user/setting/change-password',
             role: 'user'
         },
-        {
-            label: 'Change Password',
-            icon: <LockIcon size={20} />,
-            href: '/admin/setting/change-password',
-            role: 'admin'
-        },
+
         {
             label: 'Notification',
             icon: <BellIcon size={20} />,
@@ -50,14 +39,7 @@ export default function SettingsSidebar() {
         },
     ]
 
-    const preferenceItems = [
-        {
-            label: 'Language',
-            icon: <FileTextIcon size={20} />,
-            href: '/user/setting/language',
-            role: 'user'
-        },
-    ]
+
 
     // Filter items based on user role
     const filterItemsByRole = (items: any[]) => {
@@ -66,7 +48,7 @@ export default function SettingsSidebar() {
     }
 
     const filteredProfileItems = filterItemsByRole(profileItems)
-    const filteredPreferenceItems = filterItemsByRole(preferenceItems)
+
 
     const isActive = (href: string) => pathname === href
 
@@ -90,20 +72,7 @@ export default function SettingsSidebar() {
                         </Link>
                     ))}
 
-                    {/* Preference Items */}
-                    {filteredPreferenceItems.map((item) => (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${isActive(item.href)
-                                ? 'bg-[#FEF9F2] text-[#F1C27D] border border-[#F1C27D]/30'
-                                : 'text-[#1D1F2C]/70 hover:bg-[#FEF9F2] bg-white'
-                                }`}
-                        >
-                            {item.icon}
-                            {item.label}
-                        </Link>
-                    ))}
+
                 </div>
             </div>
 
@@ -130,30 +99,6 @@ export default function SettingsSidebar() {
                         ))}
                     </div>
                 </div>
-
-                {/* Preference Section */}
-                {filteredPreferenceItems.length > 0 && (
-                    <div>
-                        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
-                            Preference
-                        </h3>
-                        <div className="space-y-2">
-                            {filteredPreferenceItems.map((item) => (
-                                <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive(item.href)
-                                        ? 'bg-[#FEF9F2] text-[#F1C27D] border border-[#F1C27D]/30'
-                                        : 'text-[#1D1F2C]/70 hover:bg-[#FEF9F2]'
-                                        }`}
-                                >
-                                    {item.icon}
-                                    {item.label}
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                )}
             </div>
         </>
     )

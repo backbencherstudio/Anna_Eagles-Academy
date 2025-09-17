@@ -1,5 +1,5 @@
 
-import SettingsLayout from '@/components/Shared/SettingsLayout';
+import SettingsLayoutUser from '@/app/_components/Student/UserSidebar/SettingsLayoutUser';
 
 import React from 'react'
 
@@ -10,10 +10,10 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
     return (
-  
-            <SettingsLayout>
-                {children}
-            </SettingsLayout>
+
+        <SettingsLayoutUser>
+            {children}
+        </SettingsLayoutUser>
 
 
     )

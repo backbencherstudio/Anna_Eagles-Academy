@@ -2362,6 +2362,7 @@ __metadata:
     eslint: "npm:^9"
     eslint-config-next: "npm:15.4.2"
     file-saver: "npm:^2.0.5"
+    i: "npm:^0.3.7"
     lucide-react: "npm:^0.525.0"
     next: "npm:15.4.2"
     pptxgenjs: "npm:^4.0.1"
@@ -2373,6 +2374,7 @@ __metadata:
     react-hook-form: "npm:^7.61.1"
     react-hot-toast: "npm:^2.5.2"
     react-icons: "npm:^5.5.0"
+    react-phone-input-2: "npm:^2.15.1"
     react-phone-number-input: "npm:^3.4.12"
     react-player: "npm:^3.3.1"
     react-redux: "npm:^9.2.0"
@@ -2732,7 +2734,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"classnames@npm:^2.5.1":
+"classnames@npm:^2.2.6, classnames@npm:^2.5.1":
   version: 2.5.1
   resolution: "classnames@npm:2.5.1"
   checksum: 10c0/afff4f77e62cea2d79c39962980bf316bacb0d7c49e13a21adaadb9221e1c6b9d3cdb829d8bb1b23c406f4e740507f37e1dcf506f7e3b7113d17c5bab787aa69
@@ -4020,6 +4022,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"i@npm:^0.3.7":
+  version: 0.3.7
+  resolution: "i@npm:0.3.7"
+  checksum: 10c0/fc591b64987c5fcc96aadf9136d8d58b937abb90e9cd840160b9c99a32140ed8a30a94ee1ab7d9a45170ec4d3f872dda9d15afeb1083f689873da6197c25efc7
+  languageName: node
+  linkType: hard
+
 "ignore@npm:^5.2.0":
   version: 5.3.2
   resolution: "ignore@npm:5.3.2"
@@ -4705,10 +4714,38 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lodash.debounce@npm:^4.0.8":
+  version: 4.0.8
+  resolution: "lodash.debounce@npm:4.0.8"
+  checksum: 10c0/762998a63e095412b6099b8290903e0a8ddcb353ac6e2e0f2d7e7d03abd4275fe3c689d88960eb90b0dde4f177554d51a690f22a343932ecbc50a5d111849987
+  languageName: node
+  linkType: hard
+
+"lodash.memoize@npm:^4.1.2":
+  version: 4.1.2
+  resolution: "lodash.memoize@npm:4.1.2"
+  checksum: 10c0/c8713e51eccc650422716a14cece1809cfe34bc5ab5e242b7f8b4e2241c2483697b971a604252807689b9dd69bfe3a98852e19a5b89d506b000b4187a1285df8
+  languageName: node
+  linkType: hard
+
 "lodash.merge@npm:^4.6.2":
   version: 4.6.2
   resolution: "lodash.merge@npm:4.6.2"
   checksum: 10c0/402fa16a1edd7538de5b5903a90228aa48eb5533986ba7fa26606a49db2572bf414ff73a2c9f5d5fd36b31c46a5d5c7e1527749c07cbcf965ccff5fbdf32c506
+  languageName: node
+  linkType: hard
+
+"lodash.reduce@npm:^4.6.0":
+  version: 4.6.0
+  resolution: "lodash.reduce@npm:4.6.0"
+  checksum: 10c0/5d2dab823523a1a7f81eb5f4c1edcc03aab55504b1299a2385737389644ba6d2ad219169dfc5c16632a67a345d925ef6a5e8816b4e18a36f94ed66f8e7740b36
+  languageName: node
+  linkType: hard
+
+"lodash.startswith@npm:^4.2.1":
+  version: 4.2.1
+  resolution: "lodash.startswith@npm:4.2.1"
+  checksum: 10c0/831ae1866700d59df2fdb5ac0aecd5f9cd85616adaa3b4e21b4e48b598ae58d0150bd4d2f4835685013a3d5ba900589724af2a08c0d5653a6ac342bb62befcd4
   languageName: node
   linkType: hard
 
@@ -5349,6 +5386,23 @@ __metadata:
   version: 16.13.1
   resolution: "react-is@npm:16.13.1"
   checksum: 10c0/33977da7a5f1a287936a0c85639fec6ca74f4f15ef1e59a6bc20338fc73dc69555381e211f7a3529b8150a1f71e4225525b41b60b52965bda53ce7d47377ada1
+  languageName: node
+  linkType: hard
+
+"react-phone-input-2@npm:^2.15.1":
+  version: 2.15.1
+  resolution: "react-phone-input-2@npm:2.15.1"
+  dependencies:
+    classnames: "npm:^2.2.6"
+    lodash.debounce: "npm:^4.0.8"
+    lodash.memoize: "npm:^4.1.2"
+    lodash.reduce: "npm:^4.6.0"
+    lodash.startswith: "npm:^4.2.1"
+    prop-types: "npm:^15.7.2"
+  peerDependencies:
+    react: ^16.12.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^20.0.0 || ^21.0.0
+    react-dom: ^16.12.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^20.0.0 || ^21.0.0
+  checksum: 10c0/8d70bd993e11a057d7c09ad49e8bda0e60a7e5a6a5696f80a6e55f418dfa1a5f92d01200b0f4ef62d3b6fe9f75fd11fdc9b75f64b37901c3358f8a75f497d822
   languageName: node
   linkType: hard
 
