@@ -12,20 +12,29 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { logoutUser } from '@/redux/slices/authSlice';
+import toast from 'react-hot-toast';
 
 interface ProfileNavProps {
     className?: string;
 }
 
 export default function ProfileNav({ className = "" }: ProfileNavProps) {
-    const user = {
-        role: 'user'
-    }
+    const dispatch = useAppDispatch();
     const router = useRouter();
+    
+    // Get user data from Redux store
+    const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
-    const handleLogout = () => {
- 
-        router.push('/login');
+    const handleLogout = async () => {
+        try {
+            await dispatch(logoutUser()).unwrap();
+            toast.success('Logged out successfully');
+            router.push('/login');
+        } catch (error) {
+            toast.error('Logout failed');
+        }
     };
 
     return (
@@ -35,9 +44,9 @@ export default function ProfileNav({ className = "" }: ProfileNavProps) {
                     <Button variant="ghost" className="p-0 h-auto cursor-pointer">
                         <div>
                             <div className="relative">
-                                {user?.profileImage && user?.profileImage !== 'null' && user?.profileImage !== '' ? (
+                                {user?.avatar && user?.avatar !== 'null' && user?.avatar !== '' ? (
                                     <Image
-                                        src={user.profileImage}
+                                        src={user.avatar}
                                         alt="Profile picture"
                                         width={40}
                                         height={40}

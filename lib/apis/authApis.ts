@@ -1,4 +1,4 @@
-import axios from 'axios';
+
 import axiosClient from "@/lib/axisoClients";
 
 
@@ -25,7 +25,7 @@ export const login = async (data: any) => {
 }
 
 
-// auth check me
+// auth check me 
 export const authCheckMe = async () => {
     try {
         const response = await axiosClient.get('/api/auth/me');

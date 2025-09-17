@@ -1,20 +1,20 @@
 'use client'
 
 import React, { useState } from 'react';
-import Sidebar from '../Shared/Sidebar';
-import Navbar from '../Shared/Navbar';
+import Navbar from '../../../../components/Shared/Navbar';
+import SidebarAdmin from '@/app/_components/Admin/SidebarAdmin/SidebarAdmin';
 
 interface LayoutProps {
     children: React.ReactNode;
 }
 
-export const MainLayout = ({ children }: LayoutProps) => {
+export const AdminLayout = ({ children }: LayoutProps) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     return (
 
         <div className="flex h-screen overflow-hidden bg-[#F7F7F9] font-spline-sans">
-            <Sidebar
+            <SidebarAdmin
                 isMobileMenuOpen={isMobileMenuOpen}
                 onMobileMenuClose={() => setIsMobileMenuOpen(false)}
             />

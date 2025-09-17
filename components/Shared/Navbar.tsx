@@ -7,6 +7,7 @@ import MainNotification from './MainNotification';
 import Language from './Laguage';
 import ProfileNav from './ProfileNav';
 import { useNotificationCount } from '@/hooks/useNotificationCount';
+import { useAppSelector } from '@/redux/hooks';
 
 interface NavbarProps {
     onMobileMenuToggle: () => void;
@@ -14,15 +15,13 @@ interface NavbarProps {
     notificationCount?: number;
 }
 
-const userData = {
-    name: 'John Doe',
-    role: 'user'
-}
-
 export default function Navbar({ onMobileMenuToggle, notificationCount }: NavbarProps) {
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const currentNotificationCount = useNotificationCount();
     const searchParams = useSearchParams();
+    
+    // Get user data from Redux store
+    const { user: userData, isAuthenticated } = useAppSelector((state) => state.auth);
 
     const handleLanguageChange = (languageCode: string) => {
         // Here you can add logic to change the app language
@@ -98,7 +97,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
     const getDynamicTitle = () => {
         // Special case for dashboard
         if (currentPath === '/user/dashboard') {
-            return `Welcome Back, ${userData?.name}`;
+            return `Welcome Back, ${userData?.name || 'User'}`;
         }
 
         if (currentPath === '/admin/assignment-management') {
@@ -189,7 +188,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
 
                     {/* poem section */}
                     <div className='flex flex-col'>
-                        {userData ? (
+                        {isAuthenticated && userData ? (
                             <>
                                 <h1 className="text-[18px] xl:text-[20px] font-semibold text-[#111827] hidden sm:block">
                                     {getDynamicTitle()}
@@ -208,7 +207,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
 
                 {/* Quote chip (poem section) */}
                 {
-                    currentPath === '/user/dashboard' && userData?.role === 'user' && (
+                    currentPath === '/user/dashboard' && isAuthenticated && userData?.role === 'user' && (
                         <div className="hidden xl:flex items-center justify-center">
                             <div className="max-w-[860px] w-full bg-[#F1C27D1A] px-4 sm:px-6 py-3 sm:py-4 rounded-tl-[48px] rounded-br-[48px] rounded-tr-[10px] rounded-bl-[10px]">
                                 <p className="text-[#0F172A] italic text-[13px] leading-relaxed text-center font-medium">

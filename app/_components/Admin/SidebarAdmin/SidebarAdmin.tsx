@@ -6,11 +6,11 @@ import { MdArrowForwardIos } from 'react-icons/md';
 import { FiLogOut } from 'react-icons/fi';
 import LoadingOverlay from '@/components/Resuable/LoadingOverlay';
 import Logo from '@/components/Icons/Logo';
+import { useAppDispatch } from '@/redux/hooks';
+import { logoutUser } from '@/redux/slices/authSlice';
 
-import SideBarMenu from '@/components/Shared/SideBarMenu';
 import SideBarMenuAdmin from './SidebarMenuAdmin';
 
-// Menu configuration and item rendering are encapsulated in SideBarMenu
 
 interface SidebarProps {
     isMobileMenuOpen: boolean;
@@ -19,6 +19,7 @@ interface SidebarProps {
 
 export default function SidebarAdmin({ isMobileMenuOpen, onMobileMenuClose }: SidebarProps) {
     const router = useRouter();
+    const dispatch = useAppDispatch();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const data = {
@@ -34,9 +35,13 @@ export default function SidebarAdmin({ isMobileMenuOpen, onMobileMenuClose }: Si
         setIsCollapsed(!isCollapsed);
     };
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
         setIsLoading(true);
-        router.push('/login');
+        try {
+            await dispatch(logoutUser()).unwrap();
+        } finally {
+            router.push('/login');
+        }
     };
 
     // Navigation rendering moved to SideBarMenu

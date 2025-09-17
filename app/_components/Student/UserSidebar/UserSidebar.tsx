@@ -7,6 +7,8 @@ import { FiLogOut } from 'react-icons/fi';
 import LoadingOverlay from '@/components/Resuable/LoadingOverlay';
 import Logo from '@/components/Icons/Logo';
 import USerSidebarMenu from './USerSidebarMenu';
+import { useAppDispatch } from '@/redux/hooks';
+import { logoutUser } from '@/redux/slices/authSlice';
 
 // Menu configuration and item rendering are encapsulated in SideBarMenu
 
@@ -17,6 +19,7 @@ interface SidebarProps {
 
 export default function UserSidebar({ isMobileMenuOpen, onMobileMenuClose }: SidebarProps) {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const data = {
@@ -32,9 +35,13 @@ export default function UserSidebar({ isMobileMenuOpen, onMobileMenuClose }: Sid
     setIsCollapsed(!isCollapsed);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setIsLoading(true);
-    router.push('/login');
+    try {
+      await dispatch(logoutUser()).unwrap();
+    } finally {
+      router.push('/login');
+    }
   };
 
   // Navigation rendering moved to SideBarMenu

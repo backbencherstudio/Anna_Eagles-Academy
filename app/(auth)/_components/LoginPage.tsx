@@ -10,10 +10,14 @@ import { FaFacebook } from 'react-icons/fa'
 import Logo from '@/components/Icons/Logo'
 import { MdEmail } from 'react-icons/md'
 import { FaLock, FaRegEye, FaRegEyeSlash } from 'react-icons/fa'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useAppDispatch, useAppSelector } from '@/redux/hooks'
+import { loginUser, clearError, checkAuth } from '@/redux/slices/authSlice'
+import LoginLoading from '@/components/Resuable/LoginLoading'
 
 
 interface LoginFormData {
@@ -23,19 +27,53 @@ interface LoginFormData {
 
 export default function LoginPage() {
     const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>();
-
-
-
-    const [isLoading, setIsLoading] = useState(false);
+    const dispatch = useAppDispatch();
+    const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
 
+    const { isLoading, error, isAuthenticated, user } = useAppSelector((state) => state.auth);
+
+    useEffect(() => {
+        dispatch(clearError());
+    }, [dispatch]);
+
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            if (user.role === 'admin') {
+                router.push('/admin/dashboard');
+            } else {
+                router.push('/user/dashboard');
+            }
+        }
+    }, [isAuthenticated, user, router]);
+
+    // Show error messages
+    useEffect(() => {
+        if (error) {
+            const errorMessage = typeof error === 'string' ? error : 'An error occurred';
+            toast.error(errorMessage);
+        }
+    }, [error]);
+
     const onSubmit = async (data: LoginFormData) => {
-        console.log(data);
-        toast.success('Login successful');
+        try {
+            const result = await dispatch(loginUser(data)).unwrap();
+            toast.success('Login successful!');
+
+        } catch (error: any) {
+
+        }
     };
 
+    if (isAuthenticated && user) {
+        return null;
+    }
+
     return (
-        <div className="min-h-screen flex flex-col lg:flex-row items-center justify-center bg-white ">
+        <div className="min-h-screen flex flex-col lg:flex-row items-center justify-center bg-white relative">
+            {/* Custom Loading Overlay */}
+            <LoginLoading isLoading={isLoading} />
+
             {/* left side login form */}
             <div className="flex-1 flex items-center justify-center py-12 w-full px-5">
                 <div className="w-full lg:max-w-lg shadow-md border lg:border-none lg:shadow-none rounded-lg p-8 lg:p-0">
@@ -119,8 +157,15 @@ export default function LoginPage() {
                         <div className="flex justify-end">
                             <Link href="/forgot-password" className="text-xs text-[#F1C27D] hover:underline">Forgot password?</Link>
                         </div>
-                        <Button disabled={isLoading} type="submit" className="w-full py-6 cursor-pointer transition-all duration-300 bg-[#F1C27D] hover:bg-[#F1C27D]/90 text-white font-semibold rounded-xl mt-2 text-lg">
-                            {isLoading ? <Loader2 className="animate-spin" /> : 'Sign in'}
+                        <Button disabled={isLoading} type="submit" className="w-full py-6 cursor-pointer transition-all duration-300 bg-[#F1C27D] hover:bg-[#F1C27D]/90 text-white font-semibold rounded-xl mt-2 text-lg disabled:opacity-70">
+                            {isLoading ? (
+                                <div className="flex items-center gap-2">
+                                    <Loader2 className="animate-spin w-5 h-5" />
+                                    <span>Signing in...</span>
+                                </div>
+                            ) : (
+                                'Sign in'
+                            )}
                         </Button>
                     </form>
                     <div className="flex justify-center items-center mt-4">

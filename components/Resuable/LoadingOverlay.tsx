@@ -1,12 +1,34 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+
 interface LoadingOverlayProps {
     loadingText?: string;
+    delay?: number; 
 }
 
-export default function LoadingOverlay({ loadingText = "Processing" }: LoadingOverlayProps) {
+export default function LoadingOverlay({ 
+    loadingText = "Processing", 
+    delay = 300 
+}: LoadingOverlayProps) {
+    const [show, setShow] = useState(false);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setShow(true);
+        }, delay);
+
+        return () => clearTimeout(timer);
+    }, [delay]);
+
+    if (!show) {
+        return null;
+    }
+
     return (
         <div className="fixed inset-0 bg-[#111827]/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
             <div className="relative bg-white/10 backdrop-blur-xl rounded-xl p-8 flex flex-col items-center gap-6">
-                {/* Logo or Brand Icon */}
+                
                 <div className="w-16 h-16 relative">
                     <svg
                         className="w-full h-full text-[#27A376]"
@@ -45,8 +67,6 @@ export default function LoadingOverlay({ loadingText = "Processing" }: LoadingOv
                         Please wait a moment...
                     </p>
                 </div>
-
-
             </div>
         </div>
     );
