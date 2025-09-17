@@ -194,7 +194,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
                                 <h1 className="text-[18px] xl:text-[20px] font-semibold text-[#111827] hidden sm:block">
                                     {getDynamicTitle()}
                                 </h1>
-                                {currentPath === '/user/dashboard' && user.role === 'user' && (
+                                {currentPath === '/user/dashboard' && userData?.role === 'user' && (
                                     <span className="text-[12px] xl:text-[14px] text-[#777980] mt-1 hidden lg:block">
                                         Let's boost your knowledge today and learn a new things
                                     </span>

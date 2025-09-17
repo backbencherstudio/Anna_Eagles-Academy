@@ -35,7 +35,7 @@ export default function ProfileNav({ className = "" }: ProfileNavProps) {
                     <Button variant="ghost" className="p-0 h-auto cursor-pointer">
                         <div>
                             <div className="relative">
-                                {user?.profileImage && user.profileImage !== 'null' && user.profileImage !== '' ? (
+                                {user?.profileImage && user?.profileImage !== 'null' && user?.profileImage !== '' ? (
                                     <Image
                                         src={user.profileImage}
                                         alt="Profile picture"

@@ -3,7 +3,7 @@ import React from 'react'
 import RouteAudioGuard from '@/components/RouteAudioGuard'
 import { UserMainLayout } from '@/app/_components/Student/UserSidebar/UserMainLayout';
 
-export default function layout({ children }: { children: React.ReactNode }) {
+export default function LayoutUser({ children }: { children: React.ReactNode }) {
   return (
 
     <UserMainLayout >
