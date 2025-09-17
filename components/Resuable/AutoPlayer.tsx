@@ -2,7 +2,7 @@
 import React, { useRef, useEffect, useState } from 'react'
 import { Play, Pause, Volume2, VolumeX } from 'lucide-react'
 import WaveAnimation from './WaveAnimation'
-import { useAppDispatch, useAppSelector } from '@/lib/hooks'
+import { useAppDispatch, useAppSelector } from '@/redux/hooks'
 import { 
   setCurrentAudio, 
   playAudio, 
@@ -13,7 +13,7 @@ import {
   setVolume, 
   toggleMute, 
   seekTo 
-} from '@/lib/store/audioSlice'
+} from '@/redux/slices/audioSlice'
 
 interface AutoPlayerProps {
   audioUrl: string

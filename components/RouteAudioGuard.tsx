@@ -1,8 +1,8 @@
 'use client'
 import { useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
-import { useAppDispatch } from '@/lib/hooks'
-import { stopAudio } from '@/lib/store/audioSlice'
+import { useAppDispatch } from '@/redux/hooks'
+import { stopAudio } from '@/redux/slices/audioSlice'
 
 export default function RouteAudioGuard() {
   const pathname = usePathname()

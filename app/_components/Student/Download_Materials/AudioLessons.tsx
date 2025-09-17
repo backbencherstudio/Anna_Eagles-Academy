@@ -3,8 +3,8 @@ import React from 'react'
 import { Headphones } from 'lucide-react'
 import AudioIcon from '@/components/Icons/DownloadMaterials/AudioIcon'
 import AutoPlayer from '@/components/Resuable/AutoPlayer'
-import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { setCurrentAudio, playAudio, pauseAudio } from '@/lib/store/audioSlice'
+import { useAppDispatch, useAppSelector } from '@/redux/hooks'
+import { setCurrentAudio, playAudio, pauseAudio } from '@/redux/slices/audioSlice'
 import FilterDropdown from '@/components/Resuable/FilterDropdown'
 
 

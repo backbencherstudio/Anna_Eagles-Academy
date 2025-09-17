@@ -1,5 +1,4 @@
 'use client'
-
 import Image from 'next/image'
 import React from 'react'
 import { useForm } from 'react-hook-form'
@@ -12,26 +11,26 @@ import { MdEmail } from 'react-icons/md'
 import { FaLock, FaRegEye, FaRegEyeSlash } from 'react-icons/fa'
 import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
-import toast from 'react-hot-toast'
 import Link from 'next/link'
 import { FaUser } from 'react-icons/fa'
+import { useRegister } from '@/hooks/useRegister'
 
 export default function SignUp() {
     const { register, handleSubmit, formState: { errors }, watch } = useForm();
+    const { isLoading, error, register: registerUser, clearError } = useRegister();
 
-    const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const password = watch('password');
 
-    // setTimeout to simulate login
-    const onSubmit = (data: any) => {
-        setIsLoading(true);
-        setTimeout(() => {
-            setIsLoading(false);
-            toast.success('Login successful');
-        }, 2000);
+    const onSubmit = async (data: any) => {
+        try {
+            clearError();
+            await registerUser(data);
+        } catch (err) {
+            console.log('Error caught in SignUp component:', err);
+        }
     };
 
     return (
@@ -68,6 +67,13 @@ export default function SignUp() {
                             <span className="mx-2 text-gray-400 text-lg">or sign in with email</span>
                             <div className="flex-grow h-px bg-gray-200" />
                         </div>
+
+                        {/* Error message display */}
+                        {error && (
+                            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+                                {error}
+                            </div>
+                        )}
                         {/* Name input with icon */}
                         <div>
                             <div className="relative">
@@ -94,7 +100,13 @@ export default function SignUp() {
                                 <Input
                                     type="email"
                                     placeholder="Email"
-                                    {...register('email', { required: 'Email is required' })}
+                                    {...register('email', {
+                                        required: 'Email is required',
+                                        pattern: {
+                                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                            message: 'Invalid email address'
+                                        }
+                                    })}
                                     className="pl-10 pr-4 py-5 xl:py-6 text-base"
                                 />
                             </div>
@@ -111,7 +123,13 @@ export default function SignUp() {
                                 <Input
                                     type={showPassword ? 'text' : 'password'}
                                     placeholder="Password"
-                                    {...register('password', { required: 'Password is required' })}
+                                    {...register('password', {
+                                        required: 'Password is required',
+                                        minLength: {
+                                            value: 8,
+                                            message: 'Password must be at least 8 characters'
+                                        }
+                                    })}
                                     className="pl-10 pr-10 py-5 xl:py-6 text-base"
                                 />
                                 <button
