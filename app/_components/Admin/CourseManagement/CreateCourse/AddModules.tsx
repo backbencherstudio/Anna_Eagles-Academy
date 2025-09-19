@@ -3,37 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Plus,  Trash2 } from 'lucide-react'
-import {  FieldErrors, UseFormRegister, Control, useFieldArray, UseFormSetValue } from 'react-hook-form'
+import { Plus, Trash2 } from 'lucide-react'
+import { FieldErrors, UseFormRegister, Control, useFieldArray, UseFormSetValue } from 'react-hook-form'
 import UploadVideo from './UploadVideo'
 import LessonVideo from './LessonVideo'
-
-interface Module {
-    id: string
-    title: string
-    files: File[]
-    price: number
-}
-
-interface Lesson {
-    id: string
-    title: string
-    videoFile: File | null
-    documentFiles: File[]
-}
-
-interface CourseFormData {
-    title: string
-    codeType: string
-    studentEnroll: string
-    courseType: string
-    description: string
-    notes: string
-    price: string
-    thumbnail: File | null
-    modules: Module[]
-    dateRange: any
-}
+import { CourseFormData, Course, Lesson } from './types'
 
 interface AddModulesProps {
     control: Control<CourseFormData>
@@ -50,18 +24,16 @@ export default function AddModules({
     onTotalPriceChange,
     setValue
 }: AddModulesProps) {
-    const [moduleFiles, setModuleFiles] = useState<{ [key: string]: File[] }>({})
     const [showModuleForm, setShowModuleForm] = useState(false)
-    const [introVideoEnabled, setIntroVideoEnabled] = useState(false)
-    const [endVideoEnabled, setEndVideoEnabled] = useState(true)
-    const [introVideoFile, setIntroVideoFile] = useState<File | null>(null)
-    const [endVideoFile, setEndVideoFile] = useState<File | null>(null)
-    const [lessons, setLessons] = useState<Lesson[]>([])
     const [modulePrices, setModulePrices] = useState<{ [key: string]: number }>({})
+    const [moduleIntroVideos, setModuleIntroVideos] = useState<{ [key: string]: { enabled: boolean, file: File | null } }>({})
+    const [moduleEndVideos, setModuleEndVideos] = useState<{ [key: string]: { enabled: boolean, file: File | null } }>({})
+    const [moduleLessons, setModuleLessons] = useState<{ [key: string]: Lesson[] }>({})
+    const [isAddingModule, setIsAddingModule] = useState(false)
 
     const { fields, append, remove } = useFieldArray({
         control,
-        name: "modules"
+        name: "courses"
     })
 
     // Calculate total price whenever module prices change
@@ -70,43 +42,91 @@ export default function AddModules({
         onTotalPriceChange(total)
     }, [modulePrices, onTotalPriceChange])
 
-    const handleFileUpload = (moduleId: string, event: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(event.target.files || [])
-        setModuleFiles(prev => ({
-            ...prev,
-            [moduleId]: [...(prev[moduleId] || []), ...files]
-        }))
-    }
+    // Update form data whenever module data changes (optimized)
+    const updateFormData = React.useCallback(() => {
+        fields.forEach((field, index) => {
+            const moduleId = field.id
+            const introVideo = moduleIntroVideos[moduleId]?.file || null
+            const endVideo = moduleEndVideos[moduleId]?.file || null
+            const lessons = moduleLessons[moduleId] || []
 
-    const removeFile = (moduleId: string, fileIndex: number) => {
-        setModuleFiles(prev => ({
+            setValue(`courses.${index}.introVideo`, introVideo, { shouldValidate: false, shouldDirty: false })
+            setValue(`courses.${index}.endVideo`, endVideo, { shouldValidate: false, shouldDirty: false })
+            setValue(`courses.${index}.videoFiles`, lessons.map(l => l.videoFile).filter(Boolean) as File[], { shouldValidate: false, shouldDirty: false })
+            setValue(`courses.${index}.docFiles`, lessons.flatMap(l => l.documentFiles), { shouldValidate: false, shouldDirty: false })
+            setValue(`courses.${index}.lessons_files`, lessons.map(l => ({ title: l.title })), { shouldValidate: false, shouldDirty: false })
+        })
+    }, [fields, moduleIntroVideos, moduleEndVideos, moduleLessons, setValue])
+
+    // Update form data immediately when data changes
+    React.useEffect(() => {
+        updateFormData()
+    }, [updateFormData])
+
+    // Helper function to create new module with initial states
+    const createNewModule = (showForm = false) => {
+        const newModule: Course = {
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 9), // More unique ID
+            title: '',
+            lessons_files: [],
+            price: 0,
+            introVideo: null,
+            endVideo: null,
+            videoFiles: [],
+            docFiles: []
+        }
+
+        // Initialize states with proper default values
+        setModuleIntroVideos(prev => ({
             ...prev,
-            [moduleId]: prev[moduleId]?.filter((_, index) => index !== fileIndex) || []
+            [newModule.id]: { enabled: false, file: null }
         }))
+        setModuleEndVideos(prev => ({
+            ...prev,
+            [newModule.id]: { enabled: true, file: null }
+        }))
+        setModuleLessons(prev => ({
+            ...prev,
+            [newModule.id]: []
+        }))
+        setModulePrices(prev => ({
+            ...prev,
+            [newModule.id]: 0
+        }))
+
+        append(newModule)
+        if (showForm) setShowModuleForm(true)
+        return newModule
     }
 
     const addModule = () => {
-        const newModule = {
-            id: Date.now().toString(),
-            title: '',
-            files: [],
-            price: 0
-        }
-        append(newModule)
-        setShowModuleForm(true)
+        createNewModule(true)
     }
 
     const removeModule = (moduleId: string, index: number) => {
         remove(index)
-        // Remove files for this module
-        const newModuleFiles = { ...moduleFiles }
-        delete newModuleFiles[moduleId]
-        setModuleFiles(newModuleFiles)
 
-        // Remove price for this module
-        const newModulePrices = { ...modulePrices }
-        delete newModulePrices[moduleId]
-        setModulePrices(newModulePrices)
+        // Remove all data for this module
+        setModulePrices(prev => {
+            const newPrices = { ...prev }
+            delete newPrices[moduleId]
+            return newPrices
+        })
+        setModuleIntroVideos(prev => {
+            const newVideos = { ...prev }
+            delete newVideos[moduleId]
+            return newVideos
+        })
+        setModuleEndVideos(prev => {
+            const newVideos = { ...prev }
+            delete newVideos[moduleId]
+            return newVideos
+        })
+        setModuleLessons(prev => {
+            const newLessons = { ...prev }
+            delete newLessons[moduleId]
+            return newLessons
+        })
 
         // If no modules left, hide the form
         if (fields.length === 1) {
@@ -115,13 +135,9 @@ export default function AddModules({
     }
 
     const addMoreModule = () => {
-        const newModule = {
-            id: Date.now().toString(),
-            title: '',
-            files: [],
-            price: 0
-        }
-        append(newModule)
+        setIsAddingModule(true)
+        createNewModule(false)
+        setIsAddingModule(false)
     }
 
     const handleModulePriceChange = (moduleId: string, price: number) => {
@@ -129,11 +145,11 @@ export default function AddModules({
             ...prev,
             [moduleId]: price
         }))
-        
+
         // Update the form data with the module price
         const moduleIndex = fields.findIndex(field => field.id === moduleId)
         if (moduleIndex !== -1) {
-            setValue(`modules.${moduleIndex}.price`, price)
+            setValue(`courses.${moduleIndex}.price`, price)
         }
     }
 
@@ -191,13 +207,13 @@ export default function AddModules({
                             </Label>
                             <Input
                                 placeholder="Title Course"
-                                {...register(`modules.${index}.title` as const, {
+                                {...register(`courses.${index}.title` as const, {
                                     required: `Module ${index + 1} title is required`
                                 })}
-                                className={`w-full ${errors.modules?.[index]?.title ? 'border-red-500' : ''}`}
+                                className={`w-full ${errors.courses?.[index]?.title ? 'border-red-500' : ''}`}
                             />
-                            {errors.modules?.[index]?.title && (
-                                <p className="text-sm text-red-500">{errors.modules[index]?.title?.message}</p>
+                            {errors.courses?.[index]?.title && (
+                                <p className="text-sm text-red-500">{errors.courses[index]?.title?.message}</p>
                             )}
                         </div>
 
@@ -206,21 +222,89 @@ export default function AddModules({
                             {/* Upload Intro Video */}
                             <UploadVideo
                                 label="Upload Intro Video"
-                                enabled={introVideoEnabled}
-                                onToggle={setIntroVideoEnabled}
-                                onFileSelect={setIntroVideoFile}
-                                selectedFile={introVideoFile}
-                                onRemove={() => setIntroVideoFile(null)}
+                                uniqueId={`module-${module.id}-intro`}
+                                enabled={moduleIntroVideos[module.id]?.enabled ?? false}
+                                onToggle={(enabled) => {
+                                    setModuleIntroVideos(prev => {
+                                        const currentState = prev[module.id] || { enabled: false, file: null }
+                                        return {
+                                            ...prev,
+                                            [module.id]: {
+                                                enabled,
+                                                file: currentState.file
+                                            }
+                                        }
+                                    })
+                                }}
+                                onFileSelect={(file) => {
+                                    setModuleIntroVideos(prev => {
+                                        const currentState = prev[module.id] || { enabled: false, file: null }
+                                        return {
+                                            ...prev,
+                                            [module.id]: {
+                                                enabled: currentState.enabled,
+                                                file
+                                            }
+                                        }
+                                    })
+                                }}
+                                selectedFile={moduleIntroVideos[module.id]?.file || null}
+                                onRemove={() => {
+                                    setModuleIntroVideos(prev => {
+                                        const currentState = prev[module.id] || { enabled: false, file: null }
+                                        return {
+                                            ...prev,
+                                            [module.id]: {
+                                                enabled: currentState.enabled,
+                                                file: null
+                                            }
+                                        }
+                                    })
+                                }}
                             />
 
                             {/* Upload End Video */}
                             <UploadVideo
                                 label="Upload End Video"
-                                enabled={endVideoEnabled}
-                                onToggle={setEndVideoEnabled}
-                                onFileSelect={setEndVideoFile}
-                                selectedFile={endVideoFile}
-                                onRemove={() => setEndVideoFile(null)}
+                                uniqueId={`module-${module.id}-end`}
+                                enabled={moduleEndVideos[module.id]?.enabled ?? true}
+                                onToggle={(enabled) => {
+                                    setModuleEndVideos(prev => {
+                                        const currentState = prev[module.id] || { enabled: true, file: null }
+                                        return {
+                                            ...prev,
+                                            [module.id]: {
+                                                enabled,
+                                                file: currentState.file
+                                            }
+                                        }
+                                    })
+                                }}
+                                onFileSelect={(file) => {
+                                    setModuleEndVideos(prev => {
+                                        const currentState = prev[module.id] || { enabled: true, file: null }
+                                        return {
+                                            ...prev,
+                                            [module.id]: {
+                                                enabled: currentState.enabled,
+                                                file
+                                            }
+                                        }
+                                    })
+                                }}
+                                selectedFile={moduleEndVideos[module.id]?.file || null}
+                                onRemove={() => {
+                                    setModuleEndVideos(prev => {
+                                        const currentState = prev[module.id] || { enabled: true, file: null }
+                                        return {
+                                            ...prev,
+                                            [module.id]: {
+                                                enabled: currentState.enabled,
+                                                file: null
+                                            }
+                                        }
+                                    })
+                                }}
                             />
                         </div>
 
@@ -243,8 +327,13 @@ export default function AddModules({
 
                         {/* Lesson Videos */}
                         <LessonVideo
-                            lessons={lessons}
-                            onLessonsChange={setLessons}
+                            lessons={moduleLessons[module.id] || []}
+                            onLessonsChange={(lessons) => {
+                                setModuleLessons(prev => ({
+                                    ...prev,
+                                    [module.id]: lessons
+                                }))
+                            }}
                         />
                     </CardContent>
                 </Card>
@@ -256,14 +345,24 @@ export default function AddModules({
                     <Button
                         type="button"
                         onClick={addMoreModule}
+                        disabled={isAddingModule}
                         variant="outline"
-                        className="flex cursor-pointer items-center gap-2 bg-white hover:bg-gray-50 border-gray-300 text-gray-700 hover:text-gray-900 transition-all duration-200"
+                        className="flex cursor-pointer items-center gap-2 bg-white hover:bg-gray-50 border-gray-300 text-gray-700 hover:text-gray-900 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <Plus className="h-4 w-4" />
-                        Add More Module
-                        <span className="ml-1 px-2 py-1 bg-[#F1C27D] text-white text-xs rounded-full font-semibold">
-                            {fields.length}
-                        </span>
+                        {isAddingModule ? (
+                            <>
+                                <div className="h-4 w-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+                                Adding Module...
+                            </>
+                        ) : (
+                            <>
+                                <Plus className="h-4 w-4" />
+                                Add More Module
+                                <span className="ml-1 px-2 py-1 bg-[#F1C27D] text-white text-xs rounded-full font-semibold">
+                                    {fields.length}
+                                </span>
+                            </>
+                        )}
                     </Button>
                 </div>
             )}

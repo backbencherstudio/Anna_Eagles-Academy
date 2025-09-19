@@ -2,9 +2,13 @@ import axiosClient from "@/lib/axisoClients";
 
 // create course 
 
-export const createCourse = async (data: any) => {
+export const createCourse = async (formData: FormData) => {
     try {
-        const response = await axiosClient.post('/api/admin/series', data);
+        const response = await axiosClient.post('/api/admin/series', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
         return response.data;
     } catch (error: any) {
         throw error;

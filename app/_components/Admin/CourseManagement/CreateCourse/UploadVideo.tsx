@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
@@ -12,7 +12,7 @@ interface UploadVideoProps {
     selectedFile: File | null
     onRemove: () => void
     accept?: string
-    maxSize?: string
+    uniqueId?: string // Add unique identifier for each upload component
 }
 
 export default function UploadVideo({
@@ -23,14 +23,32 @@ export default function UploadVideo({
     selectedFile,
     onRemove,
     accept = "video/mp4",
-    maxSize = "300MB"
+    uniqueId,
 }: UploadVideoProps) {
-    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
         if (file) {
             onFileSelect(file)
         }
-    }
+        // Clear the input to allow re-uploading the same file
+        event.target.value = ''
+    }, [onFileSelect])
+
+    const handleToggle = useCallback((checked: boolean) => {
+        onToggle(checked)
+        // If disabling, also remove the file
+        if (!checked && selectedFile) {
+            onRemove()
+        }
+    }, [onToggle, onRemove, selectedFile])
+
+    const handleFileClick = useCallback(() => {
+        const inputId = uniqueId 
+            ? `file-upload-${uniqueId}-${label.replace(/\s+/g, '-').toLowerCase()}`
+            : `file-upload-${label.replace(/\s+/g, '-').toLowerCase()}`
+        const input = document.getElementById(inputId)
+        input?.click()
+    }, [label, uniqueId])
 
     return (
         <div className="space-y-2">
@@ -40,21 +58,17 @@ export default function UploadVideo({
                 <Switch
                     checked={enabled}
                     className="cursor-pointer data-[state=checked]:bg-[#0F2598]"
-                    onCheckedChange={onToggle}
+                    onCheckedChange={handleToggle}
                 />
             </div>
 
-            {/* File Input Area */}
-            <div className="flex items-center gap-3 p-1  border border-gray-200 rounded-lg">
+            <div className="flex items-center gap-3 p-1 border border-gray-200 rounded-lg">
                 <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => document.getElementById(`file-upload-${label.replace(/\s+/g, '-').toLowerCase()}`)?.click()}
-                    className={`flex items-center gap-2 cursor-pointer transition-all duration-200 ${enabled
-                        ? 'bg-transparent border-none text-[#1D1F2C] shadow-none border-gray-800'
-                        : 'bg-transparent border-none text-[#1D1F2C] shadow-none border-gray-200 cursor-not-allowed'
-                        }`}
+                    onClick={handleFileClick}
+                    className="flex items-center gap-2 cursor-pointer"
                     disabled={!enabled}
                 >
                     <Upload className="h-4 w-4" />
@@ -69,21 +83,23 @@ export default function UploadVideo({
                         variant="ghost"
                         size="sm"
                         onClick={onRemove}
-                        className="text-red-600 cursor-pointer hover:text-red-700 hover:bg-red-50 h-6 w-6 p-0 rounded-full ml-auto"
+                        className="text-red-600 cursor-pointer hover:text-red-700 h-6 w-6 p-0 rounded-full ml-auto"
                     >
                         <X className="h-4 w-4" />
                     </Button>
                 )}
             </div>
 
-            {/* File Format Info */}
             <p className="text-xs text-gray-500">
-                Accepted formats: Video (MP4) - Max {maxSize}
+                Accepted formats: Video (MP4) - Max 300MB
             </p>
 
             {/* Hidden File Input */}
             <input
-                id={`file-upload-${label.replace(/\s+/g, '-').toLowerCase()}`}
+                id={uniqueId 
+                    ? `file-upload-${uniqueId}-${label.replace(/\s+/g, '-').toLowerCase()}`
+                    : `file-upload-${label.replace(/\s+/g, '-').toLowerCase()}`
+                }
                 type="file"
                 accept={accept}
                 onChange={handleFileUpload}

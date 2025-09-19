@@ -11,31 +11,16 @@ import { DateRange } from 'react-day-picker'
 import UploadImage from '@/app/_components/Admin/CourseManagement/CreateCourse/UploadImage'
 import SetAvailability from '@/app/_components/Admin/CourseManagement/CreateCourse/SetAvailability'
 import AddModules from '@/app/_components/Admin/CourseManagement/CreateCourse/AddModules'
-
-
-interface CourseFormData {
-    title: string
-    codeType: string
-    studentEnroll: string
-    courseType: string
-    description: string
-    notes: string
-    price: string
-    thumbnail: File | null
-    modules: {
-        id: string
-        title: string
-        files: File[]
-        price: number
-    }[]
-    dateRange: DateRange | undefined
-}
+import { createCourse } from '@/lib/apis/courseManagementApis'
+import { CourseFormData } from '@/app/_components/Admin/CourseManagement/CreateCourse/types'
 
 export default function CreateCoursePage() {
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
     const [totalPrice, setTotalPrice] = useState<number>(0)
     const [validationErrors, setValidationErrors] = useState<string[]>([])
     const [showErrors, setShowErrors] = useState(false)
+    const [isSubmittingForm, setIsSubmittingForm] = useState(false)
+
 
     const {
         register,
@@ -48,13 +33,15 @@ export default function CreateCoursePage() {
         defaultValues: {
             title: '',
             codeType: '',
-            studentEnroll: '',
-            courseType: '',
+            available_site: 0,
+            course_type: '',
             description: '',
-            notes: '',
-            price: '',
+            note: '',
+            price: 0,
             thumbnail: null,
-            modules: [],
+            start_date: '',
+            end_date: '',
+            courses: [], // courses mean module because in the backend it is called courses
             dateRange: undefined
         },
         mode: 'onChange'
@@ -62,22 +49,25 @@ export default function CreateCoursePage() {
 
     const dateRange = watch('dateRange')
 
-    const onSubmit = (data: CourseFormData) => {
+    const onSubmit = async (data: CourseFormData) => {
+        // Prevent multiple submissions
+        if (isSubmittingForm) return
+
         // Validate required fields
         const validationErrors: string[] = []
-        
+
         if (!data.title) validationErrors.push('Course title is required')
-        if (!data.studentEnroll) validationErrors.push('Student enroll is required')
-        if (!data.courseType) validationErrors.push('Course type is required')
+        if (!data.available_site) validationErrors.push('Student enroll is required')
+        if (!data.course_type) validationErrors.push('Course type is required')
         if (!data.description) validationErrors.push('Course description is required')
         if (!thumbnailFile) validationErrors.push('Course thumbnail is required')
         if (!data.dateRange?.from) validationErrors.push('Start date is required')
         if (!data.dateRange?.to) validationErrors.push('End date is required')
-        
+
         // Check module validations
-        data.modules.forEach((module, index) => {
-            if (!module.title) validationErrors.push(`Module ${index + 1} title is required`)
-            if (!module.price || module.price <= 0) validationErrors.push(`Module ${index + 1} price must be greater than 0`)
+        data.courses.forEach((course, index) => {
+            if (!course.title) validationErrors.push(`Module ${index + 1} title is required`)
+            if (!course.price || course.price <= 0) validationErrors.push(`Module ${index + 1} price must be greater than 0`)
         })
 
         if (validationErrors.length > 0) {
@@ -86,27 +76,105 @@ export default function CreateCoursePage() {
             return
         }
 
-        // Clear any previous errors
         setValidationErrors([])
         setShowErrors(false)
+        setIsSubmittingForm(true)
 
-        console.log('✅ Course Data Successfully Submitted:', {
-            ...data,
-            totalPrice: totalPrice,
-            thumbnail: thumbnailFile?.name,
-            modules: data.modules.map(module => ({
-                ...module,
-                price: module.price
-            }))
-        })
+        // Force update form data to ensure all files are collected
+        // Wait a moment to let any pending updates complete
+        await new Promise(resolve => setTimeout(resolve, 100))
+
+        // Prepare FormData for submission
+        const formData = new FormData()
         
-        // Add your publish logic here
-        alert('Course published successfully!')
+        // Add basic course data
+        formData.append('title', data.title)
+        formData.append('description', data.description)
+        formData.append('start_date', data.dateRange?.from?.toISOString().split('T')[0] || '')
+        formData.append('end_date', data.dateRange?.to?.toISOString().split('T')[0] || '')
+        formData.append('note', data.note)
+        formData.append('available_site', data.available_site.toString())
+        formData.append('course_type', data.course_type)
+        
+        // Add thumbnail
+        if (thumbnailFile) {
+            formData.append('thumbnail', thumbnailFile)
+        }
+
+        // Add courses data with position field
+        const coursesData = data.courses.map((course, index) => ({
+            title: course.title,
+            position: index,
+            price: course.price,
+            lessons_files: course.lessons_files
+        }))
+        formData.append('courses', JSON.stringify(coursesData))
+
+        // Add course files with proper naming convention
+        data.courses.forEach((course, courseIndex) => {
+            // Add intro and end videos for each module
+            if (course.introVideo) {
+                formData.append(`course_${courseIndex}_introVideo`, course.introVideo)
+            }
+            if (course.endVideo) {
+                formData.append(`course_${courseIndex}_endVideo`, course.endVideo)
+            }
+            
+            // Add lesson video files
+            if (course.videoFiles && course.videoFiles.length > 0) {
+                course.videoFiles.forEach((file) => {
+                    formData.append(`course_${courseIndex}_videoFiles`, file)
+                })
+            }
+            
+            // Add lesson document files
+            if (course.docFiles && course.docFiles.length > 0) {
+                course.docFiles.forEach((file) => {
+                    formData.append(`course_${courseIndex}_docFiles`, file)
+                })
+            }
+        })
+
+        // Call the API to create course
+        try {
+            // Validate API endpoint
+            if (!process.env.NEXT_PUBLIC_API_ENDPOINT) {
+                throw new Error('API endpoint not configured. Please check NEXT_PUBLIC_API_ENDPOINT environment variable.')
+            }
+            
+            const result = await createCourse(formData)
+            
+            // Show success message
+            alert('Course created successfully!')
+            
+            // Reset form after successful submission
+            window.location.reload() // Simple way to reset everything
+            
+        } catch (error: any) {
+            let errorMessage = 'Error creating course. '
+            if (error.response?.status === 401) {
+                errorMessage += 'Authentication required. Please login again.'
+            } else if (error.response?.status === 403) {
+                errorMessage += 'Access denied. You may not have permission.'
+            } else if (error.response?.status === 404) {
+                errorMessage += 'API endpoint not found. Check server configuration.'
+            } else if (error.response?.status >= 500) {
+                errorMessage += 'Server error. Please try again later.'
+            } else if (error.code === 'NETWORK_ERROR') {
+                errorMessage += 'Network error. Check your connection.'
+            } else {
+                errorMessage += error.response?.data?.message || error.message || 'Unknown error occurred.'
+            }
+            
+            alert(errorMessage)
+        } finally {
+            setIsSubmittingForm(false)
+        }
     }
 
     return (
-        <div onSubmit={handleSubmit(onSubmit)}>
-     
+        <div>
+
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column - Course Details */}
@@ -137,51 +205,39 @@ export default function CreateCoursePage() {
                                 )}
                             </div>
 
-                            {/* Code Type */}
-                            {/* <div className="space-y-2">
-                                <Label htmlFor="codeType" className="text-sm font-medium text-gray-700">
-                                    Code Type
-                                </Label>
-                                <Select onValueChange={(value) => setValue('codeType', value)}>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select code type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem className='cursor-pointer' value="paid-student">Paid Student</SelectItem>
-                                        <SelectItem className='cursor-pointer' value="free-student">Free Student</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div> */}
 
                             {/* Student Enroll */}
                             <div className="space-y-2">
-                                <Label htmlFor="studentEnroll" className="text-sm font-medium text-gray-700">
+                                <Label htmlFor="available_site" className="text-sm font-medium text-gray-700">
                                     Student enroll <span className="text-red-500">*</span>
                                 </Label>
+
+
                                 <Input
-                                    id="studentEnroll"
+                                    type="number"
+                                    id="available_site"
                                     placeholder="E.g 15 student"
-                                    {...register('studentEnroll', {
+                                    {...register('available_site', {
                                         required: 'Student enroll is required',
                                         minLength: {
                                             value: 2,
                                             message: 'Please enter a valid student enrollment'
                                         }
                                     })}
-                                    className={`w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500 ${errors.studentEnroll ? 'border-red-500' : ''}`}
+                                    className={`w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500 ${errors.available_site ? 'border-red-500' : ''}`}
                                 />
-                                {errors.studentEnroll && (
-                                    <p className="text-sm text-red-500">{errors.studentEnroll.message}</p>
+                                {errors.available_site && (
+                                    <p className="text-sm text-red-500">{errors.available_site.message}</p>
                                 )}
                             </div>
 
                             {/* Course Type */}
                             <div className="space-y-2">
-                                <Label htmlFor="courseType" className="text-sm font-medium text-gray-700">
+                                <Label htmlFor="course_type" className="text-sm font-medium text-gray-700">
                                     Course Type <span className="text-red-500">*</span>
                                 </Label>
-                                <Select onValueChange={(value) => setValue('courseType', value)}>
-                                    <SelectTrigger className={`w-full ${showErrors && !watch('courseType') ? 'border-red-500' : ''}`}>
+                                <Select onValueChange={(value) => setValue('course_type', value)}>
+                                    <SelectTrigger className={`w-full ${showErrors && !watch('course_type') ? 'border-red-500' : ''}`}>
                                         <SelectValue placeholder="Select course type" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -234,13 +290,13 @@ export default function CreateCoursePage() {
 
                             {/* Add Notes */}
                             <div className="space-y-2">
-                                <Label htmlFor="notes" className="text-sm font-medium text-gray-700">
+                                <Label htmlFor="note" className="text-sm font-medium text-gray-700">
                                     Add Notes:
                                 </Label>
                                 <Textarea
-                                    id="notes"
+                                    id="note"
                                     placeholder="Video-only version available"
-                                    {...register('notes')}
+                                    {...register('note')}
                                     rows={3}
                                     className="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                                 />
@@ -284,7 +340,7 @@ export default function CreateCoursePage() {
                         courseTitle={watch('title')}
                         dateRange={dateRange}
                         onDateRangeChange={(range) => setValue('dateRange', range)}
-                        isSubmitting={isSubmitting}
+                        isSubmitting={isSubmittingForm || isSubmitting}
                         onSubmit={handleSubmit(onSubmit)}
                         showErrors={showErrors}
                     />
