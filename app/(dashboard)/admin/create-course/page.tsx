@@ -10,14 +10,16 @@ import UploadImage from '@/app/_components/Admin/CourseManagement/CreateCourse/U
 import SetAvailability from '@/app/_components/Admin/CourseManagement/CreateCourse/SetAvailability'
 import AddModules from '@/app/_components/Admin/CourseManagement/CreateCourse/AddModules'
 import { useAppDispatch, useAppSelector } from '@/redux/hooks'
-import {
-    updateCourseField,
-    setValidationErrors,
+import { 
+    updateCourseField, 
+    setValidationErrors, 
     setShowErrors,
     createCourseAsync,
     resetForm,
     clearError,
-    clearSuccess
+    clearSuccess,
+    fetchCoursesAsync,
+    PAGINATION_CONSTANTS
 } from '@/redux/slices/courseManagementSlice'
 import type { CourseFormData } from '@/redux/slices/courseManagementSlice'
 import toast from 'react-hot-toast'
@@ -38,6 +40,12 @@ export default function CreateCoursePage() {
         if (successMessage) {
             toast.success(successMessage)
             dispatch(clearSuccess())
+
+            dispatch(fetchCoursesAsync({ 
+                search: '', 
+                page: PAGINATION_CONSTANTS.DEFAULT_PAGE, 
+                limit: PAGINATION_CONSTANTS.DEFAULT_LIMIT 
+            }))
         }
         if (error) {
             toast.error(error)

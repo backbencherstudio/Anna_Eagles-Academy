@@ -1,6 +1,13 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { DateRange } from 'react-day-picker'
-import { createCourse } from '@/lib/apis/courseManagementApis'
+import { createCourse, getAllCourses } from '@/lib/apis/courseManagementApis'
+
+// Pagination Constants
+export const PAGINATION_CONSTANTS = {
+    DEFAULT_PAGE: 1,
+    DEFAULT_LIMIT: 8,
+    ITEMS_PER_PAGE_OPTIONS: [4, 8, 12, 16, 20] as number[]
+} as const
 
 // Types
 export interface Lesson {
@@ -8,6 +15,51 @@ export interface Lesson {
     title: string
     videoFile: File | null
     documentFiles: File[]
+}
+
+// API Response Types
+export interface ApiCourse {
+    id: string
+    title: string
+    slug: string
+    summary: string | null
+    description: string
+    visibility: string
+    video_length: string | null
+    duration: string | null
+    start_date: string
+    end_date: string
+    thumbnail: string
+    total_price: string
+    course_type: string
+    note: string
+    available_site: number
+    created_at: string
+    updated_at: string
+    language: any
+    courses: any[]
+    _count: {
+        courses: number
+        quizzes: number
+        assignments: number
+    }
+    thumbnail_url: string
+}
+
+export interface CoursesResponse {
+    success: boolean
+    message: string
+    data: {
+        series: ApiCourse[]
+        pagination: {
+            total: number
+            page: number
+            limit: number
+            totalPages: number
+            hasNextPage: boolean
+            hasPreviousPage: boolean
+        }
+    }
 }
 
 export interface Course {
@@ -55,6 +107,20 @@ export interface CourseManagementState {
     moduleEndVideos: { [key: string]: { enabled: boolean, file: File | null } }
     moduleLessons: { [key: string]: Lesson[] }
 
+    // Course list states
+    courses: ApiCourse[]
+    coursesLoading: boolean
+    coursesError: string | null
+    pagination: {
+        total: number
+        page: number
+        limit: number
+        totalPages: number
+        hasNextPage: boolean
+        hasPreviousPage: boolean
+    }
+    searchQuery: string
+
     // Success/error states
     error: string | null
     successMessage: string | null
@@ -84,6 +150,21 @@ const initialState: CourseManagementState = {
     moduleIntroVideos: {},
     moduleEndVideos: {},
     moduleLessons: {},
+
+    // Course list initial states
+    courses: [],
+    coursesLoading: false,
+    coursesError: null,
+    pagination: {
+        total: 0,
+        page: PAGINATION_CONSTANTS.DEFAULT_PAGE,
+        limit: PAGINATION_CONSTANTS.DEFAULT_LIMIT,
+        totalPages: 0,
+        hasNextPage: false,
+        hasPreviousPage: false
+    },
+    searchQuery: '',
+
     error: null,
     successMessage: null
 }
@@ -107,6 +188,34 @@ export const createCourseAsync = createAsyncThunk(
                 errorMessage += 'Access denied. You may not have permission.'
             } else if (error.response?.status === 404) {
                 errorMessage += 'API endpoint not found. Check server configuration.'
+            } else if (error.response?.status >= 500) {
+                errorMessage += 'Server error. Please try again later.'
+            } else if (error.code === 'NETWORK_ERROR') {
+                errorMessage += 'Network error. Check your connection.'
+            } else {
+                errorMessage += error.message || 'Unknown error occurred.'
+            }
+            return rejectWithValue(errorMessage)
+        }
+    }
+)
+
+// Async thunk for fetching all courses
+export const fetchCoursesAsync = createAsyncThunk(
+    'courseManagement/fetchCourses',
+    async ({
+        search = '',
+        page = PAGINATION_CONSTANTS.DEFAULT_PAGE,
+        limit = PAGINATION_CONSTANTS.DEFAULT_LIMIT
+    }: { search?: string, page?: number, limit?: number }, { rejectWithValue }) => {
+        try {
+            const result = await getAllCourses(search, page, limit)
+            return result
+        } catch (error: any) {
+            // Extract error message from API response
+            let errorMessage = 'Error fetching courses. '
+            if (error.response?.data?.message) {
+                errorMessage = error.response.data.message
             } else if (error.response?.status >= 500) {
                 errorMessage += 'Server error. Please try again later.'
             } else if (error.code === 'NETWORK_ERROR') {
@@ -235,9 +344,31 @@ const courseManagementSlice = createSlice({
             state.validationErrors = action.payload
         },
 
+        // Course list actions
+        setSearchQuery: (state, action: PayloadAction<string>) => {
+            state.searchQuery = action.payload
+        },
+
+        setPagination: (state, action: PayloadAction<{ page: number, limit: number }>) => {
+            state.pagination.page = action.payload.page
+            state.pagination.limit = action.payload.limit
+        },
+
+        clearCoursesError: (state) => {
+            state.coursesError = null
+        },
+
         // Reset states
         resetForm: (state) => {
-            return initialState
+            // Only reset form data, keep courses data
+            const coursesData = {
+                courses: state.courses,
+                coursesLoading: state.coursesLoading,
+                coursesError: state.coursesError,
+                pagination: state.pagination,
+                searchQuery: state.searchQuery
+            }
+            return { ...initialState, ...coursesData }
         },
 
         clearError: (state) => {
@@ -257,11 +388,35 @@ const courseManagementSlice = createSlice({
             })
             .addCase(createCourseAsync.fulfilled, (state, action) => {
                 const successMessage = action.payload?.message || 'Course created successfully!'
-                return { ...initialState, successMessage }
+                // Reset form but keep courses data and set success message
+                const coursesData = {
+                    courses: state.courses,
+                    coursesLoading: state.coursesLoading,
+                    coursesError: state.coursesError,
+                    pagination: state.pagination,
+                    searchQuery: state.searchQuery
+                }
+                return { ...initialState, ...coursesData, successMessage }
             })
             .addCase(createCourseAsync.rejected, (state, action) => {
                 state.isSubmitting = false
                 state.error = action.payload as string
+            })
+            // Fetch courses cases
+            .addCase(fetchCoursesAsync.pending, (state) => {
+                state.coursesLoading = true
+                state.coursesError = null
+            })
+            .addCase(fetchCoursesAsync.fulfilled, (state, action) => {
+                state.coursesLoading = false
+                const response = action.payload as CoursesResponse
+                state.courses = response.data.series
+                state.pagination = response.data.pagination
+                state.coursesError = null
+            })
+            .addCase(fetchCoursesAsync.rejected, (state, action) => {
+                state.coursesLoading = false
+                state.coursesError = action.payload as string
             })
     }
 })
@@ -279,6 +434,9 @@ export const {
     setShowModuleForm,
     setShowErrors,
     setValidationErrors,
+    setSearchQuery,
+    setPagination,
+    clearCoursesError,
     resetForm,
     clearError,
     clearSuccess

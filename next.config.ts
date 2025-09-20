@@ -21,6 +21,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'http',
+        hostname: 'nirob.signalsmind.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };

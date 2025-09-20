@@ -15,10 +15,10 @@ export const createCourse = async (formData: FormData) => {
     }
 }
 
-// get all courses
-export const getAllCourses = async () => {
+// get all courses 
+export const getAllCourses = async (search: string, page: number, limit: number) => {
     try {
-        const response = await axiosClient.get('/api/admin/series');
+        const response = await axiosClient.get(`/api/admin/series?search=${search}&page=${page}&limit=${limit}`);
         return response.data;
     } catch (error: any) {
         throw error;
