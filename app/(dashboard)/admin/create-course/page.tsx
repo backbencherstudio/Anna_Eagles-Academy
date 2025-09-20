@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { DateRange } from 'react-day-picker'
 import UploadImage from '@/app/_components/Admin/CourseManagement/CreateCourse/UploadImage'
 import SetAvailability from '@/app/_components/Admin/CourseManagement/CreateCourse/SetAvailability'
 import AddModules from '@/app/_components/Admin/CourseManagement/CreateCourse/AddModules'
@@ -41,7 +40,7 @@ export default function CreateCoursePage() {
             thumbnail: null,
             start_date: '',
             end_date: '',
-            courses: [], // courses mean module because in the backend it is called courses
+            courses: [], 
             dateRange: undefined
         },
         mode: 'onChange'
@@ -220,7 +219,7 @@ export default function CreateCoursePage() {
                                     {...register('available_site', {
                                         required: 'Student enroll is required',
                                         minLength: {
-                                            value: 2,
+                                            value: 1,
                                             message: 'Please enter a valid student enrollment'
                                         }
                                     })}
