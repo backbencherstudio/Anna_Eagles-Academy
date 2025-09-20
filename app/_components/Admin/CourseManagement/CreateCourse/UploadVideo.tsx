@@ -12,7 +12,7 @@ interface UploadVideoProps {
     selectedFile: File | null
     onRemove: () => void
     accept?: string
-    uniqueId?: string // Add unique identifier for each upload component
+    uniqueId?: string 
 }
 
 export default function UploadVideo({
