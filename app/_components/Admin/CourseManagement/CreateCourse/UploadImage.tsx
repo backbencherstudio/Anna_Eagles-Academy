@@ -23,7 +23,7 @@ export default function UploadImage({ onFileSelect, thumbnailFile, onRemove }: U
           type="button"
           variant="outline"
           onClick={() => document.getElementById('thumbnail-upload')?.click()}
-          className="flex items-center gap-2 cursor-pointer"
+          className="flex items-center gap-2 cursor-pointer shadow-none"
         >
           <Image className="h-4 w-4" />
           Upload Thumbnail
@@ -36,7 +36,7 @@ export default function UploadImage({ onFileSelect, thumbnailFile, onRemove }: U
           className="hidden"
         />
       </div>
-      
+
       {/* Thumbnail Preview */}
       {thumbnailFile && (
         <div className="mt-3">

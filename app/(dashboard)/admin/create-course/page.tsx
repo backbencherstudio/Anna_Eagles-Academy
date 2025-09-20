@@ -10,9 +10,9 @@ import UploadImage from '@/app/_components/Admin/CourseManagement/CreateCourse/U
 import SetAvailability from '@/app/_components/Admin/CourseManagement/CreateCourse/SetAvailability'
 import AddModules from '@/app/_components/Admin/CourseManagement/CreateCourse/AddModules'
 import { useAppDispatch, useAppSelector } from '@/redux/hooks'
-import { 
-    updateCourseField, 
-    setValidationErrors, 
+import {
+    updateCourseField,
+    setValidationErrors,
     setShowErrors,
     createCourseAsync,
     resetForm,
@@ -41,10 +41,10 @@ export default function CreateCoursePage() {
             toast.success(successMessage)
             dispatch(clearSuccess())
 
-            dispatch(fetchCoursesAsync({ 
-                search: '', 
-                page: PAGINATION_CONSTANTS.DEFAULT_PAGE, 
-                limit: PAGINATION_CONSTANTS.DEFAULT_LIMIT 
+            dispatch(fetchCoursesAsync({
+                search: '',
+                page: PAGINATION_CONSTANTS.DEFAULT_PAGE,
+                limit: PAGINATION_CONSTANTS.DEFAULT_LIMIT
             }))
         }
         if (error) {
@@ -207,7 +207,7 @@ export default function CreateCoursePage() {
                                 <Label className="text-sm font-medium text-gray-700">
                                     Upload Thumbnail <span className="text-red-500">*</span>
                                 </Label>
-                                <div className={`p-3 border-2 border-dashed rounded-lg ${showErrors && !courseForm.thumbnail ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}>
+                                <div className={`px-3 py-2 border-2 border-dashed rounded-lg ${showErrors && !courseForm.thumbnail ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}>
                                     <UploadImage
                                         onFileSelect={(file) => {
                                             dispatch(updateCourseField({ field: 'thumbnail', value: file }))
@@ -217,6 +217,7 @@ export default function CreateCoursePage() {
                                             dispatch(updateCourseField({ field: 'thumbnail', value: null }))
                                         }}
                                     />
+                                    <p className="text-xs text-gray-400 mt-2 ">Thumbnail should be 330 * 200 pixels</p>
                                 </div>
                             </div>
 

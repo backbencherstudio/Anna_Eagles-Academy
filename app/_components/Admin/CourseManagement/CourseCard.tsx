@@ -78,6 +78,30 @@ export default function CourseCard({ course }: CourseCardProps) {
         }
     }
 
+    // Get status styling based on visibility
+    const getStatusStyle = (visibility: string) => {
+        switch (visibility.toUpperCase()) {
+            case 'PUBLISHED':
+                return 'text-green-600'
+            case 'SCHEDULED':
+                return 'text-blue-600'
+            default:
+                return 'text-black'
+        }
+    }
+
+    // Get status text
+    const getStatusText = (visibility: string) => {
+        switch (visibility.toUpperCase()) {
+            case 'PUBLISHED':
+                return 'Published'
+            case 'SCHEDULED':
+                return 'Scheduled'
+            default:
+                return 'Draft'
+        }
+    }
+
     // Component for placeholder when image is not available or fails to load
     const ImagePlaceholder = () => (
         <div className="w-full h-full p-3">
@@ -178,11 +202,11 @@ export default function CourseCard({ course }: CourseCardProps) {
                             </span>
                         </span>
                     </div>
-                    {/* publice and unpublished */}
+                    {/* Status */}
                     <div className="flex items-center justify-between">
                         <span className="text-gray-500">Status:</span>
-                        <span className="text-green-700">
-                            Published
+                        <span className={`uppercase px-2 py-0.5 rounded-full font-medium text-[11px] ${getStatusStyle(course.visibility)}`}>
+                            {getStatusText(course.visibility)}
                         </span>
                     </div>
                     <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-start justify-between">
