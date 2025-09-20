@@ -35,6 +35,19 @@ export const getSingleCourse = async (id: string) => {
     }
 }
 
+// update course 
+export const updateCourse = async (id: string, formData: FormData) => {
+    try {
+        const response = await axiosClient.patch(`/api/admin/series/${id}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    } catch (error: any) {
+        throw error;
+    }
+}
 
 
 // delete course
@@ -46,3 +59,4 @@ export const deleteCourse = async (id: string) => {
         throw error;
     }
 }
+

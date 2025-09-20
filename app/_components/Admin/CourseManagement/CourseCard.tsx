@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { Eye, EyeIcon, Paperclip } from 'lucide-react'
 import EditIcon from '@/components/Icons/CustomIcon/EditIcon'
 import { FaEye } from 'react-icons/fa'
+import { useRouter } from 'next/navigation'
 
 interface CourseCardProps {
     course: {
@@ -39,7 +40,7 @@ interface CourseCardProps {
 export default function CourseCard({ course }: CourseCardProps) {
     const [imageError, setImageError] = useState(false)
     const [imageLoading, setImageLoading] = useState(true)
-
+    const router = useRouter()
     const formatDate = (dateString: string) => {
         const date = new Date(dateString)
         return date.toISOString().split('T')[0]
@@ -126,6 +127,10 @@ export default function CourseCard({ course }: CourseCardProps) {
     // Check if we should show the image
     const shouldShowImage = course.thumbnail_url && !imageError
 
+    const handleUpdateCourse = () => {
+        router.push(`/admin/course-update/${course.slug}`)
+    }
+
     return (
         <div className="bg-white rounded-2xl transition-shadow duration-200 overflow-hidden border border-[#EEE]">
             {/* Banner */}
@@ -148,9 +153,9 @@ export default function CourseCard({ course }: CourseCardProps) {
                 )}
 
                 {/* Top-right action icon */}
-                <button className='absolute right-4 top-4 cursor-pointer'>
-                    <div className=" p-0.5 rounded-lg bg-[#D0D0D047] border border-[#E9E9EA33] flex items-center justify-center text-[#F1C27D] hover:bg-[#F1C27D]/80 hover:text-white transition-all duration-300 ">
-                        <FaEye className='text-xl' />
+                <button onClick={handleUpdateCourse} className='absolute right-4 top-4 cursor-pointer'>
+                    <div className=" p-1 rounded bg-[#D0D0D047] border border-[#E9E9EA33] flex items-center justify-center text-[#F1C27D] hover:bg-[#F1C27D]/80 hover:text-black transition-all duration-300 ">
+                        <EditIcon />
                     </div>
                 </button>
             </div>
