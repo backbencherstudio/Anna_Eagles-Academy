@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Loader2, Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import CourseCard from '@/app/_components/Admin/CourseManagement/CourseCard'
@@ -10,31 +10,19 @@ import { Input } from '@/components/ui/input'
 import { useAppDispatch, useAppSelector } from '@/redux/hooks'
 import { fetchCoursesAsync, setSearchQuery, setPagination, PAGINATION_CONSTANTS } from '@/redux/slices/courseManagementSlice'
 import toast from 'react-hot-toast'
+import { useDebounce } from '@/hooks/useDebounce'
 
-interface Course {
-    id: number
-    course_title: string
-    course_description: string
-    course_price: number
-    total_modules: number
-    total_videos: number
-    publish_date: string
-    end_date: string
-    status: string
-    course_thumbnail: string
-    student_type: string
-    duration?: string
-    notes?: string
-    course_type?: string
-    available_site?: string
-    file_upload_progress?: number
-    start_date?: string
-}
+
 
 export default function CourseManagement() {
     const dispatch = useAppDispatch()
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(false)
+
+    // Local state for search input - completely separate from Redux
+    const [localSearchInput, setLocalSearchInput] = useState('')
+    const [isInputFocused, setIsInputFocused] = useState(false)
+    const inputRef = useRef<HTMLInputElement>(null)
 
     const {
         courses,
@@ -44,7 +32,33 @@ export default function CourseManagement() {
         searchQuery
     } = useAppSelector(state => state.courseManagement)
 
-    // Fetch courses on component mount and when search/pagination changes
+    const debouncedSearchQuery = useDebounce(localSearchInput, 500)
+
+    useEffect(() => {
+        setLocalSearchInput(searchQuery)
+    }, [])
+
+    useEffect(() => {
+        if (debouncedSearchQuery !== searchQuery) {
+            dispatch(setSearchQuery(debouncedSearchQuery))
+            if (debouncedSearchQuery !== searchQuery) {
+                dispatch(setPagination({ page: PAGINATION_CONSTANTS.DEFAULT_PAGE, limit: pagination.limit }))
+            }
+        }
+    }, [debouncedSearchQuery, searchQuery, dispatch, pagination.limit])
+    useEffect(() => {
+        if (isInputFocused && inputRef.current && document.activeElement !== inputRef.current) {
+
+            const currentValue = inputRef.current.value
+            const currentSelectionStart = inputRef.current.selectionStart
+            const currentSelectionEnd = inputRef.current.selectionEnd
+            inputRef.current.focus()
+            if (currentSelectionStart !== null && currentSelectionEnd !== null) {
+                inputRef.current.setSelectionRange(currentSelectionStart, currentSelectionEnd)
+            }
+        }
+    }, [courses, isInputFocused])
+
     useEffect(() => {
         dispatch(fetchCoursesAsync({
             search: searchQuery,
@@ -68,11 +82,9 @@ export default function CourseManagement() {
         }, 200)
     }
 
-    // Search handler with debounce
+    // Search handler - updates local state only, debouncing will handle Redux update
     const handleSearchChange = (value: string) => {
-        dispatch(setSearchQuery(value))
-        // Reset to first page when searching
-        dispatch(setPagination({ page: PAGINATION_CONSTANTS.DEFAULT_PAGE, limit: pagination.limit }))
+        setLocalSearchInput(value)
     }
 
     // Pagination handlers
@@ -148,9 +160,12 @@ export default function CourseManagement() {
                     <div className='relative flex items-center gap-2'>
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                         <Input
+                            ref={inputRef}
                             placeholder="Search courses"
-                            value={searchQuery}
+                            value={localSearchInput}
                             onChange={(e) => handleSearchChange(e.target.value)}
+                            onFocus={() => setIsInputFocused(true)}
+                            onBlur={() => setIsInputFocused(false)}
                             className='pl-10 border-gray-300 rounded-md w-full'
                             disabled
                         />
@@ -183,9 +198,12 @@ export default function CourseManagement() {
                 <div className='relative flex items-center gap-2'>
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
+                        ref={inputRef}
                         placeholder="Search courses"
-                        value={searchQuery}
+                        value={localSearchInput}
                         onChange={(e) => handleSearchChange(e.target.value)}
+                        onFocus={() => setIsInputFocused(true)}
+                        onBlur={() => setIsInputFocused(false)}
                         className='pl-10 border-gray-300 rounded-md w-full'
                     />
 
@@ -237,7 +255,7 @@ export default function CourseManagement() {
                     <div className="text-center">
                         <p className='text-gray-500 text-lg font-medium'>No courses found</p>
                         <p className='text-gray-400 text-sm mt-2'>
-                            {searchQuery ? 'Try adjusting your search terms' : 'Create your first course to get started'}
+                            {localSearchInput ? 'Try adjusting your search terms' : 'Create your first course to get started'}
                         </p>
                     </div>
                 </div>

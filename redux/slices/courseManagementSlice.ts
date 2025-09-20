@@ -120,6 +120,7 @@ export interface CourseManagementState {
         hasPreviousPage: boolean
     }
     searchQuery: string
+    localSearchQuery: string
 
     // Success/error states
     error: string | null
@@ -164,6 +165,7 @@ const initialState: CourseManagementState = {
         hasPreviousPage: false
     },
     searchQuery: '',
+    localSearchQuery: '',
 
     error: null,
     successMessage: null
@@ -349,6 +351,10 @@ const courseManagementSlice = createSlice({
             state.searchQuery = action.payload
         },
 
+        setLocalSearchQuery: (state, action: PayloadAction<string>) => {
+            state.localSearchQuery = action.payload
+        },
+
         setPagination: (state, action: PayloadAction<{ page: number, limit: number }>) => {
             state.pagination.page = action.payload.page
             state.pagination.limit = action.payload.limit
@@ -366,7 +372,8 @@ const courseManagementSlice = createSlice({
                 coursesLoading: state.coursesLoading,
                 coursesError: state.coursesError,
                 pagination: state.pagination,
-                searchQuery: state.searchQuery
+                searchQuery: state.searchQuery,
+                localSearchQuery: state.localSearchQuery
             }
             return { ...initialState, ...coursesData }
         },
@@ -394,7 +401,8 @@ const courseManagementSlice = createSlice({
                     coursesLoading: state.coursesLoading,
                     coursesError: state.coursesError,
                     pagination: state.pagination,
-                    searchQuery: state.searchQuery
+                    searchQuery: state.searchQuery,
+                    localSearchQuery: state.localSearchQuery
                 }
                 return { ...initialState, ...coursesData, successMessage }
             })
@@ -435,6 +443,7 @@ export const {
     setShowErrors,
     setValidationErrors,
     setSearchQuery,
+    setLocalSearchQuery,
     setPagination,
     clearCoursesError,
     resetForm,
