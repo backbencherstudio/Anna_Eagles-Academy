@@ -13,7 +13,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { logoutUser } from '@/redux/slices/authSlice';
+import { useLogoutMutation } from '@/redux/api/authApi';
 import toast from 'react-hot-toast';
 
 interface ProfileNavProps {
@@ -23,13 +23,14 @@ interface ProfileNavProps {
 export default function ProfileNav({ className = "" }: ProfileNavProps) {
     const dispatch = useAppDispatch();
     const router = useRouter();
+    const [logout] = useLogoutMutation();
 
     // Get user data from Redux store
     const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
     const handleLogout = async () => {
         try {
-            await dispatch(logoutUser()).unwrap();
+            await logout().unwrap();
             toast.success('Logged out successfully');
             router.push('/login');
         } catch (error) {

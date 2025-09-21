@@ -1,70 +1,66 @@
-import { useState } from 'react';
-import { createAccount } from '@/lib/apis/authApis';
+import { useRegisterMutation } from '@/redux/api/authApi';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 
 export const useRegister = () => {
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const router = useRouter();
+    const [registerUser, { isLoading, error }] = useRegisterMutation();
 
-    const register = async (data: any) => {
-        setIsLoading(true);
-        setError(null);
-
+    const register = async (data: any, resetForm?: () => void) => {
         try {
-            const response = await createAccount(data);
+            const response = await registerUser(data).unwrap();
             
             // Check if the response indicates an error
-            if (response.statusCode && response.statusCode !== 200) {
+            if (!response.success) {
                 // This is an error response
                 const errorMessage = response.message || 'Registration failed. Please try again.';
                 toast.error(errorMessage);
-                setError(errorMessage);
                 return null;
             }
             
             // Check if response has the expected success structure
-            if (response && response.user && response.token) {
+            if (response && response.success) {
                 toast.success(response.message || 'Registration successful! Please check your email for verification.');
+                // Clear form fields on success
+                if (resetForm) {
+                    resetForm();
+                }
                 // Redirect to login after successful registration
                 router.push('/login');
                 return response;
             } else {
                 toast.error('Registration failed. Please try again.');
-                setError('Registration failed. Please try again.');
                 return null;
             }
         } catch (err: any) {
             let errorMessage = 'Registration failed. Please try again.';
-            let statusCode = err.response?.data?.statusCode;
             
-            if (err.response?.data?.message?.message) {
-                if (Array.isArray(err.response.data.message.message)) {
-                    errorMessage = err.response.data.message.message.join(', ');
+            // Handle different error response structures
+            if (err.data?.message) {
+                errorMessage = err.data.message;
+            } else if (err.data?.message?.message) {
+                if (Array.isArray(err.data.message.message)) {
+                    errorMessage = err.data.message.message.join(', ');
                 } else {
-                    errorMessage = err.response.data.message.message;
+                    errorMessage = err.data.message.message;
                 }
-            } else if (err.response?.data?.message) {
-                errorMessage = err.response.data.message;
+            } else if (err.message) {
+                errorMessage = err.message;
             }
 
             toast.error(errorMessage);
-            setError(errorMessage);
             return null;
-        } finally {
-            setIsLoading(false);
         }
     };
 
     const clearError = () => {
-        setError(null);
+        // RTK Query handles error state automatically
     };
 
     return {
         register,
         isLoading,
-        error,
+        error: error ? (typeof error === 'string' ? error : 'message' in error ? error.message : 'An error occurred') : null,
         clearError
     };
 };

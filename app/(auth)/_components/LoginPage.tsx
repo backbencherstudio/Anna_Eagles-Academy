@@ -16,7 +16,8 @@ import toast from 'react-hot-toast'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAppDispatch, useAppSelector } from '@/redux/hooks'
-import { loginUser, clearError, checkAuth } from '@/redux/slices/authSlice'
+import { clearError } from '@/redux/slices/authSlice'
+import { useLoginMutation, useCheckAuthQuery } from '@/redux/api/authApi'
 import LoginLoading from '@/components/Resuable/LoginLoading'
 
 
@@ -31,7 +32,9 @@ export default function LoginPage() {
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
 
-    const { isLoading, error, isAuthenticated, user } = useAppSelector((state) => state.auth);
+    const { error, isAuthenticated, user } = useAppSelector((state) => state.auth);
+    const [loginUser, { isLoading }] = useLoginMutation();
+    const { refetch: checkAuth } = useCheckAuthQuery(undefined, { skip: true });
 
     useEffect(() => {
         dispatch(clearError());
@@ -57,11 +60,17 @@ export default function LoginPage() {
 
     const onSubmit = async (data: LoginFormData) => {
         try {
-            const result = await dispatch(loginUser(data)).unwrap();
-            toast.success('Login successful!');
-
+            const result = await loginUser(data).unwrap();
+            toast.success(result.message || 'Login successful!');
+            
+            // After successful login, check auth to get full user data
+            try {
+                await checkAuth();
+            } catch (authError) {
+                // If /me fails, we still have basic user info from login response
+            }
         } catch (error: any) {
-
+            // Error handling is done by RTK Query and auth slice
         }
     };
 

@@ -8,7 +8,7 @@ import LoadingOverlay from '@/components/Resuable/LoadingOverlay';
 import Logo from '@/components/Icons/Logo';
 import USerSidebarMenu from './USerSidebarMenu';
 import { useAppDispatch } from '@/redux/hooks';
-import { logoutUser } from '@/redux/slices/authSlice';
+import { useLogoutMutation } from '@/redux/api/authApi';
 
 // Menu configuration and item rendering are encapsulated in SideBarMenu
 
@@ -21,7 +21,7 @@ export default function UserSidebar({ isMobileMenuOpen, onMobileMenuClose }: Sid
   const router = useRouter();
   const dispatch = useAppDispatch();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [logout, { isLoading }] = useLogoutMutation();
   const data = {
     name: 'John Doe',
     role: 'user'
@@ -36,9 +36,8 @@ export default function UserSidebar({ isMobileMenuOpen, onMobileMenuClose }: Sid
   };
 
   const handleLogout = async () => {
-    setIsLoading(true);
     try {
-      await dispatch(logoutUser()).unwrap();
+      await logout().unwrap();
     } finally {
       router.push('/login');
     }

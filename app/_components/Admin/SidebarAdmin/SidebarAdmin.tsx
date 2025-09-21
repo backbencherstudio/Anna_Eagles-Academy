@@ -7,7 +7,7 @@ import { FiLogOut } from 'react-icons/fi';
 import LoadingOverlay from '@/components/Resuable/LoadingOverlay';
 import Logo from '@/components/Icons/Logo';
 import { useAppDispatch } from '@/redux/hooks';
-import { logoutUser } from '@/redux/slices/authSlice';
+import { useLogoutMutation } from '@/redux/api/authApi';
 
 import SideBarMenuAdmin from './SidebarMenuAdmin';
 
@@ -21,7 +21,7 @@ export default function SidebarAdmin({ isMobileMenuOpen, onMobileMenuClose }: Si
     const router = useRouter();
     const dispatch = useAppDispatch();
     const [isCollapsed, setIsCollapsed] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+    const [logout, { isLoading }] = useLogoutMutation();
     const data = {
         name: 'John Doe',
         role: 'admin'
@@ -36,9 +36,8 @@ export default function SidebarAdmin({ isMobileMenuOpen, onMobileMenuClose }: Si
     };
 
     const handleLogout = async () => {
-        setIsLoading(true);
         try {
-            await dispatch(logoutUser()).unwrap();
+            await logout().unwrap();
         } finally {
             router.push('/login');
         }

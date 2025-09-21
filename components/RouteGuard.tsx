@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { checkAuth, clearAuth } from '@/redux/slices/authSlice';
+import { clearAuth, initializeFromToken } from '@/redux/slices/authSlice';
+import { useCheckAuthQuery, useLogoutMutation } from '@/redux/api/authApi';
 import LoadingOverlay from './Resuable/LoadingOverlay';
 
 interface RouteGuardProps {
@@ -24,10 +25,6 @@ const getCookie = (name: string): string | null => {
   return null;
 };
 
-const deleteCookie = (name: string) => {
-  if (typeof document === 'undefined') return;
-  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-};
 
 export default function RouteGuard({
   children,
@@ -46,43 +43,35 @@ export default function RouteGuard({
     error
   } = useAppSelector((state) => state.auth);
 
-
   const hasToken = typeof document !== 'undefined' ? getCookie('token') !== null : false;
+  
+  const { refetch: checkAuth, isLoading: isCheckingAuth } = useCheckAuthQuery(undefined, {
+    skip: !hasToken,
+  });
+  const [logout] = useLogoutMutation();
 
+  const isAuthInProgress = isLoading || isCheckingAuth || (!isInitialized && hasToken);
 
   useEffect(() => {
-    const initializeAuth = async () => {
+    const initializeAuthCheck = async () => {
       const token = getCookie('token');
 
       if (token && !isAuthenticated && !isLoading) {
-
         try {
-          // Add a timeout safeguard to avoid hanging on the loading overlay
-          const timeoutPromise = new Promise((_, reject) => {
-            const id = setTimeout(() => {
-              clearTimeout(id);
-              reject(new Error('Authentication timeout'));
-            }, 10000);
-          });
-
-          await Promise.race([
-            dispatch(checkAuth()).unwrap(),
-            timeoutPromise,
-          ]);
+          await checkAuth();
         } catch (error) {
-          dispatch(clearAuth());
-          deleteCookie('token');
+          dispatch(initializeFromToken(token));
         }
       } else if (!token && !isAuthenticated && !isInitialized) {
         dispatch(clearAuth());
       }
     };
 
-    initializeAuth();
-  }, [dispatch, isAuthenticated, isInitialized, isLoading, hasToken]);
+    initializeAuthCheck();
+  }, [dispatch, isAuthenticated, isInitialized, isLoading, hasToken, checkAuth]);
 
   useEffect(() => {
-    if (!isLoading && isInitialized) {
+    if (!isAuthInProgress && isInitialized) {
       if (requireAuth && (!isAuthenticated || !hasToken)) {
         router.push('/login');
         return;
@@ -110,22 +99,21 @@ export default function RouteGuard({
         return;
       }
     }
-  }, [isAuthenticated, user, isLoading, isInitialized, pathname, router, allowedRoles, requireAuth]);
+  }, [isAuthenticated, user, isAuthInProgress, isInitialized, pathname, router, allowedRoles, requireAuth, hasToken]);
 
-  // If token disappears while authenticated, immediately clear and redirect
   useEffect(() => {
     if (requireAuth && isAuthenticated && !hasToken) {
+      logout();
       dispatch(clearAuth());
       router.push('/login');
     }
-  }, [requireAuth, isAuthenticated, hasToken, dispatch, router]);
+  }, [requireAuth, isAuthenticated, hasToken, dispatch, router, logout]);
 
-  if ((isLoading || !isInitialized) && hasToken) {
+  if (isAuthInProgress) {
     return <LoadingOverlay loadingText="Authenticating" delay={500} />;
   }
 
-
-  if (error && requireAuth) {
+  if (error && requireAuth && isInitialized && !isAuthInProgress) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -133,6 +121,7 @@ export default function RouteGuard({
           <p className="text-gray-600 mb-4">{error}</p>
           <button
             onClick={() => {
+              logout();
               dispatch(clearAuth());
               router.push('/login');
             }}
@@ -149,7 +138,6 @@ export default function RouteGuard({
     return <>{children}</>;
   }
 
-  // No token: let the effect redirect to login without blocking overlay
   if (!hasToken) {
     return null;
   }

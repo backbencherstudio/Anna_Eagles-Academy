@@ -16,8 +16,8 @@ import { FaUser } from 'react-icons/fa'
 import { useRegister } from '@/hooks/useRegister'
 
 export default function SignUp() {
-    const { register, handleSubmit, formState: { errors }, watch } = useForm();
-    const { isLoading, error, register: registerUser, clearError } = useRegister();
+    const { register, handleSubmit, formState: { errors }, watch, reset } = useForm();
+    const { register: registerUser, isLoading, error } = useRegister();
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -25,12 +25,7 @@ export default function SignUp() {
     const password = watch('password');
 
     const onSubmit = async (data: any) => {
-        try {
-            clearError();
-            await registerUser(data);
-        } catch (err) {
-            console.log('Error caught in SignUp component:', err);
-        }
+        await registerUser(data, reset);
     };
 
     return (
