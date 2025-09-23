@@ -14,13 +14,12 @@ import {
     updateCourseField,
     setValidationErrors,
     setShowErrors,
-    createCourseAsync,
     resetForm,
     clearError,
     clearSuccess,
-    fetchCoursesAsync,
     PAGINATION_CONSTANTS
 } from '@/redux/slices/courseManagementSlice'
+import { useCreateCourseMutation } from '@/redux/api/courseManagementApi'
 import type { CourseFormData } from '@/redux/slices/courseManagementSlice'
 import toast from 'react-hot-toast'
 
@@ -28,30 +27,36 @@ export default function CreateCoursePage() {
     const dispatch = useAppDispatch()
     const {
         courseForm,
-        isSubmitting,
         showErrors,
         validationErrors,
         error,
         successMessage
     } = useAppSelector(state => state.courseManagement)
 
+    // Use RTK Query hook for creating course
+    const [createCourse, { isLoading: isSubmitting, error: createError }] = useCreateCourseMutation()
+
     // Handle success and error messages
     useEffect(() => {
         if (successMessage) {
             toast.success(successMessage)
             dispatch(clearSuccess())
-
-            dispatch(fetchCoursesAsync({
-                search: '',
-                page: PAGINATION_CONSTANTS.DEFAULT_PAGE,
-                limit: PAGINATION_CONSTANTS.DEFAULT_LIMIT
-            }))
         }
         if (error) {
             toast.error(error)
             dispatch(clearError())
         }
     }, [successMessage, error, dispatch])
+
+    // Handle RTK Query errors
+    useEffect(() => {
+        if (createError) {
+            const errorMessage = 'data' in createError 
+                ? (createError.data as any)?.message || 'Failed to create course'
+                : 'Failed to create course'
+            toast.error(errorMessage)
+        }
+    }, [createError])
 
     const onSubmit = async (data: CourseFormData) => {
         // Prevent multiple submissions
@@ -137,8 +142,14 @@ export default function CreateCoursePage() {
             }
         })
 
-        // Dispatch async action to create course
-        dispatch(createCourseAsync(formData))
+        // Use RTK Query mutation to create course
+        try {
+            const result = await createCourse(formData).unwrap()
+            toast.success(result.message || 'Course created successfully!')
+            dispatch(resetForm())
+        } catch (error: any) {
+            // Error handling is done in useEffect above
+        }
     }
 
     return (

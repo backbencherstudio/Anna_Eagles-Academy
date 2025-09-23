@@ -21,3 +21,17 @@ export function deleteCookie(name: string): void {
   if (typeof document === 'undefined') return;
   document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
 }
+
+/**
+ * Set cookie with optional maxAge (in seconds)
+ */
+export function setCookie(name: string, value: string, options?: { maxAgeSeconds?: number }): void {
+  if (typeof document === 'undefined') return;
+  const parts: string[] = [];
+  parts.push(`${name}=${encodeURIComponent(value)}`);
+  parts.push('path=/');
+  if (options?.maxAgeSeconds && Number.isFinite(options.maxAgeSeconds)) {
+    parts.push(`max-age=${options.maxAgeSeconds}`);
+  }
+  document.cookie = parts.join('; ');
+}

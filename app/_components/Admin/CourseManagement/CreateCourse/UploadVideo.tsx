@@ -12,7 +12,8 @@ interface UploadVideoProps {
     selectedFile: File | null
     onRemove: () => void
     accept?: string
-    uniqueId?: string 
+    uniqueId?: string
+    existingUrl?: string | null
 }
 
 export default function UploadVideo({
@@ -24,7 +25,26 @@ export default function UploadVideo({
     onRemove,
     accept = "video/mp4",
     uniqueId,
+    existingUrl,
 }: UploadVideoProps) {
+    const previewUrl = React.useMemo(() => {
+        if (selectedFile) {
+            try {
+                return URL.createObjectURL(selectedFile)
+            } catch {
+                return null
+            }
+        }
+        return existingUrl || null
+    }, [selectedFile, existingUrl])
+
+    React.useEffect(() => {
+        return () => {
+            if (selectedFile) {
+                try { URL.revokeObjectURL(previewUrl || '') } catch { }
+            }
+        }
+    }, [selectedFile, previewUrl])
     const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
         if (file) {
@@ -43,7 +63,7 @@ export default function UploadVideo({
     }, [onToggle, onRemove, selectedFile])
 
     const handleFileClick = useCallback(() => {
-        const inputId = uniqueId 
+        const inputId = uniqueId
             ? `file-upload-${uniqueId}-${label.replace(/\s+/g, '-').toLowerCase()}`
             : `file-upload-${label.replace(/\s+/g, '-').toLowerCase()}`
         const input = document.getElementById(inputId)
@@ -74,9 +94,14 @@ export default function UploadVideo({
                     <Upload className="h-4 w-4" />
                     Choose file
                 </Button>
-                <span className={`text-sm ${selectedFile ? 'text-gray-800' : 'text-gray-500'}`}>
-                    {selectedFile ? selectedFile.name : "No file chosen"}
-                </span>
+                <div className="flex-1 min-w-0">
+                    <span
+                        className={`block truncate text-sm ${selectedFile ? 'text-gray-800' : 'text-gray-500'}`}
+                        title={selectedFile ? selectedFile.name : "No file chosen"}
+                    >
+                        {selectedFile ? selectedFile.name : "No file chosen"}
+                    </span>
+                </div>
                 {selectedFile && (
                     <Button
                         type="button"
@@ -94,9 +119,22 @@ export default function UploadVideo({
                 Accepted formats: Video (MP4) - Max 300MB
             </p>
 
+            {previewUrl && (
+                <div className="mt-2">
+                    <video
+                        key={previewUrl}
+                        src={previewUrl}
+                        controls
+                        preload="metadata"
+                        crossOrigin="anonymous"
+                        className="w-full max-h-60 rounded-md border"
+                    />
+                </div>
+            )}
+
             {/* Hidden File Input */}
             <input
-                id={uniqueId 
+                id={uniqueId
                     ? `file-upload-${uniqueId}-${label.replace(/\s+/g, '-').toLowerCase()}`
                     : `file-upload-${label.replace(/\s+/g, '-').toLowerCase()}`
                 }

@@ -1,20 +1,29 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { DateRange } from 'react-day-picker'
-import { createCourse, getAllCourses } from '@/lib/apis/courseManagementApis'
 
-// Pagination Constants
+// ============================================================================
+// CONSTANTS
+// ============================================================================
 export const PAGINATION_CONSTANTS = {
     DEFAULT_PAGE: 1,
     DEFAULT_LIMIT: 8,
     ITEMS_PER_PAGE_OPTIONS: [4, 8, 12, 16, 20] as number[]
 } as const
 
-// Types
+// ============================================================================
+// TYPES
+// ============================================================================
+
+// Core Types
 export interface Lesson {
     id: string
     title: string
     videoFile: File | null
     documentFiles: File[]
+}
+
+export interface LessonFile {
+    title: string
 }
 
 // API Response Types
@@ -36,8 +45,8 @@ export interface ApiCourse {
     available_site: number
     created_at: string
     updated_at: string
-    language: any
-    courses: any[]
+    language: unknown
+    courses: unknown[]
     _count: {
         courses: number
         quizzes: number
@@ -46,28 +55,29 @@ export interface ApiCourse {
     thumbnail_url: string
 }
 
+export interface PaginationInfo {
+    total: number
+    page: number
+    limit: number
+    totalPages: number
+    hasNextPage: boolean
+    hasPreviousPage: boolean
+}
+
 export interface CoursesResponse {
     success: boolean
     message: string
     data: {
         series: ApiCourse[]
-        pagination: {
-            total: number
-            page: number
-            limit: number
-            totalPages: number
-            hasNextPage: boolean
-            hasPreviousPage: boolean
-        }
+        pagination: PaginationInfo
     }
 }
 
+// Form Types
 export interface Course {
     id: string
     title: string
-    lessons_files: {
-        title: string
-    }[]
+    lessons_files: LessonFile[]
     price: number
     introVideo: File | null
     endVideo: File | null
@@ -90,6 +100,22 @@ export interface CourseFormData {
     dateRange: DateRange | undefined
 }
 
+// Module State Types
+export interface ModuleVideoState {
+    enabled: boolean
+    file: File | null
+}
+
+export interface ModuleState {
+    prices: Record<string, number>
+    introVideos: Record<string, ModuleVideoState>
+    endVideos: Record<string, ModuleVideoState>
+    lessons: Record<string, Lesson[]>
+}
+
+// ============================================================================
+// STATE INTERFACE
+// ============================================================================
 export interface CourseManagementState {
     // Form data
     courseForm: CourseFormData
@@ -102,23 +128,14 @@ export interface CourseManagementState {
     validationErrors: string[]
 
     // Module-specific states
-    modulePrices: { [key: string]: number }
-    moduleIntroVideos: { [key: string]: { enabled: boolean, file: File | null } }
-    moduleEndVideos: { [key: string]: { enabled: boolean, file: File | null } }
-    moduleLessons: { [key: string]: Lesson[] }
+    modulePrices: Record<string, number>
+    moduleIntroVideos: Record<string, ModuleVideoState>
+    moduleEndVideos: Record<string, ModuleVideoState>
+    moduleLessons: Record<string, Lesson[]>
 
     // Course list states
     courses: ApiCourse[]
-    coursesLoading: boolean
-    coursesError: string | null
-    pagination: {
-        total: number
-        page: number
-        limit: number
-        totalPages: number
-        hasNextPage: boolean
-        hasPreviousPage: boolean
-    }
+    pagination: PaginationInfo
     searchQuery: string
     localSearchQuery: string
 
@@ -127,21 +144,35 @@ export interface CourseManagementState {
     successMessage: string | null
 }
 
+// ============================================================================
+// INITIAL STATE
+// ============================================================================
+const createInitialCourseForm = (): CourseFormData => ({
+    title: '',
+    codeType: '',
+    available_site: 0,
+    course_type: '',
+    description: '',
+    note: '',
+    price: 0,
+    thumbnail: null,
+    start_date: '',
+    end_date: '',
+    courses: [],
+    dateRange: undefined
+})
+
+const createInitialPagination = (): PaginationInfo => ({
+    total: 0,
+    page: PAGINATION_CONSTANTS.DEFAULT_PAGE,
+    limit: PAGINATION_CONSTANTS.DEFAULT_LIMIT,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false
+})
+
 const initialState: CourseManagementState = {
-    courseForm: {
-        title: '',
-        codeType: '',
-        available_site: 0,
-        course_type: '',
-        description: '',
-        note: '',
-        price: 0,
-        thumbnail: null,
-        start_date: '',
-        end_date: '',
-        courses: [],
-        dateRange: undefined
-    },
+    courseForm: createInitialCourseForm(),
     isLoading: false,
     isSubmitting: false,
     showModuleForm: false,
@@ -151,100 +182,49 @@ const initialState: CourseManagementState = {
     moduleIntroVideos: {},
     moduleEndVideos: {},
     moduleLessons: {},
-
-    // Course list initial states
     courses: [],
-    coursesLoading: false,
-    coursesError: null,
-    pagination: {
-        total: 0,
-        page: PAGINATION_CONSTANTS.DEFAULT_PAGE,
-        limit: PAGINATION_CONSTANTS.DEFAULT_LIMIT,
-        totalPages: 0,
-        hasNextPage: false,
-        hasPreviousPage: false
-    },
+    pagination: createInitialPagination(),
     searchQuery: '',
     localSearchQuery: '',
-
     error: null,
     successMessage: null
 }
 
-// Async thunk for creating course
-export const createCourseAsync = createAsyncThunk(
-    'courseManagement/createCourse',
-    async (formData: FormData, { rejectWithValue }) => {
-        try {
-            const result = await createCourse(formData)
-            return result
-        } catch (error: any) {
-            // Extract error message from API response
-            let errorMessage = 'Error creating course. '
-            if (error.response?.data?.message) {
-                // Use API response message if available
-                errorMessage = error.response.data.message
-            } else if (error.response?.status === 401) {
-                errorMessage += 'Authentication required. Please login again.'
-            } else if (error.response?.status === 403) {
-                errorMessage += 'Access denied. You may not have permission.'
-            } else if (error.response?.status === 404) {
-                errorMessage += 'API endpoint not found. Check server configuration.'
-            } else if (error.response?.status >= 500) {
-                errorMessage += 'Server error. Please try again later.'
-            } else if (error.code === 'NETWORK_ERROR') {
-                errorMessage += 'Network error. Check your connection.'
-            } else {
-                errorMessage += error.message || 'Unknown error occurred.'
-            }
-            return rejectWithValue(errorMessage)
-        }
-    }
-)
 
-// Async thunk for fetching all courses
-export const fetchCoursesAsync = createAsyncThunk(
-    'courseManagement/fetchCourses',
-    async ({
-        search = '',
-        page = PAGINATION_CONSTANTS.DEFAULT_PAGE,
-        limit = PAGINATION_CONSTANTS.DEFAULT_LIMIT
-    }: { search?: string, page?: number, limit?: number }, { rejectWithValue }) => {
-        try {
-            const result = await getAllCourses(search, page, limit)
-            return result
-        } catch (error: any) {
-            // Extract error message from API response
-            let errorMessage = 'Error fetching courses. '
-            if (error.response?.data?.message) {
-                errorMessage = error.response.data.message
-            } else if (error.response?.status >= 500) {
-                errorMessage += 'Server error. Please try again later.'
-            } else if (error.code === 'NETWORK_ERROR') {
-                errorMessage += 'Network error. Check your connection.'
-            } else {
-                errorMessage += error.message || 'Unknown error occurred.'
-            }
-            return rejectWithValue(errorMessage)
-        }
-    }
-)
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+const findModuleIndex = (courses: Course[], moduleId: string): number => 
+    courses.findIndex(course => course.id === moduleId)
 
+const calculateTotalPrice = (modulePrices: Record<string, number>): number =>
+    Object.values(modulePrices).reduce((sum, price) => sum + price, 0)
+
+// ============================================================================
+// SLICE
+// ============================================================================
 const courseManagementSlice = createSlice({
     name: 'courseManagement',
     initialState,
     reducers: {
-        // Form field updates
+        // ========================================================================
+        // FORM ACTIONS
+        // ========================================================================
         updateCourseForm: (state, action: PayloadAction<Partial<CourseFormData>>) => {
             state.courseForm = { ...state.courseForm, ...action.payload }
         },
 
-        updateCourseField: (state, action: PayloadAction<{ field: keyof CourseFormData, value: any }>) => {
+        updateCourseField: <K extends keyof CourseFormData>(
+            state: CourseManagementState, 
+            action: PayloadAction<{ field: K, value: CourseFormData[K] }>
+        ) => {
             const { field, value } = action.payload
-                ; (state.courseForm as any)[field] = value
+            state.courseForm[field] = value
         },
 
-        // Module management
+        // ========================================================================
+        // MODULE ACTIONS
+        // ========================================================================
         addModule: (state, action: PayloadAction<Course>) => {
             const newModule = action.payload
             state.courseForm.courses.push(newModule)
@@ -274,22 +254,27 @@ const courseManagementSlice = createSlice({
             }
         },
 
-        updateModuleField: (state, action: PayloadAction<{ moduleId: string, field: keyof Course, value: any }>) => {
+        updateModuleField: <K extends keyof Course>(
+            state: CourseManagementState,
+            action: PayloadAction<{ moduleId: string, field: K, value: Course[K] }>
+        ) => {
             const { moduleId, field, value } = action.payload
-            const moduleIndex = state.courseForm.courses.findIndex(course => course.id === moduleId)
+            const moduleIndex = findModuleIndex(state.courseForm.courses, moduleId)
             if (moduleIndex !== -1) {
-                ; (state.courseForm.courses[moduleIndex] as any)[field] = value
+                state.courseForm.courses[moduleIndex][field] = value
             }
         },
 
         updateModulePrice: (state, action: PayloadAction<{ moduleId: string, price: number }>) => {
             const { moduleId, price } = action.payload
             state.modulePrices[moduleId] = price
-            const moduleIndex = state.courseForm.courses.findIndex(course => course.id === moduleId)
+            
+            const moduleIndex = findModuleIndex(state.courseForm.courses, moduleId)
             if (moduleIndex !== -1) {
                 state.courseForm.courses[moduleIndex].price = price
             }
-            state.courseForm.price = Object.values(state.modulePrices).reduce((sum, p) => sum + p, 0)
+            
+            state.courseForm.price = calculateTotalPrice(state.modulePrices)
         },
 
         updateModuleIntroVideo: (state, action: PayloadAction<{ moduleId: string, enabled?: boolean, file?: File | null }>) => {
@@ -297,11 +282,11 @@ const courseManagementSlice = createSlice({
             const currentState = state.moduleIntroVideos[moduleId] || { enabled: false, file: null }
 
             state.moduleIntroVideos[moduleId] = {
-                enabled: enabled !== undefined ? enabled : currentState.enabled,
-                file: file !== undefined ? file : currentState.file
+                enabled: enabled ?? currentState.enabled,
+                file: file ?? currentState.file
             }
 
-            const moduleIndex = state.courseForm.courses.findIndex(course => course.id === moduleId)
+            const moduleIndex = findModuleIndex(state.courseForm.courses, moduleId)
             if (moduleIndex !== -1) {
                 state.courseForm.courses[moduleIndex].introVideo = state.moduleIntroVideos[moduleId].file
             }
@@ -312,11 +297,11 @@ const courseManagementSlice = createSlice({
             const currentState = state.moduleEndVideos[moduleId] || { enabled: true, file: null }
 
             state.moduleEndVideos[moduleId] = {
-                enabled: enabled !== undefined ? enabled : currentState.enabled,
-                file: file !== undefined ? file : currentState.file
+                enabled: enabled ?? currentState.enabled,
+                file: file ?? currentState.file
             }
 
-            const moduleIndex = state.courseForm.courses.findIndex(course => course.id === moduleId)
+            const moduleIndex = findModuleIndex(state.courseForm.courses, moduleId)
             if (moduleIndex !== -1) {
                 state.courseForm.courses[moduleIndex].endVideo = state.moduleEndVideos[moduleId].file
             }
@@ -325,15 +310,19 @@ const courseManagementSlice = createSlice({
         updateModuleLessons: (state, action: PayloadAction<{ moduleId: string, lessons: Lesson[] }>) => {
             const { moduleId, lessons } = action.payload
             state.moduleLessons[moduleId] = lessons
-            const moduleIndex = state.courseForm.courses.findIndex(course => course.id === moduleId)
+            
+            const moduleIndex = findModuleIndex(state.courseForm.courses, moduleId)
             if (moduleIndex !== -1) {
-                state.courseForm.courses[moduleIndex].videoFiles = lessons.map(l => l.videoFile).filter(Boolean) as File[]
-                state.courseForm.courses[moduleIndex].docFiles = lessons.flatMap(l => l.documentFiles)
-                state.courseForm.courses[moduleIndex].lessons_files = lessons.map(l => ({ title: l.title }))
+                const module = state.courseForm.courses[moduleIndex]
+                module.videoFiles = lessons.map(l => l.videoFile).filter(Boolean) as File[]
+                module.docFiles = lessons.flatMap(l => l.documentFiles)
+                module.lessons_files = lessons.map(l => ({ title: l.title }))
             }
         },
 
-        // UI state updates
+        // ========================================================================
+        // UI ACTIONS
+        // ========================================================================
         setShowModuleForm: (state, action: PayloadAction<boolean>) => {
             state.showModuleForm = action.payload
         },
@@ -346,7 +335,9 @@ const courseManagementSlice = createSlice({
             state.validationErrors = action.payload
         },
 
-        // Course list actions
+        // ========================================================================
+        // SEARCH & PAGINATION ACTIONS
+        // ========================================================================
         setSearchQuery: (state, action: PayloadAction<string>) => {
             state.searchQuery = action.payload
         },
@@ -360,22 +351,18 @@ const courseManagementSlice = createSlice({
             state.pagination.limit = action.payload.limit
         },
 
-        clearCoursesError: (state) => {
-            state.coursesError = null
-        },
-
-        // Reset states
+        // ========================================================================
+        // RESET & CLEAR ACTIONS
+        // ========================================================================
         resetForm: (state) => {
-            // Only reset form data, keep courses data
-            const coursesData = {
+            // Preserve course list data while resetting form
+            const preservedData = {
                 courses: state.courses,
-                coursesLoading: state.coursesLoading,
-                coursesError: state.coursesError,
                 pagination: state.pagination,
                 searchQuery: state.searchQuery,
                 localSearchQuery: state.localSearchQuery
             }
-            return { ...initialState, ...coursesData }
+            return { ...initialState, ...preservedData }
         },
 
         clearError: (state) => {
@@ -385,53 +372,20 @@ const courseManagementSlice = createSlice({
         clearSuccess: (state) => {
             state.successMessage = null
         }
-    },
-    extraReducers: (builder) => {
-        builder
-            .addCase(createCourseAsync.pending, (state) => {
-                state.isSubmitting = true
-                state.error = null
-                state.successMessage = null
-            })
-            .addCase(createCourseAsync.fulfilled, (state, action) => {
-                const successMessage = action.payload?.message || 'Course created successfully!'
-                // Reset form but keep courses data and set success message
-                const coursesData = {
-                    courses: state.courses,
-                    coursesLoading: state.coursesLoading,
-                    coursesError: state.coursesError,
-                    pagination: state.pagination,
-                    searchQuery: state.searchQuery,
-                    localSearchQuery: state.localSearchQuery
-                }
-                return { ...initialState, ...coursesData, successMessage }
-            })
-            .addCase(createCourseAsync.rejected, (state, action) => {
-                state.isSubmitting = false
-                state.error = action.payload as string
-            })
-            // Fetch courses cases
-            .addCase(fetchCoursesAsync.pending, (state) => {
-                state.coursesLoading = true
-                state.coursesError = null
-            })
-            .addCase(fetchCoursesAsync.fulfilled, (state, action) => {
-                state.coursesLoading = false
-                const response = action.payload as CoursesResponse
-                state.courses = response.data.series
-                state.pagination = response.data.pagination
-                state.coursesError = null
-            })
-            .addCase(fetchCoursesAsync.rejected, (state, action) => {
-                state.coursesLoading = false
-                state.coursesError = action.payload as string
-            })
     }
 })
 
+// ============================================================================
+// EXPORTS
+// ============================================================================
+
+// Action creators
 export const {
+    // Form actions
     updateCourseForm,
     updateCourseField,
+    
+    // Module actions
     addModule,
     removeModule,
     updateModuleField,
@@ -439,16 +393,22 @@ export const {
     updateModuleIntroVideo,
     updateModuleEndVideo,
     updateModuleLessons,
+    
+    // UI actions
     setShowModuleForm,
     setShowErrors,
     setValidationErrors,
+    
+    // Search & pagination actions
     setSearchQuery,
     setLocalSearchQuery,
     setPagination,
-    clearCoursesError,
+    
+    // Reset & clear actions
     resetForm,
     clearError,
     clearSuccess
 } = courseManagementSlice.actions
 
+// Reducer
 export default courseManagementSlice.reducer

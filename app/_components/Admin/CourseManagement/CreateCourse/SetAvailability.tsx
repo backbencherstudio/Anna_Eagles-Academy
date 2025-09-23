@@ -13,6 +13,7 @@ interface SetAvailabilityProps {
     isSubmitting: boolean
     onSubmit: () => void
     showErrors?: boolean
+    disabled?: boolean
 }
 
 export default function SetAvailability({
@@ -21,10 +22,11 @@ export default function SetAvailability({
     onDateRangeChange,
     isSubmitting,
     onSubmit,
-    showErrors = false
+    showErrors = false,
+    disabled = false
 }: SetAvailabilityProps) {
     return (
-        <Card className='border py-5 sticky top-0'>
+        <Card className={`border py-5 sticky top-0 ${disabled ? 'opacity-50' : ''}`}>
             <CardHeader>
                 <CardTitle className="text-md font-semibold">Set Availability</CardTitle>
             </CardHeader>
@@ -46,6 +48,7 @@ export default function SetAvailability({
                             onChange={onDateRangeChange}
                             placeholder="Select start date"
                             showAs="start"
+                            disabled={disabled}
                         />
                     </div>
 
@@ -57,6 +60,7 @@ export default function SetAvailability({
                             onChange={onDateRangeChange}
                             placeholder="Select end date"
                             showAs="end"
+                            disabled={disabled}
                         />
                     </div>
                 </div>
@@ -65,12 +69,12 @@ export default function SetAvailability({
 
                 <Button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || disabled}
                     onClick={onSubmit}
                     className="w-full bg-[#0F2598] cursor-pointer transition-all duration-300 hover:bg-[#0F2598]/80 text-white"
                     size="lg"
                 >
-                    {isSubmitting ? 'Publishing...' : 'Publish Course'}
+                    {disabled ? 'Add lessons first' : isSubmitting ? 'Publishing...' : 'Publish Course'}
                 </Button>
             </CardContent>
         </Card>

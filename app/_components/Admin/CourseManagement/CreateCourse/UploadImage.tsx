@@ -1,14 +1,16 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
-import { Image } from 'lucide-react'
+import { Image as ImageIcon } from 'lucide-react'
+import NextImage from 'next/image'
 
 interface UploadImageProps {
   onFileSelect: (file: File | null) => void
   thumbnailFile: File | null
   onRemove: () => void
+  existingUrl?: string | null
 }
 
-export default function UploadImage({ onFileSelect, thumbnailFile, onRemove }: UploadImageProps) {
+export default function UploadImage({ onFileSelect, thumbnailFile, onRemove, existingUrl }: UploadImageProps) {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
@@ -25,7 +27,7 @@ export default function UploadImage({ onFileSelect, thumbnailFile, onRemove }: U
           onClick={() => document.getElementById('thumbnail-upload')?.click()}
           className="flex items-center gap-2 cursor-pointer shadow-none"
         >
-          <Image className="h-4 w-4" />
+          <ImageIcon className="h-4 w-4" />
           Upload Thumbnail
         </Button>
         <input
@@ -41,9 +43,11 @@ export default function UploadImage({ onFileSelect, thumbnailFile, onRemove }: U
       {thumbnailFile && (
         <div className="mt-3">
           <div className="relative inline-block">
-            <img
+            <NextImage
               src={URL.createObjectURL(thumbnailFile)}
               alt="Course thumbnail"
+              width={400}
+              height={200}
               className="w-24 h-24 object-cover rounded-lg border cursor-pointer"
             />
             <Button
@@ -57,6 +61,20 @@ export default function UploadImage({ onFileSelect, thumbnailFile, onRemove }: U
             </Button>
           </div>
           <p className="text-sm text-gray-600 mt-1">{thumbnailFile.name}</p>
+        </div>
+      )}
+
+      {!thumbnailFile && existingUrl && (
+        <div className="mt-3">
+          <div className="relative inline-block">
+            <NextImage
+              src={existingUrl}
+              alt="Course thumbnail"
+              width={400}
+              height={200}
+              className="w-24 h-24 object-cover rounded-lg border"
+            />
+          </div>
         </div>
       )}
     </div>

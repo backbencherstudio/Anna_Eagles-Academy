@@ -8,7 +8,8 @@ import ResuablePagination from '@/components/Resuable/ResuablePagination'
 import { useRouter } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { useAppDispatch, useAppSelector } from '@/redux/hooks'
-import { fetchCoursesAsync, setSearchQuery, setPagination, PAGINATION_CONSTANTS } from '@/redux/slices/courseManagementSlice'
+import { setSearchQuery, setPagination, PAGINATION_CONSTANTS } from '@/redux/slices/courseManagementSlice'
+import { useGetAllCoursesQuery } from '@/redux/api/courseManagementApi'
 import toast from 'react-hot-toast'
 import { useDebounce } from '@/hooks/useDebounce'
 
@@ -25,12 +26,24 @@ export default function CourseManagement() {
     const inputRef = useRef<HTMLInputElement>(null)
 
     const {
-        courses,
-        coursesLoading,
-        coursesError,
         pagination,
         searchQuery
     } = useAppSelector(state => state.courseManagement)
+
+    // Use RTK Query hook for fetching courses
+    const {
+        data: coursesData,
+        isLoading: coursesLoading,
+        error: coursesError,
+        refetch
+    } = useGetAllCoursesQuery({
+        search: searchQuery,
+        page: pagination.page,
+        limit: pagination.limit
+    })
+
+    const courses = coursesData?.data?.series || []
+    const coursesPagination = coursesData?.data?.pagination || pagination
 
     const debouncedSearchQuery = useDebounce(localSearchInput, 500)
 
@@ -59,18 +72,15 @@ export default function CourseManagement() {
         }
     }, [courses, isInputFocused])
 
-    useEffect(() => {
-        dispatch(fetchCoursesAsync({
-            search: searchQuery,
-            page: pagination.page,
-            limit: pagination.limit
-        }))
-    }, [dispatch, searchQuery, pagination.page, pagination.limit])
+    // RTK Query automatically handles refetching when parameters change
 
     // Handle course fetch errors
     useEffect(() => {
         if (coursesError) {
-            toast.error(coursesError)
+            const errorMessage = 'data' in coursesError 
+                ? (coursesError.data as any)?.message || 'Failed to fetch courses'
+                : 'Failed to fetch courses'
+            toast.error(errorMessage)
         }
     }, [coursesError])
 
@@ -98,7 +108,7 @@ export default function CourseManagement() {
 
     // Create skeleton items based on pagination limit
     const createSkeletonItems = () => {
-        return Array.from({ length: pagination.limit }, (_, index) => (
+        return Array.from({ length: coursesPagination.limit || pagination.limit }, (_, index) => (
             <div key={`skeleton-${index}`} className="bg-white rounded-2xl shadow-sm animate-pulse border border-[#EEE]">
                 {/* Image skeleton */}
                 <div className="relative w-full h-56 p-3">
@@ -229,19 +239,19 @@ export default function CourseManagement() {
 
             {/* Course Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 mt-5">
-                {courses.map((course) => (
+                {courses.map((course: any) => (
                     <CourseCard key={course.id} course={course} />
                 ))}
             </div>
 
             {/* Pagination - Only show when there are multiple pages */}
-            {pagination.totalPages > 1 && (
+            {coursesPagination.totalPages > 1 && (
                 <div className="mt-8">
                     <ResuablePagination
-                        currentPage={pagination.page}
-                        totalPages={pagination.totalPages}
-                        totalItems={pagination.total}
-                        itemsPerPage={pagination.limit}
+                        currentPage={coursesPagination.page}
+                        totalPages={coursesPagination.totalPages}
+                        totalItems={coursesPagination.total}
+                        itemsPerPage={coursesPagination.limit}
                         onPageChange={handlePageChange}
                         onItemsPerPageChange={handleItemsPerPageChange}
                         itemsPerPageOptions={PAGINATION_CONSTANTS.ITEMS_PER_PAGE_OPTIONS}

@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'http',
+        protocol: 'https',
         hostname: 'nirob.signalsmind.com',
         port: '',
         pathname: '/**',
