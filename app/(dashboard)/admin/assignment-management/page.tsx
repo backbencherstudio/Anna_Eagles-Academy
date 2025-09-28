@@ -9,7 +9,7 @@ import React, { useEffect, useState } from 'react'
 
 export default function CreateAssignmentsPage() {
     const [activeTab, setActiveTab] = useState('quiz')
-    const router = useRouter()  
+    const router = useRouter()
     const handleTabChange = (value: string) => {
         setActiveTab(value)
         const params = new URLSearchParams(searchParams.toString())
@@ -39,12 +39,13 @@ export default function CreateAssignmentsPage() {
                     <TabsTrigger value="essay" className="text-muted-foreground cursor-pointer w-fit sm:w-1/2 py-3 data-[state=active]:text-[#0F2598] data-[state=active]:bg-[rgba(15,37,152,0.05)] text-sm">Assignment (Essay)</TabsTrigger>
                 </TabsList>
                 {/* tabs content */}
-                <TabsContent value="essay" className="mt-6">
-                    <AssignmentEssay />
-                </TabsContent>
                 <TabsContent value="quiz" className="mt-6">
                     <AssignmentQuiz />
                 </TabsContent>
+                <TabsContent value="essay" className="mt-6">
+                    <AssignmentEssay />
+                </TabsContent>
+
             </Tabs>
 
         </div>

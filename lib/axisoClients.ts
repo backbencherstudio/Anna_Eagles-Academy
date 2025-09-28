@@ -95,8 +95,8 @@ export const createAuthBaseQuery = () => {
         case 'GET':
           response = await axiosClient.get(url);
           break;
-        case 'PUT':
-          response = await axiosClient.put(url, body);
+        case 'PATCH':
+          response = await axiosClient.patch(url, body);
           break;
         case 'DELETE':
           response = await axiosClient.delete(url);

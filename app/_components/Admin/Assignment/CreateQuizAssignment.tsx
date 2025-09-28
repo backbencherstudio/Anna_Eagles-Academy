@@ -9,7 +9,8 @@ import QuizCreateDate, { type DeadlineFormData } from '@/components/Resuable/Qui
 import QuizSidebar, { handleDragEnd } from './QuizSection/quizSidebar'
 import CorrectAnswer from './QuizSection/CorrectAnswer'
 import { useGetSeriesWithCoursesQuery } from '@/rtk/api/courseFilterApis'
-import { useCreateQuizMutation } from '@/rtk/api/quizApis'
+import { useCreateQuizMutation, useGetSingleQuizQuery, useUpdateQuizMutation } from '@/rtk/api/quizApis'
+import { useParams } from 'next/navigation'
 
 
 interface Question {
@@ -33,12 +34,24 @@ interface QuizFormData {
 export default function CreateQuizAssignment() {
     const [questions, setQuestions] = useState<Question[]>([])
     const [selectedQuestionId, setSelectedQuestionId] = useState<string>('')
+    const [initialDates, setInitialDates] = useState<DeadlineFormData | null>(null)
+    const params = useParams()
+    const quizId = params?.id as string
+    const isEditMode = !!quizId
 
     // load series with courses for dependent dropdowns
     const { data: seriesData, isLoading: isSeriesLoading, isError: isSeriesError } = useGetSeriesWithCoursesQuery()
-
+    
     // create quiz mutation
     const [createQuiz, { isLoading: isCreatingQuiz, isError: isCreateError, isSuccess: isCreateSuccess }] = useCreateQuizMutation()
+    
+    // update quiz mutation
+    const [updateQuiz, { isLoading: isUpdatingQuiz, isError: isUpdateError, isSuccess: isUpdateSuccess }] = useUpdateQuizMutation()
+    
+    // get single quiz for editing
+    const { data: quizData, isLoading: isQuizLoading, isError: isQuizError } = useGetSingleQuizQuery(quizId, {
+        skip: !isEditMode
+    })
 
     const {
         control,
@@ -68,10 +81,58 @@ export default function CreateQuizAssignment() {
     const watchedQuestion = watch('question')
     const selectedSeriesId = watch('selectedSeries')
 
-    // reset course when series changes
+    // reset course when series changes (but not in edit mode when loading data)
     useEffect(() => {
-        setValue('selectedCourses', '')
-    }, [selectedSeriesId, setValue])
+        if (!isEditMode || !quizData?.data) {
+            setValue('selectedCourses', '')
+        }
+    }, [selectedSeriesId, setValue, isEditMode, quizData])
+
+    // load quiz data for editing
+    useEffect(() => {
+        if (quizData?.data && isEditMode) {
+            const quiz = quizData.data
+            setValue('quizTitle', quiz.title)
+            
+            // Set series and course together
+            setValue('selectedSeries', quiz.series_id)
+            setValue('selectedCourses', quiz.course_id)
+            
+            // Set initial dates for QuizCreateDate component
+            if (quiz.published_at && quiz.due_at) {
+                const publishedDate = new Date(quiz.published_at)
+                const dueDate = new Date(quiz.due_at)
+                
+                setInitialDates({
+                    startDateDeadline: publishedDate,
+                    startTimeDeadline: publishedDate.toTimeString().slice(0, 5), // HH:MM format
+                    submissionDeadline: dueDate,
+                    submissionTimeDeadline: dueDate.toTimeString().slice(0, 5) // HH:MM format
+                })
+            }
+            
+            // Convert API questions to local format
+            if (quiz.questions && quiz.questions.length > 0) {
+                const convertedQuestions: Question[] = quiz.questions.map((q: any, index: number) => {
+                    // Find the correct answer index
+                    const correctAnswerIndex = q.answers.findIndex((a: any) => a.is_correct)
+                    const correctAnswer = correctAnswerIndex >= 0 ? String.fromCharCode(65 + correctAnswerIndex) : ''
+                    
+                    // Create a copy of answers array before sorting to avoid mutation
+                    const sortedAnswers = [...q.answers].sort((a: any, b: any) => a.position - b.position)
+                    
+                    return {
+                        id: q.id || (Date.now().toString() + index),
+                        question: q.prompt,
+                        options: sortedAnswers.map((a: any) => a.option),
+                        correctAnswer: correctAnswer,
+                        points: q.points
+                    }
+                })
+                setQuestions(convertedQuestions)
+            }
+        }
+    }, [quizData, isEditMode, setValue])
 
     const seriesList = seriesData?.data || []
     const coursesForSelectedSeries = seriesList.find(s => s.id === selectedSeriesId)?.courses || []
@@ -243,29 +304,71 @@ export default function CreateQuizAssignment() {
 
 
 
-        // Call API to create quiz
+        // Call API to create or update quiz
         try {
-            await createQuiz(payload).unwrap()
-
-            // Clear all fields after successful publish
-            setQuestions([])
-            reset({
-                selectedSeries: '',
-                selectedCourses: '',
-                quizTitle: '',
-                question: '',
-                options: ['', '', ''],
-                correctAnswer: '',
-                points: 10
-            })
-            setSelectedQuestionId('')
-            clearErrors()
-
-            alert('Quiz created successfully!')
+            if (isEditMode) {
+                // For update, we need to pass id separately and payload as body
+                await updateQuiz({ 
+                    id: quizId, 
+                    ...payload 
+                }).unwrap()
+                alert('Quiz updated successfully!')
+            } else {
+                await createQuiz(payload).unwrap()
+                alert('Quiz created successfully!')
+            }
+            
+            // Clear all fields after successful publish (only for create mode)
+            if (!isEditMode) {
+                setQuestions([])
+                reset({
+                    selectedSeries: '',
+                    selectedCourses: '',
+                    quizTitle: '',
+                    question: '',
+                    options: ['', '', ''],
+                    correctAnswer: '',
+                    points: 10
+                })
+                setSelectedQuestionId('')
+                clearErrors()
+            }
         } catch (error: any) {
-            const errorMessage = error?.data?.message || 'Failed to create quiz. Please try again.'
+            const errorMessage = error?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} quiz. Please try again.`
             alert(typeof errorMessage === 'string' ? errorMessage : errorMessage.join('\n'))
         }
+    }
+
+    // Show loading state when fetching quiz data for editing
+    if (isEditMode && isQuizLoading) {
+        return (
+            <div className="bg-white p-5 rounded-xl">
+                <div className="animate-pulse">
+                    <div className="h-8 bg-gray-200 rounded mb-4"></div>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <div className="lg:col-span-1">
+                            <div className="h-64 bg-gray-200 rounded"></div>
+                        </div>
+                        <div className="lg:col-span-2">
+                            <div className="h-32 bg-gray-200 rounded mb-4"></div>
+                            <div className="h-32 bg-gray-200 rounded mb-4"></div>
+                            <div className="h-32 bg-gray-200 rounded"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    // Show error state if quiz fetch fails
+    if (isEditMode && isQuizError) {
+        return (
+            <div className="bg-white p-5 rounded-xl">
+                <div className="text-center py-8">
+                    <p className="text-red-500">Failed to load quiz data</p>
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -273,9 +376,14 @@ export default function CreateQuizAssignment() {
             {/* Header */}
             <QuizCreateDate
                 onPublish={handlePublish}
-                publishButtonText={isCreatingQuiz ? "Publishing..." : "+ Publish"}
-                publishButtonDisabled={questions.length === 0 || isCreatingQuiz}
+                publishButtonText={
+                    isCreatingQuiz ? "Publishing..." : 
+                    isUpdatingQuiz ? "Updating..." : 
+                    isEditMode ? "+ Update Quiz" : "+ Publish"
+                }
+                publishButtonDisabled={questions.length === 0 || isCreatingQuiz || isUpdatingQuiz}
                 showValidation={true}
+                initialDates={initialDates}
             />
 
             <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
@@ -387,16 +495,21 @@ export default function CreateQuizAssignment() {
                                                 value={field.value}
                                                 onValueChange={field.onChange}
                                             >
-                                                <SelectTrigger className="w-full" disabled={!selectedSeriesId || isSeriesLoading}>
+                                                <SelectTrigger className="w-full" disabled={!selectedSeriesId || isSeriesLoading || (isEditMode && isQuizLoading)}>
                                                     <SelectValue placeholder="Selected Courses" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {(!selectedSeriesId || coursesForSelectedSeries.length === 0) && (
+                                                    {isQuizLoading && isEditMode && (
+                                                        <SelectItem value="loading" disabled>
+                                                            Loading courses...
+                                                        </SelectItem>
+                                                    )}
+                                                    {!isQuizLoading && (!selectedSeriesId || coursesForSelectedSeries.length === 0) && (
                                                         <SelectItem value="no-course" disabled>
                                                             {selectedSeriesId ? 'No courses found' : 'Select a series first'}
                                                         </SelectItem>
                                                     )}
-                                                    {coursesForSelectedSeries.map((course) => (
+                                                    {!isQuizLoading && coursesForSelectedSeries.map((course) => (
                                                         <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
                                                     ))}
                                                 </SelectContent>

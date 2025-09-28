@@ -39,7 +39,7 @@ export const quizApi = createApi({
         updateQuiz: builder.mutation({
             query: (quiz) => ({
                 url: `/api/admin/quiz/${quiz.id}`,
-                method: 'PUT',
+                method: 'PATCH',
                 body: quiz,
             }),
         }),
@@ -53,7 +53,17 @@ export const quizApi = createApi({
             invalidatesTags: ['Quiz'],
         }),
 
-    }), 
+
+        // all data quiz
+        getAllDataQuiz: builder.query({
+            query: () => ({
+                url: '/api/admin/quiz/dashboard',
+                method: 'GET',
+            }),
+            providesTags: ['Quiz'],
+        }),
+
+    }),
 });
 
-export const { useCreateQuizMutation, useGetAllQuizzesQuery, useGetSingleQuizQuery, useUpdateQuizMutation, useDeleteQuizMutation } = quizApi;
+export const { useCreateQuizMutation, useGetAllQuizzesQuery, useGetSingleQuizQuery, useUpdateQuizMutation, useDeleteQuizMutation, useGetAllDataQuizQuery } = quizApi;

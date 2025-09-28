@@ -137,7 +137,7 @@ export default function AssignmentQuiz() {
                     {assignments.map((assignment) => (
                         <Card
                             key={assignment.id}
-                            className="hover:shadow-lg transition-shadow duration-200 cursor-pointer border border-gray-200"
+                            className="hover:shadow transition-shadow duration-200 cursor-pointer border border-gray-200"
                         >
                             <CardContent className="p-4">
                                 {/* Orange square indicator */}

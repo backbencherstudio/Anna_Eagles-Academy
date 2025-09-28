@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,6 +13,7 @@ interface QuizCreateDateProps {
     publishButtonDisabled?: boolean
     showValidation?: boolean
     className?: string
+    initialDates?: DeadlineFormData | null
 }
 
 export interface DeadlineFormData {
@@ -55,16 +56,18 @@ export default function QuizCreateDate({
     publishButtonText = "+ Publish",
     publishButtonDisabled = false,
     showValidation = true,
-    className = ""
+    className = "",
+    initialDates = null
 }: QuizCreateDateProps) {
     const {
         control,
         formState: { errors, isSubmitted },
         getValues,
         watch,
-        trigger
+        trigger,
+        reset
     } = useForm<DeadlineFormData>({
-        defaultValues: {
+        defaultValues: initialDates || {
             startDateDeadline: new Date(),
             startTimeDeadline: '09:00',
             submissionDeadline: new Date(),
@@ -72,6 +75,13 @@ export default function QuizCreateDate({
         },
         mode: 'onSubmit'
     })
+
+    // Reset form when initialDates change
+    useEffect(() => {
+        if (initialDates) {
+            reset(initialDates)
+        }
+    }, [initialDates, reset])
 
     // Watch for changes in start time to trigger submission time validation
     const startTime = watch('startTimeDeadline')
