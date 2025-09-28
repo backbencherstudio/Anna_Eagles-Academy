@@ -12,8 +12,8 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { useLogoutMutation } from '@/redux/api/authApi';
+import { useAppDispatch, useAppSelector } from '@/rtk/hooks';
+import { useLogoutMutation } from '@/rtk/api/authApi';
 import toast from 'react-hot-toast';
 
 interface ProfileNavProps {

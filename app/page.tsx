@@ -2,9 +2,9 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAppSelector, useAppDispatch } from '@/redux/hooks';
-import { clearAuth, initializeAuth, initializeFromToken } from '@/redux/slices/authSlice';
-import { useCheckAuthQuery } from '@/redux/api/authApi';
+import { useAppSelector, useAppDispatch } from '@/rtk/hooks';
+import { clearAuth, initializeAuth, initializeFromToken } from '@/rtk/slices/authSlice';
+import { useCheckAuthQuery } from '@/rtk/api/authApi';
 import { getCookie } from '@/lib/tokenUtils';
 import LoadingOverlay from '@/components/Resuable/LoadingOverlay';
 

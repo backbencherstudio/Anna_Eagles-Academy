@@ -12,9 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import ButtonSpring from '@/components/Resuable/ButtonSpring'
 
 // Utils & Hooks
-import { getCookie } from '@/lib/tokenUtils'
-import { useAppDispatch, useAppSelector } from '@/redux/hooks'
-import { setCurrentSeriesId } from '@/redux/slices/managementCourseSlice'
+import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
+import { setCurrentSeriesId } from '@/rtk/slices/managementCourseSlice'
 
 // API Hooks
 import {
@@ -23,7 +22,7 @@ import {
     useGetAllModulesQuery,
     useGetSingleLessonQuery,
     useUpdateSingleLessonMutation
-} from '@/redux/api/managementCourseApis'
+} from '@/rtk/api/managementCourseApis'
 
 // Components
 import LessonList from './LessonList'

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Plus, Trash2 } from 'lucide-react'
 import UploadVideo from './UploadVideo'
 import LessonVideo from './LessonVideo'
-import { useAppDispatch, useAppSelector } from '@/redux/hooks'
+import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
 import {
     addModule,
     removeModule,
@@ -16,8 +16,8 @@ import {
     updateModuleEndVideo,
     updateModuleLessons,
     setShowModuleForm
-} from '@/redux/slices/courseManagementSlice'
-import type { Course, Lesson } from '@/redux/slices/courseManagementSlice'
+} from '@/rtk/slices/courseManagementSlice'
+import type { Course, Lesson } from '@/rtk/slices/courseManagementSlice'
 
 export default function AddModules() {
     const dispatch = useAppDispatch()

@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardTitle } from '@/components/ui/card'
 import CameraIcon from '@/components/Icons/CameraIcon'
 import VideoModal from '@/components/Resuable/VideoModal'
 

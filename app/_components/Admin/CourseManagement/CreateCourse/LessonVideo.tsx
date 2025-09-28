@@ -2,7 +2,7 @@ import React, { useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { Plus, Trash2, Upload, FileText, Video } from 'lucide-react'
+import { Plus, Trash2, FileText, Video } from 'lucide-react'
 import { Lesson } from './types'
 
 interface LessonVideoProps {

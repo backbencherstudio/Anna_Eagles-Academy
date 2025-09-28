@@ -7,9 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { useGetSeriesWithCoursesQuery } from '@/redux/api/courseFilterApis';
-import { Course, SeriesWithCourses } from '@/redux/api/courseFilterApis';
-import { useCreateMaterialMutation, useUpdateSingleMaterialMutation } from '@/redux/api/manageMaterialsApis';
+import { useGetSeriesWithCoursesQuery } from '@/rtk/api/courseFilterApis';
+import { Course, SeriesWithCourses } from '@/rtk/api/courseFilterApis';
+import { useCreateMaterialMutation, useUpdateSingleMaterialMutation } from '@/rtk/api/manageMaterialsApis';
 import toast from 'react-hot-toast';
 
 interface MaterialsUploadProps {

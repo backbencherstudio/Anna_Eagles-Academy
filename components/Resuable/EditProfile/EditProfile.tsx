@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { Calendar as CalendarIcon } from 'lucide-react';
@@ -13,7 +13,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 
 import ProfileImage from '@/components/Shared/ProfileImage';
-import { useAppSelector } from '@/redux/hooks';
+import { useAppSelector } from '@/rtk/hooks';
 
 export default function EditProfile() {
     const user = useAppSelector((state) => state.auth.user)

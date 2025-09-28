@@ -1,6 +1,5 @@
 import React from 'react'
 import { Card, CardContent } from '@/components/ui/card'
-import { FileText, FolderLock } from 'lucide-react'
 import DocumentsIcon from '@/components/Icons/DocumentsIcon'
 
 type DocumentItem = {

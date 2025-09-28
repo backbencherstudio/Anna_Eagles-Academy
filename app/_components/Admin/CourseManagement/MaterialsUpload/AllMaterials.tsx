@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useGetAllMaterialsQuery, useDeleteSingleMaterialMutation } from '@/redux/api/manageMaterialsApis';
+import { useGetAllMaterialsQuery, useDeleteSingleMaterialMutation } from '@/rtk/api/manageMaterialsApis';
 import { Edit, Trash2, FileText, Video, Music, File } from 'lucide-react';
 import ConfirmDialog from '@/components/Resuable/ConfirmDialog';
 import toast from 'react-hot-toast';

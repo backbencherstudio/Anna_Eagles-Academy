@@ -2,9 +2,9 @@
 
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { clearAuth, initializeFromToken } from '@/redux/slices/authSlice';
-import { useCheckAuthQuery, useLogoutMutation } from '@/redux/api/authApi';
+import { useAppDispatch, useAppSelector } from '@/rtk/hooks';
+import { clearAuth, initializeFromToken } from '@/rtk/slices/authSlice';
+import { useCheckAuthQuery, useLogoutMutation } from '@/rtk/api/authApi';
 import LoadingOverlay from './Resuable/LoadingOverlay';
 
 interface RouteGuardProps {

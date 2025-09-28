@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { MdOutlineReplay10, MdOutlineForward10 } from "react-icons/md";
-import { useVideoProgress } from "../../hooks/useVideoProgress";
+import { useVideoProgress } from "@/hooks/useVideoProgress";
 
 interface VideoData {
     video_id: string;

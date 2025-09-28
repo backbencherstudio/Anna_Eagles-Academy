@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import DateRangePicker from '@/components/ui/DateRangePicker'
 import { DateRange } from 'react-day-picker'
-import { useUpdateSingleSeriesMutation, useGetSingleSeriesQuery } from '@/redux/api/managementCourseApis'
-import { useAppSelector } from '@/redux/hooks'
+import { useUpdateSingleSeriesMutation, useGetSingleSeriesQuery } from '@/rtk/api/managementCourseApis'
+import { useAppSelector } from '@/rtk/hooks'
 
 import toast from 'react-hot-toast'
 

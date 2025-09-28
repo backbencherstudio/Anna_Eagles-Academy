@@ -7,7 +7,7 @@ import MainNotification from './MainNotification';
 import Language from './Laguage';
 import ProfileNav from './ProfileNav';
 import { useNotificationCount } from '@/hooks/useNotificationCount';
-import { useAppSelector } from '@/redux/hooks';
+import { useAppSelector } from '@/rtk/hooks';
 
 interface NavbarProps {
     onMobileMenuToggle: () => void;

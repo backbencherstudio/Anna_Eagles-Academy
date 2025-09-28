@@ -1,4 +1,4 @@
-import { useRegisterMutation } from '@/redux/api/authApi';
+import { useRegisterMutation } from '@/rtk/api/authApi';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 

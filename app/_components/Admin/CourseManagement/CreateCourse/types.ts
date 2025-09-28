@@ -3,4 +3,4 @@ export type {
     Lesson, 
     Course, 
     CourseFormData 
-} from '@/redux/slices/courseManagementSlice'
+} from '@/rtk/slices/courseManagementSlice'

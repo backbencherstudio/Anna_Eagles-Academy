@@ -2,7 +2,7 @@ import React, { useRef } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, Upload } from 'lucide-react';
 import { useState } from 'react';
-import { useAppSelector } from '@/redux/hooks';
+import { useAppSelector } from '@/rtk/hooks';
 
 
 export default function ProfileImage() {

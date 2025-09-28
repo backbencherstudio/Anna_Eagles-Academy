@@ -15,9 +15,9 @@ import { Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useAppDispatch, useAppSelector } from '@/redux/hooks'
-import { clearError } from '@/redux/slices/authSlice'
-import { useLoginMutation, useCheckAuthQuery } from '@/redux/api/authApi'
+import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
+import { clearError } from '@/rtk/slices/authSlice'
+import { useLoginMutation, useCheckAuthQuery } from '@/rtk/api/authApi'
 import LoginLoading from '@/components/Resuable/LoginLoading'
 
 

@@ -5,7 +5,7 @@ import Image from 'next/image'
 import EditIcon from '@/components/Icons/CustomIcon/EditIcon'
 import { useRouter } from 'next/navigation'
 import { Trash2 } from 'lucide-react'
-import { useDeleteSingleSeriesMutation } from '@/redux/api/managementCourseApis'
+import { useDeleteSingleSeriesMutation } from '@/rtk/api/managementCourseApis'
 import toast from 'react-hot-toast'
 import ConfirmDialog from '@/components/Resuable/ConfirmDialog'
 

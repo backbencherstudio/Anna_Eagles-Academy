@@ -1,6 +1,6 @@
 'use client'
 import { Provider } from 'react-redux'
-import { store } from '@/redux'
+import { store } from '@/rtk'
 
 export default function ReduxProvider({
   children,

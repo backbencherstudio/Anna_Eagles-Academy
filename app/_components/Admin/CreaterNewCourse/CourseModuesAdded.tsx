@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form'
 import { Pencil, Trash2 } from 'lucide-react'
 import ButtonSpring from '@/components/Resuable/ButtonSpring'
 import { getCookie } from '@/lib/tokenUtils'
-import { useCreateModuleMutation, useGetAllModulesQuery, useUpdateSingleModuleMutation, useDeleteSingleModuleMutation } from '@/redux/api/managementCourseApis'
+import { useCreateModuleMutation, useGetAllModulesQuery, useUpdateSingleModuleMutation, useDeleteSingleModuleMutation } from '@/rtk/api/managementCourseApis'
 import ConfirmDialog from '@/components/Resuable/ConfirmDialog'
 import { toast } from 'react-hot-toast'
 
