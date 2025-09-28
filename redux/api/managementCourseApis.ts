@@ -47,7 +47,7 @@ const baseQuery = async (args: { url: string; method: string; data?: any; params
 export const managementCourseApi = createApi({
     reducerPath: 'managementCourseApi',
     baseQuery,
-    tagTypes: ['ManagementCourse'],
+    tagTypes: ['ManagementCourse', 'Course'],
     endpoints: (builder) => ({
 
         // ==================this is create course==================
@@ -59,7 +59,7 @@ export const managementCourseApi = createApi({
                 method: 'POST',
                 data: formData,
             }),
-            invalidatesTags: ['ManagementCourse'],
+            invalidatesTags: ['ManagementCourse', 'Course'],
         }),
 
         // create module
@@ -85,6 +85,15 @@ export const managementCourseApi = createApi({
 
         // ==================this is for get single course==================
 
+        // get all courses with pagination and search
+        getAllCourses: builder.query({
+            query: ({ search = '', page = 1, limit = 8 }: { search?: string; page?: number; limit?: number }) => ({
+                url: '/api/admin/series',
+                method: 'GET',
+                params: { search, page, limit },
+            }),
+            providesTags: ['ManagementCourse', 'Course'],
+        }),
 
         // get modules title with series id (this is filtered by series id)
         getAllModulesTitle: builder.query({
@@ -101,6 +110,10 @@ export const managementCourseApi = createApi({
                 url: `/api/admin/series/${series_id}`,
                 method: 'GET',
             }),
+            providesTags: (result, error, series_id) => [
+                { type: 'ManagementCourse', id: series_id },
+                { type: 'Course', id: series_id }
+            ],
         }),
 
         // single module
@@ -154,6 +167,12 @@ export const managementCourseApi = createApi({
                 method: 'PATCH',
                 data: formData,
             }),
+            invalidatesTags: (result, error, { series_id }) => [
+                { type: 'ManagementCourse', id: series_id },
+                { type: 'Course', id: series_id },
+                'ManagementCourse',
+                'Course'
+            ],
         }),
 
         // update single module
@@ -189,6 +208,7 @@ export const managementCourseApi = createApi({
                 url: `/api/admin/series/${series_id}`,
                 method: 'DELETE',
             }),
+            invalidatesTags: ['ManagementCourse', 'Course'],
         }),
 
         // delete single module 
@@ -214,4 +234,4 @@ export const managementCourseApi = createApi({
     }),
 });
 
-export const { useCreateSeriesMutation, useCreateModuleMutation, useGetAllModulesTitleQuery, useGetAllModulesQuery, useGetSingleSeriesQuery, useGetSingleModuleQuery, useGetSingleLessonQuery, useUpdateSingleSeriesMutation, useUpdateSingleModuleMutation, useUpdateSingleLessonMutation, useCreateLessonMutation, useDeleteSingleModuleMutation, useGetAllLessonsQuery, useDeleteSingleLessonMutation, useDeleteSingleSeriesMutation } = managementCourseApi;
+export const { useCreateSeriesMutation, useCreateModuleMutation, useGetAllCoursesQuery, useGetAllModulesTitleQuery, useGetAllModulesQuery, useGetSingleSeriesQuery, useGetSingleModuleQuery, useGetSingleLessonQuery, useUpdateSingleSeriesMutation, useUpdateSingleModuleMutation, useUpdateSingleLessonMutation, useCreateLessonMutation, useDeleteSingleModuleMutation, useGetAllLessonsQuery, useDeleteSingleLessonMutation, useDeleteSingleSeriesMutation } = managementCourseApi;

@@ -48,7 +48,6 @@ export const MENU_CONFIG = {
                     hasDropdown: true,
                     subItems: [
                         { title: 'Course List', href: '/admin/course-management', role: 'admin' },
-                        { title: 'Create New Course', href: '/admin/create-new-course', role: 'admin' },
                         { title: 'Materials Upload', href: '/admin/materials-upload', role: 'admin' }
                     ]
                 },

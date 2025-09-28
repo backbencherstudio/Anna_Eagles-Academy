@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { useAppDispatch, useAppSelector } from '@/redux/hooks'
 import { setSearchQuery, setPagination, PAGINATION_CONSTANTS } from '@/redux/slices/courseManagementSlice'
-import { useGetAllCoursesQuery } from '@/redux/api/courseManagementApi'
+import { useGetAllCoursesQuery } from '@/redux/api/managementCourseApis'
 import toast from 'react-hot-toast'
 import { useDebounce } from '@/hooks/useDebounce'
 
@@ -77,7 +77,7 @@ export default function CourseManagement() {
     // Handle course fetch errors
     useEffect(() => {
         if (coursesError) {
-            const errorMessage = 'data' in coursesError 
+            const errorMessage = 'data' in coursesError
                 ? (coursesError.data as any)?.message || 'Failed to fetch courses'
                 : 'Failed to fetch courses'
             toast.error(errorMessage)
@@ -87,7 +87,7 @@ export default function CourseManagement() {
     const handleCreateCourse = () => {
         setIsLoading(true)
         setTimeout(() => {
-            router.push('/admin/create-course')
+            router.push('/admin/create-course/new')
             setIsLoading(false)
         }, 200)
     }

@@ -1,13 +1,13 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import DateRangePicker from '@/components/ui/DateRangePicker'
 import { DateRange } from 'react-day-picker'
-import { useUpdateSingleSeriesMutation } from '@/redux/api/managementCourseApis'
+import { useUpdateSingleSeriesMutation, useGetSingleSeriesQuery } from '@/redux/api/managementCourseApis'
 import { useAppSelector } from '@/redux/hooks'
-import { getCookie, deleteCookie } from '@/lib/tokenUtils'
+
 import toast from 'react-hot-toast'
 
 interface SetAvailabilityProps {
@@ -37,6 +37,27 @@ export default function SetAvailability({
     const seriesIdFromStore = useAppSelector((s) => s.managementCourse.currentSeriesId)
     const activeSeriesId = seriesId || seriesIdFromStore
 
+    // Fetch single series data to get existing dates
+    const { data: seriesData, isLoading: isLoadingSeries } = useGetSingleSeriesQuery(
+        activeSeriesId || '', 
+        { skip: !activeSeriesId }
+    )
+
+    // ==================== EFFECTS ====================
+    // Set existing dates when series data is loaded
+    useEffect(() => {
+        if (seriesData?.data?.start_date && seriesData?.data?.end_date && !dateRange?.from && !dateRange?.to) {
+            // Parse dates without timezone conversion to avoid date shifting
+            const startDateStr = seriesData.data.start_date.split('T')[0] // Get only date part
+            const endDateStr = seriesData.data.end_date.split('T')[0] // Get only date part
+            
+            const startDate = new Date(startDateStr + 'T00:00:00') // Create local date
+            const endDate = new Date(endDateStr + 'T00:00:00') // Create local date
+            
+            onDateRangeChange({ from: startDate, to: endDate })
+        }
+    }, [seriesData, dateRange, onDateRangeChange])
+
     // ==================== HANDLERS ====================
     const handleSubmit = async () => {
         if (!dateRange?.from || !dateRange?.to) {
@@ -53,8 +74,17 @@ export default function SetAvailability({
 
         try {
             const formData = new FormData()
-            formData.append('start_date', dateRange.from.toISOString().split('T')[0])
-            formData.append('end_date', dateRange.to.toISOString().split('T')[0])
+            
+            // Format dates without timezone conversion to preserve selected dates
+            const formatDate = (date: Date) => {
+                const year = date.getFullYear()
+                const month = String(date.getMonth() + 1).padStart(2, '0')
+                const day = String(date.getDate()).padStart(2, '0')
+                return `${year}-${month}-${day}`
+            }
+            
+            formData.append('start_date', formatDate(dateRange.from))
+            formData.append('end_date', formatDate(dateRange.to))
 
             const res: any = await updateSeries({ 
                 series_id: activeSeriesId, 
@@ -87,29 +117,38 @@ export default function SetAvailability({
                 <Separator />
 
                 <div className="space-y-4">
-                    <div className="space-y-2">
-                        <Label className="text-sm font-medium text-gray-700">Start Date <span className="text-red-500">*</span></Label>
-                        <DateRangePicker
-                            value={dateRange}
-                            className={`cursor-pointer ${showErrors && !dateRange?.from ? 'border-red-500' : ''}`}
-                            onChange={onDateRangeChange}
-                            placeholder="Select start date"
-                            showAs="start"
-                            disabled={disabled}
-                        />
-                    </div>
+                    {isLoadingSeries ? (
+                        <div className="text-center py-4">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#0F2598] mx-auto"></div>
+                            <p className="mt-2 text-sm text-gray-600">Loading dates...</p>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="space-y-2">
+                                <Label className="text-sm font-medium text-gray-700">Start Date <span className="text-red-500">*</span></Label>
+                                <DateRangePicker
+                                    value={dateRange}
+                                    className={`cursor-pointer ${showErrors && !dateRange?.from ? 'border-red-500' : ''}`}
+                                    onChange={onDateRangeChange}
+                                    placeholder="Select start date"
+                                    showAs="start"
+                                    disabled={disabled}
+                                />
+                            </div>
 
-                    <div className="space-y-2">
-                        <Label className="text-sm font-medium text-gray-700">End Date <span className="text-red-500">*</span></Label>
-                        <DateRangePicker
-                            value={dateRange}
-                            className={`cursor-pointer ${showErrors && !dateRange?.to ? 'border-red-500' : ''}`}
-                            onChange={onDateRangeChange}
-                            placeholder="Select end date"
-                            showAs="end"
-                            disabled={disabled}
-                        />
-                    </div>
+                            <div className="space-y-2">
+                                <Label className="text-sm font-medium text-gray-700">End Date <span className="text-red-500">*</span></Label>
+                                <DateRangePicker
+                                    value={dateRange}
+                                    className={`cursor-pointer ${showErrors && !dateRange?.to ? 'border-red-500' : ''}`}
+                                    onChange={onDateRangeChange}
+                                    placeholder="Select end date"
+                                    showAs="end"
+                                    disabled={disabled}
+                                />
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 <Separator />
