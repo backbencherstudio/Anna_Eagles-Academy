@@ -1,26 +1,36 @@
 "use client"
+import React, { useState, useEffect, useMemo } from 'react'
+import { useForm } from 'react-hook-form'
+import toast from 'react-hot-toast'
+import { FileText, Trash2, Video } from 'lucide-react'
+
+// UI Components
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { FileText, Trash2, Video, Pencil } from 'lucide-react'
-import React, { useState } from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useForm } from 'react-hook-form'
 import ButtonSpring from '@/components/Resuable/ButtonSpring'
+
+// Utils & Hooks
 import { getCookie } from '@/lib/tokenUtils'
-import { useCreateLessonMutation, useGetAllLessonsQuery, useGetAllModulesQuery, useGetSingleLessonQuery } from '@/redux/api/managementCourseApis'
 import { useAppDispatch, useAppSelector } from '@/redux/hooks'
 import { setCurrentSeriesId } from '@/redux/slices/managementCourseSlice'
 
+// API Hooks
+import {
+    useCreateLessonMutation,
+    useGetAllLessonsQuery,
+    useGetAllModulesQuery,
+    useGetSingleLessonQuery,
+    useUpdateSingleLessonMutation
+} from '@/redux/api/managementCourseApis'
+
+// Components
+import LessonList from './LessonList'
+
+// Types
 type LessonForm = {
     title: string
-}
-
-type SavedLesson = {
-    id: string
-    title: string
-    videoName: string | null
-    docCount: number
 }
 
 type AddLeesionCourseProps = {
@@ -28,11 +38,13 @@ type AddLeesionCourseProps = {
 }
 
 export default function AddLeesionCourse({ onLessonsAdded }: AddLeesionCourseProps) {
+    // ==================== FORM SETUP ====================
     const { register, formState: { errors }, trigger, reset, setValue, getValues } = useForm<LessonForm>({
         defaultValues: { title: '' },
         mode: 'onTouched',
     })
 
+    // ==================== STATE MANAGEMENT ====================
     const [selectedModule, setSelectedModule] = useState<string>('')
     const [videoFile, setVideoFile] = useState<File | null>(null)
     const [docFiles, setDocFiles] = useState<File[]>([])
@@ -40,70 +52,128 @@ export default function AddLeesionCourse({ onLessonsAdded }: AddLeesionCoursePro
     const [existingDocUrl, setExistingDocUrl] = useState<string | null>(null)
     const [fileTouched, setFileTouched] = useState(false)
     const [submitting, setSubmitting] = useState(false)
-    const [savedByModule, setSavedByModule] = useState<Record<string, SavedLesson[]>>({})
     const [editingId, setEditingId] = useState<string | null>(null)
+    const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; targetId: string | null }>({
+        open: false,
+        targetId: null
+    })
 
+    // ==================== COMPUTED VALUES ====================
     const hasAnyFile = Boolean(videoFile) || docFiles.length > 0 || Boolean(existingVideoUrl) || Boolean(existingDocUrl)
+    const hasVideo = Boolean(videoFile) || Boolean(existingVideoUrl)
+    const hasDocuments = docFiles.length > 0 || Boolean(existingDocUrl)
 
-    // Load modules from API for current series (via slice)
+    // ==================== REDUX SETUP ====================
     const dispatch = useAppDispatch()
     const seriesIdFromStore = useAppSelector((s) => s.managementCourse.currentSeriesId)
     const cookieSeriesId = typeof document !== 'undefined' ? (getCookie('series_id') as string | null) : null
-    React.useEffect(() => {
+
+    useEffect(() => {
         if (cookieSeriesId) dispatch(setCurrentSeriesId(cookieSeriesId))
     }, [cookieSeriesId, dispatch])
-    const activeSeriesId = seriesIdFromStore || cookieSeriesId || ''
-    const { data: modulesResp, isLoading: modulesLoading } = useGetAllModulesQuery(activeSeriesId, { skip: !activeSeriesId })
-    const modules: Array<{ id: string; title: string }> = React.useMemo(() => {
-        const resp: any = modulesResp as any
-        const raw = resp?.data
-        let list: any[] = []
-        if (Array.isArray(raw?.courses)) list = raw.courses
-        else if (Array.isArray(raw)) list = raw
-        else if (Array.isArray(raw?.data)) list = raw.data
-        return list.map((m: any) => ({ id: m.id, title: m.title }))
-    }, [modulesResp])
-    React.useEffect(() => {
-        if (!selectedModule && modules.length > 0) setSelectedModule(modules[0].id)
-    }, [modules, selectedModule])
 
+    const activeSeriesId = seriesIdFromStore || cookieSeriesId || ''
+
+    // ==================== API HOOKS ====================
+    const { data: modulesResp, isLoading: modulesLoading } = useGetAllModulesQuery(activeSeriesId, { skip: !activeSeriesId })
     const [createLesson] = useCreateLessonMutation()
+    const [updateLesson] = useUpdateSingleLessonMutation()
     const { data: lessonsResp } = useGetAllLessonsQuery(selectedModule, { skip: !selectedModule })
     const { data: singleLessonResp } = useGetSingleLessonQuery(editingId as string, { skip: !editingId })
 
-    // When editing, hydrate inputs and previews from single lesson API
-    React.useEffect(() => {
-        const d: any = (singleLessonResp as any)?.data
-        if (!d) return
-        setValue('title', d.title || '')
-        setExistingVideoUrl(d.file_url || d.video_url || null)
-        setExistingDocUrl(d.doc_url || null)
-    }, [singleLessonResp, setValue])
+    // ==================== DATA PROCESSING ====================
+    const modules = useMemo(() => {
+        if (!modulesResp?.data?.courses) return []
+        return modulesResp.data.courses.map((m: any) => ({
+            id: m.id,
+            title: m.title
+        }))
+    }, [modulesResp])
 
-    // Build a preview URL that prefers newly selected file, falls back to existing
-    const previewVideoUrl = React.useMemo(() => {
+    const currentSaved = useMemo(() => {
+        if (!lessonsResp?.data?.lessons) return []
+        return lessonsResp.data.lessons.map((l: any) => ({
+            id: l.id,
+            title: l.title,
+            videoName: l.file_url?.split('/').pop() || l.video_url?.split('/').pop() || null,
+            docCount: Array.isArray(l.lesson_files) ? l.lesson_files.length : (l.doc_url ? 1 : 0),
+            updatedAt: l.updated_at,
+        }))
+    }, [lessonsResp])
+
+    const previewVideoUrl = useMemo(() => {
         if (videoFile) {
             try { return URL.createObjectURL(videoFile) } catch { return null }
         }
         return existingVideoUrl
     }, [videoFile, existingVideoUrl])
 
-    // Revoke object URL when file changes/unmounts
-    React.useEffect(() => {
+    // ==================== EFFECTS ====================
+    useEffect(() => {
+        if (!selectedModule && modules.length > 0) setSelectedModule(modules[0].id)
+    }, [modules, selectedModule])
+
+    useEffect(() => {
+        const d: any = (singleLessonResp as any)?.data
+        if (!d || !editingId) return
+
+        setExistingVideoUrl(null)
+        setExistingDocUrl(null)
+        setValue('title', d.title || '')
+        setExistingVideoUrl(d.file_url || d.video_url || null)
+        setExistingDocUrl(d.doc_url || null)
+    }, [singleLessonResp, setValue, editingId])
+
+    useEffect(() => {
         return () => {
             if (videoFile) {
-                try { URL.revokeObjectURL(previewVideoUrl || '') } catch {}
+                try { URL.revokeObjectURL(previewVideoUrl || '') } catch { }
             }
         }
     }, [videoFile, previewVideoUrl])
 
+    // ==================== HELPER FUNCTIONS ====================
+    const resetForm = () => {
+        reset({ title: '' })
+        setVideoFile(null)
+        setDocFiles([])
+        setFileTouched(false)
+        setEditingId(null)
+        setExistingVideoUrl(null)
+        setExistingDocUrl(null)
+    }
+
+    const handleModuleChange = (val: string) => {
+        setSelectedModule(val)
+        resetForm()
+    }
+
+    const handleCancelEdit = () => {
+        resetForm()
+    }
+
+    const handleEdit = (id: string) => {
+        resetForm()
+        setEditingId(id)
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+
+    const handleOpenDeleteConfirm = (id: string) => {
+        setConfirmDelete({ open: true, targetId: id })
+    }
+
+    const handleCloseDeleteConfirm = () => {
+        setConfirmDelete({ open: false, targetId: null })
+    }
+
+    // ==================== MAIN FUNCTIONS ====================
     const onSaveLesson = async () => {
         const isTitleValid = await trigger('title')
         setFileTouched(true)
         if (!isTitleValid || !hasAnyFile || !selectedModule) return
 
         setSubmitting(true)
-        // Build form data for API
+
         const form = new FormData()
         form.append('course_id', selectedModule)
         form.append('title', getValues('title') || '')
@@ -113,39 +183,22 @@ export default function AddLeesionCourse({ onLessonsAdded }: AddLeesionCoursePro
         }
 
         try {
-            await createLesson(form).unwrap()
-        } catch (e) {
-            // ignore for now
+            if (editingId) {
+                const res: any = await updateLesson({ lesson_id: editingId, formData: form }).unwrap()
+                toast.success(res?.message || 'Lesson updated successfully')
+            } else {
+                const res: any = await createLesson(form).unwrap()
+                toast.success(res?.message || 'Lesson created successfully')
+            }
+            resetForm()
+        } catch (e: any) {
+            const errorMessage = e?.data?.message || e?.message || (editingId ? 'Failed to update lesson' : 'Failed to create lesson')
+            toast.error(typeof errorMessage === 'string' ? errorMessage : (editingId ? 'Failed to update lesson' : 'Failed to create lesson'))
         }
 
-        // reset form state
-        reset({ title: '' })
-        setVideoFile(null)
-        setDocFiles([])
-        setFileTouched(false)
-        setEditingId(null)
-        setExistingVideoUrl(null)
-        setExistingDocUrl(null)
         setSubmitting(false)
-
         onLessonsAdded?.()
     }
-
-    // Display lessons pulled from API for the selected module
-    const currentSaved = React.useMemo(() => {
-        const resp: any = lessonsResp as any
-        const raw = resp?.data
-        let list: any[] = []
-        if (Array.isArray(raw?.lessons)) list = raw.lessons
-        else if (Array.isArray(raw)) list = raw
-        else if (Array.isArray(raw?.data)) list = raw.data
-        return list.map((l: any) => ({
-            id: l.id,
-            title: l.title,
-            videoName: l.file_url ? l.file_url.split('/').pop() : (l.video_url ? l.video_url.split('/').pop() : null),
-            docCount: Array.isArray(l.lesson_files) ? l.lesson_files.length : 0,
-        })) as SavedLesson[]
-    }, [lessonsResp])
 
     return (
         <div className="space-y-6 border-gray-200 py-0 border rounded-xl">
@@ -156,15 +209,7 @@ export default function AddLeesionCourse({ onLessonsAdded }: AddLeesionCoursePro
                     <p className="text-xs text-gray-500 mt-1">Attach video and documents for the lesson</p>
                 </div>
                 <div className="w-56">
-                    <Select value={selectedModule} onValueChange={(val) => {
-                        setSelectedModule(val)
-                        // reset form state when switching module
-                        setEditingId(null)
-                        reset({ title: '' })
-                        setVideoFile(null)
-                        setDocFiles([])
-                        setFileTouched(false)
-                    }}>
+                    <Select value={selectedModule} onValueChange={handleModuleChange}>
                         <SelectTrigger
                             className="w-full bg-white border border-[#0F2598] text-black  hover:border-[#0F2598]/80 focus-visible:ring focus-visible:ring-[#0F2598] focus-visible:border-[#0F2598]"
                         >
@@ -177,7 +222,7 @@ export default function AddLeesionCourse({ onLessonsAdded }: AddLeesionCoursePro
                             {!modulesLoading && modules.length === 0 && (
                                 <div className="px-3 py-2 text-xs text-gray-500">No modules found</div>
                             )}
-                            {!modulesLoading && modules.map((m) => (
+                            {!modulesLoading && modules.map((m: { id: string; title: string }) => (
                                 <SelectItem key={m.id} className="data-[highlighted]:bg-[#0F2598]/10 cursor-pointer data-[state=checked]:bg-[#0F2598]/20" value={m.id}>{m.title}</SelectItem>
                             ))}
                         </SelectContent>
@@ -208,10 +253,11 @@ export default function AddLeesionCourse({ onLessonsAdded }: AddLeesionCoursePro
                                 type="button"
                                 variant="outline"
                                 size="sm"
+                                disabled={hasDocuments}
                                 onClick={() => {
                                     document.getElementById('video-upload-single')?.click()
                                 }}
-                                className="flex cursor-pointer items-center gap-2"
+                                className={`flex items-center gap-2 ${hasDocuments ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                             >
                                 <Video className="h-4 w-4" />
                                 Choose Video
@@ -236,6 +282,11 @@ export default function AddLeesionCourse({ onLessonsAdded }: AddLeesionCoursePro
                                 accept="video/*"
                                 onChange={(e) => {
                                     const file = e.target.files?.[0] || null
+                                    if (file) {
+                                        // Clear documents when video is selected
+                                        setDocFiles([])
+                                        setExistingDocUrl(null)
+                                    }
                                     setVideoFile(file)
                                     setFileTouched(true)
                                     e.currentTarget.value = ''
@@ -264,10 +315,11 @@ export default function AddLeesionCourse({ onLessonsAdded }: AddLeesionCoursePro
                                 type="button"
                                 variant="outline"
                                 size="sm"
+                                disabled={hasVideo}
                                 onClick={() => {
                                     document.getElementById('doc-upload-single')?.click()
                                 }}
-                                className="flex cursor-pointer items-center gap-2"
+                                className={`flex items-center gap-2 ${hasVideo ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                             >
                                 <FileText className="h-4 w-4" />
                                 Choose Documents
@@ -283,7 +335,10 @@ export default function AddLeesionCourse({ onLessonsAdded }: AddLeesionCoursePro
                                 onChange={(e) => {
                                     const files = Array.from(e.target.files || [])
                                     if (files.length) {
-                                        setDocFiles((prev) => [...prev, ...files])
+                                        // Clear video when documents are selected
+                                        setVideoFile(null)
+                                        setExistingVideoUrl(null)
+                                        setDocFiles(files)
                                         setFileTouched(true)
                                     }
                                     e.currentTarget.value = ''
@@ -341,75 +396,20 @@ export default function AddLeesionCourse({ onLessonsAdded }: AddLeesionCoursePro
                     </div>
                 </div>
 
-                {/* Saved lessons list (compact like modules) */}
-                {currentSaved.length > 0 && (
-                    <div className='space-y-3'>
-                        {currentSaved.map((item, idx) => (
-                            <div key={item.id} className='flex items-center justify-between rounded-md border p-3  bg-white'>
-                                <div className='flex items-center gap-3 min-w-0 pr-3'>
-                                    <div className='w-7 h-7 rounded-full bg-[#0F2598]/10 text-[#0F2598] flex items-center justify-center text-xs font-semibold'>
-                                        {idx + 1}
-                                    </div>
-                                    <div className='min-w-0'>
-                                        <div className='truncate text-sm font-medium text-gray-900'>{item.title || 'Untitled lesson'}</div>
-                                        <div className='text-xs text-gray-500'>
-                                            {item.videoName ? `Video: ${item.videoName}` : 'No video'} • {item.docCount} document(s)
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className='flex items-center gap-2'>
-                                    {editingId === item.id ? (
-                                        <Button
-                                            type='button'
-                                            variant='outline'
-                                            size='sm'
-                                            className='h-8 px-2 cursor-pointer'
-                                            onClick={() => {
-                                                setEditingId(null)
-                                                reset({ title: '' })
-                                                setVideoFile(null)
-                                                setDocFiles([])
-                                                setExistingVideoUrl(null)
-                                                setExistingDocUrl(null)
-                                                setFileTouched(false)
-                                            }}
-                                        >
-                                            Cancel
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            type='button'
-                                            variant='outline'
-                                            size='sm'
-                                            className='h-8 px-2 cursor-pointer'
-                                            onClick={() => {
-                                                setEditingId(item.id)
-                                                window.scrollTo({ top: 0, behavior: 'smooth' })
-                                            }}
-                                        >
-                                            <Pencil className='h-4 w-4' />
-                                        </Button>
-                                    )}
-                                    <Button
-                                        type='button'
-                                        variant='destructive'
-                                        size='sm'
-                                        className='h-8 px-2 cursor-pointer'
-                                        onClick={() => {
-                                            setSavedByModule((prev) => {
-                                                const list = prev[selectedModule] || []
-                                                return { ...prev, [selectedModule]: list.filter((s) => s.id !== item.id) }
-                                            })
-                                        }}
-                                    >
-                                        <Trash2 className='h-4 w-4' />
-                                    </Button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
+                {/* Saved lessons list */}
+                <LessonList
+                    lessons={currentSaved}
+                    editingId={editingId}
+                    confirmDelete={confirmDelete}
+                    onEdit={handleEdit}
+                    onCancelEdit={handleCancelEdit}
+                    onConfirmDelete={() => { }}
+                    onOpenDeleteConfirm={handleOpenDeleteConfirm}
+                    onCloseDeleteConfirm={handleCloseDeleteConfirm}
+                    onLessonsAdded={onLessonsAdded}
+                />
             </div>
+
         </div>
     )
 }

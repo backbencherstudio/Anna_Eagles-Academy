@@ -1,30 +1,77 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import DateRangePicker from '@/components/ui/DateRangePicker'
 import { DateRange } from 'react-day-picker'
+import { useUpdateSingleSeriesMutation } from '@/redux/api/managementCourseApis'
+import { useAppSelector } from '@/redux/hooks'
+import { getCookie, deleteCookie } from '@/lib/tokenUtils'
+import toast from 'react-hot-toast'
 
 interface SetAvailabilityProps {
     courseTitle: string
     dateRange: DateRange | undefined
     onDateRangeChange: (range: DateRange | undefined) => void
-    isSubmitting: boolean
-    onSubmit: () => void
     showErrors?: boolean
     disabled?: boolean
+    onSuccess?: () => void
 }
 
 export default function SetAvailability({
     courseTitle,
     dateRange,
     onDateRangeChange,
-    isSubmitting,
-    onSubmit,
     showErrors = false,
-    disabled = false
+    disabled = false,
+    onSuccess
 }: SetAvailabilityProps) {
+    // ==================== STATE & HOOKS ====================
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [updateSeries] = useUpdateSingleSeriesMutation()
+    
+    // Get series ID from Redux store or cookie
+    const seriesIdFromStore = useAppSelector((s) => s.managementCourse.currentSeriesId)
+    const cookieSeriesId = typeof document !== 'undefined' ? (getCookie('series_id') as string | null) : null
+    const activeSeriesId = seriesIdFromStore || cookieSeriesId
+
+    // ==================== HANDLERS ====================
+    const handleSubmit = async () => {
+        if (!dateRange?.from || !dateRange?.to) {
+            toast.error('Please select both start and end dates')
+            return
+        }
+
+        if (!activeSeriesId) {
+            toast.error('Series ID not found')
+            return
+        }
+
+        setIsSubmitting(true)
+
+        try {
+            const formData = new FormData()
+            formData.append('start_date', dateRange.from.toISOString().split('T')[0])
+            formData.append('end_date', dateRange.to.toISOString().split('T')[0])
+
+            const res: any = await updateSeries({ 
+                series_id: activeSeriesId, 
+                formData 
+            }).unwrap()
+
+            // Remove series_id from cookie after successful update
+            deleteCookie('series_id')
+            
+            toast.success(res?.message || 'Course availability updated successfully')
+            onSuccess?.()
+        } catch (e: any) {
+            const errorMessage = e?.data?.message || e?.message || 'Failed to update course availability'
+            toast.error(typeof errorMessage === 'string' ? errorMessage : 'Failed to update course availability')
+        }
+
+        setIsSubmitting(false)
+    }
     return (
         <Card className={`border py-5 sticky top-0 ${disabled ? 'opacity-50' : ''}`}>
             <CardHeader>
@@ -70,11 +117,11 @@ export default function SetAvailability({
                 <Button
                     type="submit"
                     disabled={isSubmitting || disabled}
-                    onClick={onSubmit}
+                    onClick={handleSubmit}
                     className="w-full bg-[#0F2598] cursor-pointer transition-all duration-300 hover:bg-[#0F2598]/80 text-white"
                     size="lg"
                 >
-                    {disabled ? 'Add lessons first' : isSubmitting ? 'Publishing...' : 'Publish Course'}
+                    {disabled ? 'Add lessons first' : isSubmitting ? 'Updating...' : 'Update Availability'}
                 </Button>
             </CardContent>
         </Card>

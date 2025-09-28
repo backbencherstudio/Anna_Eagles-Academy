@@ -140,9 +140,9 @@ export const managementCourseApi = createApi({
             providesTags: ['ManagementCourse'],
         }),
 
-      
 
-     
+
+
 
 
         // ==================this is update single course==================
@@ -174,6 +174,7 @@ export const managementCourseApi = createApi({
                 method: 'PATCH',
                 data: formData,
             }),
+            invalidatesTags: ['ManagementCourse'],
         }),
 
 
@@ -202,9 +203,10 @@ export const managementCourseApi = createApi({
         // delete single lesson
         deleteSingleLesson: builder.mutation({
             query: (lesson_id: string) => ({
-                url: `/api/admin/series/lessons/${lesson_id}`,
+                url: `/api/admin/series/lesson-file/${lesson_id}`,
                 method: 'DELETE',
             }),
+            invalidatesTags: ['ManagementCourse'],
         }),
 
 
@@ -212,4 +214,4 @@ export const managementCourseApi = createApi({
     }),
 });
 
-export const { useCreateSeriesMutation, useCreateModuleMutation, useGetAllModulesTitleQuery, useGetAllModulesQuery, useGetSingleSeriesQuery, useGetSingleModuleQuery, useGetSingleLessonQuery, useUpdateSingleSeriesMutation, useUpdateSingleModuleMutation, useUpdateSingleLessonMutation, useCreateLessonMutation, useDeleteSingleModuleMutation, useGetAllLessonsQuery, useDeleteSingleLessonMutation } = managementCourseApi;
+export const { useCreateSeriesMutation, useCreateModuleMutation, useGetAllModulesTitleQuery, useGetAllModulesQuery, useGetSingleSeriesQuery, useGetSingleModuleQuery, useGetSingleLessonQuery, useUpdateSingleSeriesMutation, useUpdateSingleModuleMutation, useUpdateSingleLessonMutation, useCreateLessonMutation, useDeleteSingleModuleMutation, useGetAllLessonsQuery, useDeleteSingleLessonMutation, useDeleteSingleSeriesMutation } = managementCourseApi;

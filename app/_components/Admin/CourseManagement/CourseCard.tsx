@@ -128,7 +128,8 @@ export default function CourseCard({ course }: CourseCardProps) {
     const shouldShowImage = course.thumbnail_url && !imageError
 
     const handleUpdateCourse = () => {
-        router.push(`/admin/course-update/${course.id}`)
+        // Navigate to create-new-course page with series ID for editing
+        router.push(`/admin/create-new-course?series_id=${course.id}`)
     }
 
     return (

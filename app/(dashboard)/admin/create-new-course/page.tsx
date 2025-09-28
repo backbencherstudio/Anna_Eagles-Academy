@@ -5,7 +5,7 @@ import CourseModuesAdded from '../../../_components/Admin/CreaterNewCourse/Cours
 import AddLeesionCourse from '../../../_components/Admin/CreaterNewCourse/AddLeesionCourse'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Check } from 'lucide-react'
-import { getCookie } from '@/lib/tokenUtils'
+import { getCookie, setCookie } from '@/lib/tokenUtils'
 import { useGetAllModulesQuery, useGetSingleSeriesQuery } from '@/redux/api/managementCourseApis'
 import SetAvailability from '@/app/_components/Admin/CourseManagement/CreateCourse/SetAvailability'
 import { DateRange } from 'react-day-picker'
@@ -29,14 +29,17 @@ export default function CreateNewCourse() {
         return (s === 2 || s === 3) ? s : 1
     }, [searchParams]) as 1 | 2 | 3
 
+    const seriesIdFromUrl = searchParams.get('series_id')
+
     const [step, setStep] = useState<1 | 2 | 3>(stepFromUrl)
     const [seriesData, setSeriesData] = useState<SeriesData | null>(null)
     const [modulesCompleted, setModulesCompleted] = useState<boolean>(false)
     const [lessonsAdded, setLessonsAdded] = useState<boolean>(false)
     // Preload completion from server if data already exists
     const seriesIdFromCookie = typeof document !== 'undefined' ? (getCookie('series_id') as string | null) : null
-    const { data: serverModulesResp } = useGetAllModulesQuery(seriesIdFromCookie as string, { skip: !seriesIdFromCookie })
-    const { data: serverSeriesResp } = useGetSingleSeriesQuery(seriesIdFromCookie as string, { skip: !seriesIdFromCookie })
+    const activeSeriesId = seriesIdFromUrl || seriesIdFromCookie
+    const { data: serverModulesResp } = useGetAllModulesQuery(activeSeriesId as string, { skip: !activeSeriesId })
+    const { data: serverSeriesResp } = useGetSingleSeriesQuery(activeSeriesId as string, { skip: !activeSeriesId })
 
     useEffect(() => {
         // Modules present → allow navigating Modules and onward
@@ -55,6 +58,13 @@ export default function CreateNewCourse() {
             setLessonsAdded(true)
         }
     }, [serverSeriesResp])
+
+    // Set cookie when editing existing series
+    useEffect(() => {
+        if (seriesIdFromUrl && !seriesIdFromCookie) {
+            setCookie('series_id', seriesIdFromUrl)
+        }
+    }, [seriesIdFromUrl, seriesIdFromCookie])
     const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
 
@@ -177,10 +187,12 @@ export default function CreateNewCourse() {
                         courseTitle={seriesData?.title || ''}
                         dateRange={dateRange}
                         onDateRangeChange={setDateRange}
-                        isSubmitting={isSubmitting}
-                        onSubmit={handlePublishCourse}
                         showErrors={false}
                         disabled={!lessonsAdded}
+                        onSuccess={() => {
+                            // Redirect to course management or show success message
+                            router.push('/admin/course-management')
+                        }}
                     />
                 </div>
             </div>
