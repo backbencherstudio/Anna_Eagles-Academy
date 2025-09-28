@@ -34,10 +34,11 @@ type LessonForm = {
 }
 
 type AddLeesionCourseProps = {
+    seriesId?: string | null
     onLessonsAdded?: () => void
 }
 
-export default function AddLeesionCourse({ onLessonsAdded }: AddLeesionCourseProps) {
+export default function AddLeesionCourse({ seriesId, onLessonsAdded }: AddLeesionCourseProps) {
     // ==================== FORM SETUP ====================
     const { register, formState: { errors }, trigger, reset, setValue, getValues } = useForm<LessonForm>({
         defaultValues: { title: '' },
@@ -66,13 +67,12 @@ export default function AddLeesionCourse({ onLessonsAdded }: AddLeesionCoursePro
     // ==================== REDUX SETUP ====================
     const dispatch = useAppDispatch()
     const seriesIdFromStore = useAppSelector((s) => s.managementCourse.currentSeriesId)
-    const cookieSeriesId = typeof document !== 'undefined' ? (getCookie('series_id') as string | null) : null
 
     useEffect(() => {
-        if (cookieSeriesId) dispatch(setCurrentSeriesId(cookieSeriesId))
-    }, [cookieSeriesId, dispatch])
+        if (seriesId) dispatch(setCurrentSeriesId(seriesId))
+    }, [seriesId, dispatch])
 
-    const activeSeriesId = seriesIdFromStore || cookieSeriesId || ''
+    const activeSeriesId = seriesIdFromStore || seriesId || ''
 
     // ==================== API HOOKS ====================
     const { data: modulesResp, isLoading: modulesLoading } = useGetAllModulesQuery(activeSeriesId, { skip: !activeSeriesId })

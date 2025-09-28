@@ -11,6 +11,7 @@ import { getCookie, deleteCookie } from '@/lib/tokenUtils'
 import toast from 'react-hot-toast'
 
 interface SetAvailabilityProps {
+    seriesId?: string | null
     courseTitle: string
     dateRange: DateRange | undefined
     onDateRangeChange: (range: DateRange | undefined) => void
@@ -20,6 +21,7 @@ interface SetAvailabilityProps {
 }
 
 export default function SetAvailability({
+    seriesId,
     courseTitle,
     dateRange,
     onDateRangeChange,
@@ -31,10 +33,9 @@ export default function SetAvailability({
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [updateSeries] = useUpdateSingleSeriesMutation()
     
-    // Get series ID from Redux store or cookie
+    // Get series ID from prop or Redux store
     const seriesIdFromStore = useAppSelector((s) => s.managementCourse.currentSeriesId)
-    const cookieSeriesId = typeof document !== 'undefined' ? (getCookie('series_id') as string | null) : null
-    const activeSeriesId = seriesIdFromStore || cookieSeriesId
+    const activeSeriesId = seriesId || seriesIdFromStore
 
     // ==================== HANDLERS ====================
     const handleSubmit = async () => {
@@ -60,8 +61,7 @@ export default function SetAvailability({
                 formData 
             }).unwrap()
 
-            // Remove series_id from cookie after successful update
-            deleteCookie('series_id')
+            // No need to remove cookie since we're using dynamic routes
             
             toast.success(res?.message || 'Course availability updated successfully')
             onSuccess?.()

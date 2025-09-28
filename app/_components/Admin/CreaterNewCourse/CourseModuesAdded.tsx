@@ -13,10 +13,11 @@ import ConfirmDialog from '@/components/Resuable/ConfirmDialog'
 import { toast } from 'react-hot-toast'
 
 type CourseModuesAddedProps = {
+    seriesId?: string | null
     onNext?: () => void
 }
 
-export default function CourseModuesAdded({ onNext }: CourseModuesAddedProps) {
+export default function CourseModuesAdded({ seriesId, onNext }: CourseModuesAddedProps) {
     type ModuleForm = { title: string; price: number | '' }
     const { register, formState: { errors }, trigger, setValue, reset, getValues } = useForm<ModuleForm>({
         defaultValues: { title: '', price: '' },
@@ -34,10 +35,8 @@ export default function CourseModuesAdded({ onNext }: CourseModuesAddedProps) {
     const [editingId, setEditingId] = useState<string | null>(null)
     const [confirm, setConfirm] = useState<{ open: boolean; targetId: string | null }>({ open: false, targetId: null })
 
-    // Series id from cookie
-    const seriesIdFromCookie = typeof document !== 'undefined' ? (getCookie('series_id') as string | null) : null
     // API hooks
-    const { data: modulesResp } = useGetAllModulesQuery(seriesIdFromCookie as string, { skip: !seriesIdFromCookie })
+    const { data: modulesResp } = useGetAllModulesQuery(seriesId as string, { skip: !seriesId })
     const [createModule] = useCreateModuleMutation()
     const [updateModule] = useUpdateSingleModuleMutation()
     const [deleteModule] = useDeleteSingleModuleMutation()
@@ -70,7 +69,7 @@ export default function CourseModuesAdded({ onNext }: CourseModuesAddedProps) {
             setIsSaving(true)
             const { title, price } = getValues()
             const formData = new FormData()
-            if (seriesIdFromCookie) formData.append('series_id', seriesIdFromCookie)
+            if (seriesId) formData.append('series_id', seriesId)
             formData.append('title', title)
             formData.append('price', String(price))
             if (state.introFile) formData.append('introVideo', state.introFile)

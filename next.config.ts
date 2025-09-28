@@ -33,6 +33,19 @@ const nextConfig: NextConfig = {
         port: '4000',
         pathname: '/**',
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '4000',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'localhost',
+        port: '4000',
+        pathname: '/**',
+      },
+    
     ],
   },
 };

@@ -129,7 +129,7 @@ export default function CourseCard({ course }: CourseCardProps) {
 
     const handleUpdateCourse = () => {
         // Navigate to create-new-course page with series ID for editing
-        router.push(`/admin/create-new-course?series_id=${course.id}`)
+        router.push(`/admin/create-new-course/${course.id}`)
     }
 
     return (

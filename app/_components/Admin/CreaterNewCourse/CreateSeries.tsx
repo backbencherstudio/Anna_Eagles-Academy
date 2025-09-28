@@ -14,6 +14,7 @@ import { getCookie, setCookie } from '@/lib/tokenUtils'
 import { Pencil } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 type CreateSeriesProps = {
+    seriesId?: string | null
     onNext?: (data: {
         title: string
         enrollCount: number
@@ -32,12 +33,11 @@ type SeriesFormValues = {
     note?: string
 }
 
-export default function CreateSeries({ onNext }: CreateSeriesProps) {
+export default function CreateSeries({ seriesId, onNext }: CreateSeriesProps) {
     const router = useRouter()
     const [isEditMode, setIsEditMode] = React.useState(false)
-    const seriesIdFromCookie = React.useMemo(() => (typeof document !== 'undefined' ? getCookie('series_id') : null), [])
-    const { data: existingSeriesResponse } = useGetSingleSeriesQuery(seriesIdFromCookie as string, {
-        skip: !seriesIdFromCookie,
+    const { data: existingSeriesResponse } = useGetSingleSeriesQuery(seriesId as string, {
+        skip: !seriesId,
     })
     const [createSeries, { isLoading: isCreating }] = useCreateSeriesMutation()
     const [updateSeries, { isLoading: isUpdating }] = useUpdateSingleSeriesMutation()
@@ -92,15 +92,13 @@ export default function CreateSeries({ onNext }: CreateSeriesProps) {
             formData.append('course_type', data.courseType)
             if (data.thumbnailFile) formData.append('thumbnail', data.thumbnailFile)
 
-            if (isEditMode && seriesIdFromCookie) {
-                const res: any = await updateSeries({ series_id: seriesIdFromCookie, formData })
-                if ('data' in res && res.data?.data?.id) {
-                    setCookie('series_id', res.data.data.id, { maxAgeSeconds: 60 * 60 * 24 * 7 })
-                }
+            if (isEditMode && seriesId) {
+                const res: any = await updateSeries({ series_id: seriesId, formData })
             } else {
                 const res: any = await createSeries(formData)
                 if ('data' in res && res.data?.data?.id) {
-                    setCookie('series_id', res.data.data.id, { maxAgeSeconds: 60 * 60 * 24 * 7 })
+                    // Navigate to the new series ID for editing
+                    router.push(`/admin/create-new-course/${res.data.data.id}`)
                 }
             }
 
@@ -120,7 +118,7 @@ export default function CreateSeries({ onNext }: CreateSeriesProps) {
     }
     const courseType = watch('courseType')
     const thumbnailFile = watch('thumbnailFile')
-    const seriesExists = !!(seriesIdFromCookie || existingSeriesResponse?.data?.id)
+    const seriesExists = !!(seriesId || existingSeriesResponse?.data?.id)
 
 
 
@@ -133,7 +131,7 @@ export default function CreateSeries({ onNext }: CreateSeriesProps) {
                     <CardTitle className="text-sm font-semibold text-[#F1C27D]">COURSE</CardTitle>
                     <div>
 
-                        {seriesIdFromCookie && (
+                        {seriesId && (
                             <div className="flex items-center justify-end mb-2">
                                 <button
                                     type="button"
@@ -160,7 +158,7 @@ export default function CreateSeries({ onNext }: CreateSeriesProps) {
                             placeholder="Type your title here..."
                             {...register('title', { required: 'Title is required' })}
                             className="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                            disabled={!!seriesIdFromCookie && !isEditMode}
+                            disabled={!!seriesId && !isEditMode}
                         />
                         {errors.title && <p className="text-xs text-red-500">{errors.title.message}</p>}
                     </div>
@@ -183,7 +181,7 @@ export default function CreateSeries({ onNext }: CreateSeriesProps) {
                                 valueAsNumber: true,
                             })}
                             className="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                            disabled={!!seriesIdFromCookie && !isEditMode}
+                            disabled={!!seriesId && !isEditMode}
                         />
                         {errors.enrollCount && <p className="text-xs text-red-500">{errors.enrollCount.message as string}</p>}
                     </div>
@@ -194,7 +192,7 @@ export default function CreateSeries({ onNext }: CreateSeriesProps) {
                             Course Type <span className="text-red-500">*</span>
                         </Label>
                         <Select value={courseType} onValueChange={(value) => setValue('courseType', value, { shouldValidate: true })}>
-                            <SelectTrigger className={`w-full `} disabled={!!seriesIdFromCookie && !isEditMode}>
+                            <SelectTrigger className={`w-full `} disabled={!!seriesId && !isEditMode}>
                                 <SelectValue placeholder="Select course type" />
                             </SelectTrigger>
                             <SelectContent>
@@ -210,7 +208,7 @@ export default function CreateSeries({ onNext }: CreateSeriesProps) {
                         <Label className="text-sm font-medium text-gray-700">
                             Upload Thumbnail <span className="text-red-500">*</span>
                         </Label>
-                        <div className={`px-3 py-2 border-2 border-dashed rounded-lg ${!!seriesIdFromCookie && !isEditMode ? 'opacity-60 pointer-events-none' : ''}`}>
+                        <div className={`px-3 py-2 border-2 border-dashed rounded-lg ${!!seriesId && !isEditMode ? 'opacity-60 pointer-events-none' : ''}`}>
                             <UploadImage
                                 onFileSelect={(file) => {
                                     setValue('thumbnailFile', file, { shouldValidate: true })
@@ -240,7 +238,7 @@ export default function CreateSeries({ onNext }: CreateSeriesProps) {
                             {...register('description', { required: 'Description is required' })}
                             rows={4}
                             className="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                            disabled={!!seriesIdFromCookie && !isEditMode}
+                            disabled={!!seriesId && !isEditMode}
                         />
                         {errors.description && <p className="text-xs text-red-500">{errors.description.message}</p>}
                     </div>
@@ -256,7 +254,7 @@ export default function CreateSeries({ onNext }: CreateSeriesProps) {
                             {...register('note')}
                             rows={3}
                             className="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                            disabled={!!seriesIdFromCookie && !isEditMode}
+                            disabled={!!seriesId && !isEditMode}
                         />
                     </div>
                     <form onSubmit={handleSubmit(onSubmit)} className='flex items-center justify-end gap-2'>
