@@ -123,7 +123,7 @@ export default function MaterialsUpload({ activeTab, editingMaterial, onCancelEd
             setValue('title', editingMaterial.title);
             setValue('description', editingMaterial.description || '');
             setValue('file', null);
-            setSelectedFile(null); // Reset file selection for edit
+            setSelectedFile(null); 
         } else {
             reset();
             setSelectedFile(null);
@@ -142,12 +142,12 @@ export default function MaterialsUpload({ activeTab, editingMaterial, onCancelEd
     const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         setSelectedFile(file || null);
-        setValue('file', event.target.files);
+        setValue('file', event.target.files, { shouldValidate: true });
     }, [setValue]);
 
     const handleFileRemove = useCallback(() => {
         setSelectedFile(null);
-        setValue('file', null);
+        setValue('file', null, { shouldValidate: true });
     }, [setValue]);
 
     const handleFileSelect = useCallback(() => {
@@ -178,12 +178,6 @@ export default function MaterialsUpload({ activeTab, editingMaterial, onCancelEd
     }, []);
 
     const onSubmit = useCallback(async (data: MaterialFormData) => {
-        // File is required only for new materials, not for editing
-        if (!editingMaterial && (!data.file || data.file.length === 0)) {
-            toast.error('Please select a file to upload');
-            return;
-        }
-
         try {
             const materialFormData = createFormData(data);
 
@@ -384,14 +378,24 @@ export default function MaterialsUpload({ activeTab, editingMaterial, onCancelEd
                     rules={{
                         required: !editingMaterial ? 'Please select a file to upload' : false,
                         validate: (value) => {
-                            if (!editingMaterial && (!value || value.length === 0)) {
-                                return 'Please select a file to upload';
-                            }
-                            if (value && value.length > 0) {
+                            // For new materials, file is required
+                            if (!editingMaterial) {
+                                if (!value || value.length === 0) {
+                                    return 'Please select a file to upload';
+                                }
                                 const file = value[0];
                                 const maxSize = FILE_SIZE_LIMITS[activeTab as keyof typeof FILE_SIZE_LIMITS] || FILE_SIZE_LIMITS['lecture-slides'];
                                 if (file.size > maxSize) {
                                     return `File size must be less than ${maxSize / (1024 * 1024)}MB`;
+                                }
+                            } else {
+                                // For editing, file is optional but if provided, validate size
+                                if (value && value.length > 0) {
+                                    const file = value[0];
+                                    const maxSize = FILE_SIZE_LIMITS[activeTab as keyof typeof FILE_SIZE_LIMITS] || FILE_SIZE_LIMITS['lecture-slides'];
+                                    if (file.size > maxSize) {
+                                        return `File size must be less than ${maxSize / (1024 * 1024)}MB`;
+                                    }
                                 }
                             }
                             return true;
