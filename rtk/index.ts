@@ -7,6 +7,7 @@ import { authApi } from '@/rtk/api/authApi'
 import { managementCourseApi } from './api/managementCourseApis'
 import { manageMaterialsApi } from './api/manageMaterialsApis'
 import { courseFilterApi } from './api/courseFilterApis'
+import { quizApi } from './api/quizApis'
 
 export const store = configureStore({
   reducer: {
@@ -18,6 +19,7 @@ export const store = configureStore({
     [managementCourseApi.reducerPath]: managementCourseApi.reducer,
     [manageMaterialsApi.reducerPath]: manageMaterialsApi.reducer,
     [courseFilterApi.reducerPath]: courseFilterApi.reducer,
+    [quizApi.reducerPath]: quizApi.reducer,
   },
 
 
@@ -47,7 +49,7 @@ export const store = configureStore({
           'courseManagement.moduleLessons'
         ],
       },
-    }).concat(authApi.middleware, managementCourseApi.middleware, manageMaterialsApi.middleware, courseFilterApi.middleware),
+    }).concat(authApi.middleware, managementCourseApi.middleware, manageMaterialsApi.middleware, courseFilterApi.middleware, quizApi.middleware),
 })
 
 export type RootState = ReturnType<typeof store.getState>

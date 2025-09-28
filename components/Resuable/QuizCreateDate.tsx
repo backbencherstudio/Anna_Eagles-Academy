@@ -8,18 +8,46 @@ import { CalendarIcon } from 'lucide-react'
 import { format } from 'date-fns'
 
 interface QuizCreateDateProps {
-    onPublish?: () => void
+    onPublish?: (values: DeadlineFormData) => void
     publishButtonText?: string
     publishButtonDisabled?: boolean
     showValidation?: boolean
     className?: string
 }
 
-interface DeadlineFormData {
+export interface DeadlineFormData {
     startDateDeadline: Date
     startTimeDeadline: string
     submissionDeadline: Date
     submissionTimeDeadline: string
+}
+
+// Helpers: keep logic small and reusable
+function normalizeDate(date: Date): Date {
+    const d = new Date(date)
+    d.setHours(0, 0, 0, 0)
+    return d
+}
+
+function isBeforeToday(date: Date): boolean {
+    const today = normalizeDate(new Date())
+    const target = normalizeDate(date)
+    return target < today
+}
+
+function isBefore(first: Date, second: Date): boolean {
+    return normalizeDate(first) < normalizeDate(second)
+}
+
+function areSameDate(first: Date, second: Date): boolean {
+    return normalizeDate(first).getTime() === normalizeDate(second).getTime()
+}
+
+function timeToMinutes(hhmm: string): number {
+    const [hourStr, minuteStr] = hhmm.split(':')
+    const hour = Number(hourStr)
+    const minute = Number(minuteStr)
+    return hour * 60 + minute
 }
 
 export default function QuizCreateDate({
@@ -33,8 +61,8 @@ export default function QuizCreateDate({
         control,
         formState: { errors, isSubmitted },
         getValues,
-        setValue,
-        watch
+        watch,
+        trigger
     } = useForm<DeadlineFormData>({
         defaultValues: {
             startDateDeadline: new Date(),
@@ -45,9 +73,21 @@ export default function QuizCreateDate({
         mode: 'onSubmit'
     })
 
+    // Watch for changes in start time to trigger submission time validation
+    const startTime = watch('startTimeDeadline')
+    const startDate = watch('startDateDeadline')
+    const submissionDate = watch('submissionDeadline')
+
+    // Trigger validation when start time or dates change
+    React.useEffect(() => {
+        if (startTime && submissionDate) {
+            trigger('submissionTimeDeadline')
+        }
+    }, [startTime, startDate, submissionDate, trigger])
+
     const handlePublish = () => {
         if (onPublish) {
-            onPublish()
+            onPublish(getValues())
         }
     }
 
@@ -57,22 +97,17 @@ export default function QuizCreateDate({
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
                     {/* Start Date Deadline */}
                     <div className="flex flex-col space-y-2">
-                        <span className="text-sm font-medium text-gray-700">Start date Deadline <span className='text-red-500'>*</span></span>
+                        <span className="text-sm font-medium text-gray-700">Start date & time <span className='text-red-500'>*</span></span>
                         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                             <Controller
                                 name="startDateDeadline"
                                 control={control}
                                 rules={{
-                                    required: "Start date deadline is required",
+                                    required: "Start date & time is required",
                                     validate: (value) => {
-                                        if (!value) return "Start date deadline is required"
-                                        const today = new Date()
-                                        today.setHours(0, 0, 0, 0)
-                                        const selectedDate = new Date(value)
-                                        selectedDate.setHours(0, 0, 0, 0)
-
-                                        if (selectedDate < today) {
-                                            return "Start date deadline cannot be in the past"
+                                        if (!value) return "Start date & time is required"
+                                        if (isBeforeToday(value)) {
+                                            return "Start date & time cannot be in the past"
                                         }
                                         return true
                                     }
@@ -96,11 +131,7 @@ export default function QuizCreateDate({
                                                 selected={field.value}
                                                 onSelect={(date: Date | undefined) => field.onChange(date || new Date())}
                                                 disabled={(date) => {
-                                                    const today = new Date()
-                                                    today.setHours(0, 0, 0, 0)
-                                                    const selectedDate = new Date(date)
-                                                    selectedDate.setHours(0, 0, 0, 0)
-                                                    return selectedDate < today
+                                                    return isBeforeToday(date)
                                                 }}
                                                 initialFocus
                                             />
@@ -121,7 +152,6 @@ export default function QuizCreateDate({
                                         onChange={field.onChange}
                                         className="w-full sm:w-32 lg:w-36 bg-gray-50 border-gray-200 cursor-pointer"
                                         onFocus={(e) => {
-                                            // Trigger the time picker when focused
                                             e.target.showPicker?.()
                                         }}
                                     />
@@ -135,23 +165,27 @@ export default function QuizCreateDate({
 
                     {/* Submission Deadline */}
                     <div className="flex flex-col space-y-2">
-                        <span className="text-sm font-medium text-gray-700">Submission Deadline <span className='text-red-500'>*</span></span>
+                        <span className="text-sm font-medium text-gray-700">Submission date & time <span className='text-red-500'>*</span></span>
                         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                             <Controller
                                 name="submissionDeadline"
                                 control={control}
                                 rules={{
-                                    required: "Submission deadline is required",
+                                    required: "Submission date & time is required",
                                     validate: (value) => {
-                                        if (!value) return "Submission deadline is required"
-                                        const today = new Date()
-                                        today.setHours(0, 0, 0, 0)
-                                        const selectedDate = new Date(value)
-                                        selectedDate.setHours(0, 0, 0, 0)
-
-                                        if (selectedDate < today) {
-                                            return "Submission deadline cannot be in the past"
+                                        if (!value) return "Submission date & time is required"
+                                        if (isBeforeToday(value)) {
+                                            return "Submission date & time cannot be in the past"
                                         }
+
+                                        // Check if submission date is after start date
+                                        const startDate = getValues('startDateDeadline')
+                                        if (startDate) {
+                                            if (isBefore(value, startDate)) {
+                                                return "Submission date must be after start date"
+                                            }
+                                        }
+
                                         return true
                                     }
                                 }}
@@ -174,11 +208,12 @@ export default function QuizCreateDate({
                                                 selected={field.value}
                                                 onSelect={(date: Date | undefined) => field.onChange(date || new Date())}
                                                 disabled={(date) => {
-                                                    const today = new Date()
-                                                    today.setHours(0, 0, 0, 0)
-                                                    const selectedDate = new Date(date)
-                                                    selectedDate.setHours(0, 0, 0, 0)
-                                                    return selectedDate < today
+                                                    if (isBeforeToday(date)) return true
+                                                    const startDate = getValues('startDateDeadline')
+                                                    if (startDate) {
+                                                        return isBefore(date, startDate)
+                                                    }
+                                                    return false
                                                 }}
                                                 initialFocus
                                             />
@@ -190,16 +225,35 @@ export default function QuizCreateDate({
                                 name="submissionTimeDeadline"
                                 control={control}
                                 rules={{
-                                    required: "Submission time is required"
+                                    required: "Submission time is required",
+                                    validate: (value) => {
+                                        if (!value) return "Submission time is required"
+                                        
+                                        // Check if submission time is after start time when dates are the same
+                                        const startDate = getValues('startDateDeadline')
+                                        const submissionDate = getValues('submissionDeadline')
+                                        const startTime = getValues('startTimeDeadline')
+                                        
+                                        if (startDate && submissionDate && startTime) {
+                                            if (areSameDate(startDate, submissionDate)) {
+                                                const startTimeMinutes = timeToMinutes(startTime)
+                                                const submissionTimeMinutes = timeToMinutes(value)
+                                                if (submissionTimeMinutes <= startTimeMinutes) {
+                                                    return "Submission time must be after start time when dates are the same"
+                                                }
+                                            }
+                                        }
+                                        
+                                        return true
+                                    }
                                 }}
                                 render={({ field }) => (
                                     <Input
                                         type="time"
                                         value={field.value || '09:00'}
                                         onChange={field.onChange}
-                                        className="w-full sm:w-32 lg:w-36 bg-gray-50 border-gray-200 cursor-pointer"
+                                        className={`w-full sm:w-32 lg:w-36 bg-gray-50 border-gray-200 cursor-pointer ${errors.submissionTimeDeadline && isSubmitted && showValidation ? 'border-red-500' : ''}`}
                                         onFocus={(e) => {
-                                            // Trigger the time picker when focused
                                             e.target.showPicker?.()
                                         }}
                                     />
@@ -209,12 +263,15 @@ export default function QuizCreateDate({
                         {errors.submissionDeadline && isSubmitted && showValidation && (
                             <span className="text-xs text-red-500">{errors.submissionDeadline.message}</span>
                         )}
+                        {errors.submissionTimeDeadline && isSubmitted && showValidation && (
+                            <span className="text-xs text-red-500">{errors.submissionTimeDeadline.message}</span>
+                        )}
                     </div>
                 </div>
 
                 {/* Publish Button */}
                 <Button
-                    className="bg-[#0F2598] mt-7 hover:bg-[#0F2598]/90 text-white w-full sm:w-auto cursor-pointer"
+                    className="bg-[#0F2598] mt-7 hover:bg-[#0F2598]/90 text-white w-full sm:w-auto cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handlePublish}
                     disabled={publishButtonDisabled}
                 >

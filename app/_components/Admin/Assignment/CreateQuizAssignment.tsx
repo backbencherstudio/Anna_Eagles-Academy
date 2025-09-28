@@ -1,16 +1,15 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Card, CardContent } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
-import { Plus, Trash2, GripVertical } from 'lucide-react'
-import QuizCreateDate from '@/components/Resuable/QuizCreateDate'
+import QuizCreateDate, { type DeadlineFormData } from '@/components/Resuable/QuizCreateDate'
+import QuizSidebar, { handleDragEnd } from './QuizSection/quizSidebar'
+import CorrectAnswer from './QuizSection/CorrectAnswer'
+import { useGetSeriesWithCoursesQuery } from '@/rtk/api/courseFilterApis'
+import { useCreateQuizMutation } from '@/rtk/api/quizApis'
 
 
 interface Question {
@@ -35,10 +34,16 @@ export default function CreateQuizAssignment() {
     const [questions, setQuestions] = useState<Question[]>([])
     const [selectedQuestionId, setSelectedQuestionId] = useState<string>('')
 
+    // load series with courses for dependent dropdowns
+    const { data: seriesData, isLoading: isSeriesLoading, isError: isSeriesError } = useGetSeriesWithCoursesQuery()
+
+    // create quiz mutation
+    const [createQuiz, { isLoading: isCreatingQuiz, isError: isCreateError, isSuccess: isCreateSuccess }] = useCreateQuizMutation()
+
     const {
         control,
         handleSubmit,
-        formState: { errors, isSubmitted, touchedFields, isDirty },
+        formState: { errors, isSubmitted },
         reset,
         watch,
         setValue,
@@ -55,74 +60,75 @@ export default function CreateQuizAssignment() {
             correctAnswer: '',
             points: 10
         },
-        mode: 'onSubmit'
+        mode: 'onChange',
+        reValidateMode: 'onChange'
     })
 
     const watchedOptions = watch('options')
     const watchedQuestion = watch('question')
+    const selectedSeriesId = watch('selectedSeries')
 
-    const addOption = () => {
-        const currentOptions = getValues('options')
-        setValue('options', [...currentOptions, ''])
-    }
+    // reset course when series changes
+    useEffect(() => {
+        setValue('selectedCourses', '')
+    }, [selectedSeriesId, setValue])
 
-    const updateOption = (index: number, value: string) => {
-        const currentOptions = getValues('options')
-        const updatedOptions = currentOptions.map((option, i) => i === index ? value : option)
-        setValue('options', updatedOptions)
-    }
+    const seriesList = seriesData?.data || []
+    const coursesForSelectedSeries = seriesList.find(s => s.id === selectedSeriesId)?.courses || []
 
-    const removeOption = (index: number) => {
-        const currentOptions = getValues('options')
-        if (currentOptions.length > 2) {
-            const updatedOptions = currentOptions.filter((_, i) => i !== index)
-            setValue('options', updatedOptions)
-           
-            const currentCorrectAnswer = getValues('correctAnswer')
-            if (currentCorrectAnswer === String.fromCharCode(65 + index)) {
-                setValue('correctAnswer', '')
-            }
-        }
-    }
 
     const addQuiz = handleSubmit((data) => {
-    
+        // Validate options
         const validOptions = data.options.filter(option => option.trim().length > 0)
 
         if (validOptions.length < 2) {
-            setError('question', {
+            setError('options', {
                 type: 'manual',
                 message: 'At least 2 options must be filled'
             })
             return
         }
 
-        if (data.question.trim() && data.correctAnswer) {
-            const newQuestion: Question = {
-                id: Date.now().toString(),
-                question: data.question,
-                options: data.options,
-                correctAnswer: data.correctAnswer,
-                points: data.points
-            }
-
-            setQuestions(prev => [...prev, newQuestion])
-            reset({
-                selectedSeries: getValues('selectedSeries'),
-                selectedCourses: getValues('selectedCourses'),
-                question: '',
-                options: ['', '', ''],
-                correctAnswer: '',
-                points: 10
+        // Validate correct answer
+        if (!data.correctAnswer) {
+            setError('correctAnswer', {
+                type: 'manual',
+                message: 'Please select a correct answer'
             })
-            setSelectedQuestionId('')
-            clearErrors()
-           
-        } else {
-            
+            return
         }
-    }, (errors) => {
-       
+
+        // Validate that selected correct answer has content
+        const optionIndex = data.correctAnswer.charCodeAt(0) - 65
+        const selectedOption = data.options[optionIndex]
+        if (!selectedOption || !selectedOption.trim()) {
+            setError('correctAnswer', {
+                type: 'manual',
+                message: 'Selected correct answer option is empty'
+            })
+            return
+        }
+
+        // Create new question
+        const newQuestion: Question = {
+            id: Date.now().toString(),
+            question: data.question,
+            options: data.options,
+            correctAnswer: data.correctAnswer,
+            points: data.points
+        }
+
+        setQuestions(prev => [...prev, newQuestion])
+
+        // Clear only specific fields, preserve quiz title
+        setValue('question', '')
+        setValue('options', ['', '', ''])
+        setValue('correctAnswer', '')
+        setValue('points', 10)
+        // Don't clear quizTitle - keep it as is
+
+        setSelectedQuestionId('')
+        clearErrors()
     })
 
     const selectQuestion = (questionId: string) => {
@@ -139,48 +145,127 @@ export default function CreateQuizAssignment() {
     const deleteQuestion = (questionId: string) => {
         setQuestions(prev => prev.filter(q => q.id !== questionId))
         if (selectedQuestionId === questionId) {
+            // Clear only specific fields, preserve quiz title and selections
+            setValue('question', '')
+            setValue('options', ['', '', ''])
+            setValue('correctAnswer', '')
+            setValue('points', 10)
+            setSelectedQuestionId('')
+        }
+    }
+
+
+
+    // Validation function
+    const validateQuizData = (title: string, seriesId: string, courseId: string, questions: Question[]) => {
+        if (!title?.trim()) return 'Please enter a quiz title'
+        if (title.length > 200) return 'Quiz title must be shorter than or equal to 200 characters'
+        if (!seriesId || !courseId) return 'Please select both series and course'
+        if (!questions?.length) return 'Please add at least one question'
+        return null
+    }
+
+    // handle publish
+    const handlePublish = async (dates?: DeadlineFormData) => {
+        if (!dates) return
+
+        const combineDateTimeToISO = (date: Date, timeHHMM: string) => {
+            if (!date || !timeHHMM) {
+                throw new Error('Invalid date or time')
+            }
+
+            const [hour, minute] = timeHHMM.split(':').map(Number)
+            if (isNaN(hour) || isNaN(minute)) {
+                throw new Error('Invalid time format')
+            }
+
+            // Create date in local timezone first
+            const year = date.getFullYear()
+            const month = date.getMonth()
+            const day = date.getDate()
+
+            // Create new date with UTC time to avoid timezone conversion
+            const utcDate = new Date(Date.UTC(year, month, day, hour, minute, 0, 0))
+
+            return utcDate.toISOString()
+        }
+
+        const { startDateDeadline, startTimeDeadline, submissionDeadline, submissionTimeDeadline } = dates
+
+        const seriesId = getValues('selectedSeries')
+        const courseId = getValues('selectedCourses')
+        const titleValue = getValues('quizTitle')
+        const title = (titleValue && typeof titleValue === 'string') ? titleValue.trim() : 'Untitled Quiz'
+
+        // Validate all required fields
+        const validationError = validateQuizData(title, seriesId, courseId, questions)
+        if (validationError) {
+            alert(validationError)
+            return
+        }
+
+        // Validate dates
+        let publishedAt, dueAt
+        try {
+            publishedAt = combineDateTimeToISO(startDateDeadline, startTimeDeadline)
+            dueAt = combineDateTimeToISO(submissionDeadline, submissionTimeDeadline)
+        } catch (error) {
+            alert('Please select valid start and submission dates')
+            return
+        }
+
+        // Process questions for API
+        const questionsArray = questions.map((q, index) => {
+            const correctIndex = q.correctAnswer ? (q.correctAnswer.charCodeAt(0) - 65) : -1
+            return {
+                prompt: String(q.question),
+                points: Number(q.points) || 1,
+                position: index,
+                answers: q.options
+                    .filter((opt) => typeof opt === 'string' && opt.trim().length > 0)
+                    .map((opt, optIndex) => ({
+                        option: String(opt),
+                        position: optIndex,
+                        is_correct: optIndex === correctIndex
+                    }))
+            }
+        })
+
+        const payload = {
+            title: String(title),
+            instructions: 'Answer all questions. Each question is worth 1 point.',
+            series_id: String(seriesId),
+            course_id: String(courseId),
+            published_at: publishedAt,
+            due_at: dueAt,
+            questions: questionsArray
+        }
+
+
+
+        // Call API to create quiz
+        try {
+            await createQuiz(payload).unwrap()
+
+            // Clear all fields after successful publish
+            setQuestions([])
             reset({
-                selectedSeries: getValues('selectedSeries'),
-                selectedCourses: getValues('selectedCourses'),
+                selectedSeries: '',
+                selectedCourses: '',
+                quizTitle: '',
                 question: '',
                 options: ['', '', ''],
                 correctAnswer: '',
                 points: 10
             })
             setSelectedQuestionId('')
+            clearErrors()
+
+            alert('Quiz created successfully!')
+        } catch (error: any) {
+            const errorMessage = error?.data?.message || 'Failed to create quiz. Please try again.'
+            alert(typeof errorMessage === 'string' ? errorMessage : errorMessage.join('\n'))
         }
-    }
-
-    const getOptionLabel = (index: number) => {
-        return String.fromCharCode(65 + index)
-    }
-
-    const handleDragEnd = (result: any) => {
-        if (!result.destination) return
-
-        const items = Array.from(questions)
-        const [reorderedItem] = items.splice(result.source.index, 1)
-        items.splice(result.destination.index, 0, reorderedItem)
-
-        setQuestions(items)
-    }
-
-    const truncateText = (text: string, maxLength: number = 20) => {
-        if (text.length <= maxLength) return text
-        return text.substring(0, maxLength) + '...'
-    }
-
-
-    // handle publish
-    const handlePublish = async () => {
-        if (questions.length === 0) {
-            setError('question', {
-                type: 'manual',
-                message: 'Please add at least one question before publishing'
-            })
-        }
-        await trigger('question')
-        return
     }
 
     return (
@@ -188,104 +273,62 @@ export default function CreateQuizAssignment() {
             {/* Header */}
             <QuizCreateDate
                 onPublish={handlePublish}
-                publishButtonText="+ Publish"
-                publishButtonDisabled={false}
+                publishButtonText={isCreatingQuiz ? "Publishing..." : "+ Publish"}
+                publishButtonDisabled={questions.length === 0 || isCreatingQuiz}
                 showValidation={true}
             />
 
             <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
                 {/* Left Sidebar - Question Management */}
-                <div className="w-full lg:w-80 bg-[#FDFCFC] rounded-lg  order-2 lg:order-1 border border-[#EEE]">
-                    <div className="p-4 border-b">
-                        <div className="flex items-center justify-between">
-                            <h3 className="font-semibold text-gray-900">Question ({questions.length})</h3>
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                className="rounded-full w-8 h-8 p-0"
-                                onClick={() => {
-                                    reset({
-                                        selectedSeries: getValues('selectedSeries'),
-                                        selectedCourses: getValues('selectedCourses'),
-                                        question: '',
-                                        options: ['', '', ''],
-                                        correctAnswer: '',
-                                        points: 10
-                                    })
-                                    setSelectedQuestionId('')
-                                }}
-                            >
-                                <Plus className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
-
-                    <DragDropContext onDragEnd={handleDragEnd}>
-                        <Droppable droppableId="questions">
-                            {(provided) => (
-                                <div
-                                    {...provided.droppableProps}
-                                    ref={provided.innerRef}
-                                    className="p-4 space-y-3 max-h-96 lg:max-h-none overflow-y-auto"
-                                >
-                                    {questions.map((question, index) => (
-                                        <Draggable key={question.id} draggableId={question.id} index={index}>
-                                            {(provided, snapshot) => (
-                                                <div
-                                                    ref={provided.innerRef}
-                                                    {...provided.draggableProps}
-                                                    className={`${snapshot.isDragging ? 'opacity-50' : ''}`}
-                                                >
-                                                    <Card
-                                                        className={`cursor-pointer transition-colors ${selectedQuestionId === question.id ? 'border-orange-500 bg-orange-50' : ''
-                                                            }`}
-                                                        onClick={() => selectQuestion(question.id)}
-                                                    >
-                                                        <CardContent className="p-3">
-                                                            <div className="flex items-center justify-between">
-                                                                <div className="flex items-center space-x-2 flex-1">
-                                                                    <div {...provided.dragHandleProps}>
-                                                                        <GripVertical className="h-4 w-4 text-gray-400 flex-shrink-0 cursor-grab active:cursor-grabbing" />
-                                                                    </div>
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <p className="text-sm font-medium text-gray-900">
-                                                                            Question {index + 1}
-                                                                        </p>
-                                                                        <p
-                                                                            className="text-sm text-gray-700 truncate cursor-help"
-                                                                            title={question.question}
-                                                                        >
-                                                                            {truncateText(question.question)}
-                                                                        </p>
-                                                                    </div>
-                                                                </div>
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant="ghost"
-                                                                    className="h-6 w-6 p-0 text-red-500 hover:text-red-700 flex-shrink-0"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation()
-                                                                        deleteQuestion(question.id)
-                                                                    }}
-                                                                >
-                                                                    <Trash2 className="h-3 w-3" />
-                                                                </Button>
-                                                            </div>
-                                                        </CardContent>
-                                                    </Card>
-                                                </div>
-                                            )}
-                                        </Draggable>
-                                    ))}
-                                    {provided.placeholder}
-                                </div>
-                            )}
-                        </Droppable>
-                    </DragDropContext>
-                </div>
+                <QuizSidebar
+                    questions={questions}
+                    selectedQuestionId={selectedQuestionId}
+                    onSelectQuestion={selectQuestion}
+                    onDeleteQuestion={deleteQuestion}
+                    onDragEnd={(result) => handleDragEnd(result, questions, setQuestions)}
+                    onAddNewQuestion={() => {
+                        // Clear only specific fields, preserve quiz title and selections
+                        setValue('question', '')
+                        setValue('options', ['', '', ''])
+                        setValue('correctAnswer', '')
+                        setValue('points', 10)
+                        setSelectedQuestionId('')
+                    }}
+                />
 
                 {/* Right Side - Question Editor */}
                 <div className="flex-1 order-1 lg:order-2 ">
+                    {/* Quiz Details */}
+                    <div className="bg-white rounded-xl border mb-4">
+                        <div className="p-4">
+                            <div className="grid grid-cols-1 gap-4">
+                                {/* Quiz Title */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="quizTitle" className="text-sm font-medium text-gray-700">QUIZ TITLE</Label>
+                                    <Controller
+                                        name="quizTitle"
+                                        control={control}
+                                        rules={{
+                                            required: 'Please enter a quiz title',
+                                            minLength: { value: 3, message: 'Title must be at least 3 characters' }
+                                        }}
+                                        render={({ field }) => (
+                                            <Textarea
+                                                id="quizTitle"
+                                                placeholder="Enter quiz title..."
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                className={`min-h-[60px] ${errors.quizTitle && isSubmitted ? 'border-red-500' : ''}`}
+                                            />
+                                        )}
+                                    />
+                                    {errors.quizTitle && isSubmitted && (
+                                        <span className="text-xs text-red-500">{errors.quizTitle.message}</span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     {/* Series and Courses Selection */}
                     <div className="bg-white rounded-xl border mb-4">
                         <div className="p-4">
@@ -308,10 +351,19 @@ export default function CreateQuizAssignment() {
                                                     <SelectValue placeholder="Selected Series" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="series1">Series 1</SelectItem>
-                                                    <SelectItem value="series2">Series 2</SelectItem>
-                                                    <SelectItem value="series3">Series 3</SelectItem>
-                                                    <SelectItem value="series4">Series 4</SelectItem>
+                                                    {isSeriesLoading && (
+                                                        <SelectItem value="loading" disabled>
+                                                            Loading...
+                                                        </SelectItem>
+                                                    )}
+                                                    {isSeriesError && (
+                                                        <SelectItem value="error" disabled>
+                                                            Failed to load series
+                                                        </SelectItem>
+                                                    )}
+                                                    {!isSeriesLoading && !isSeriesError && seriesList.map((series) => (
+                                                        <SelectItem key={series.id} value={series.id}>{series.title}</SelectItem>
+                                                    ))}
                                                 </SelectContent>
                                             </Select>
                                         )}
@@ -335,14 +387,18 @@ export default function CreateQuizAssignment() {
                                                 value={field.value}
                                                 onValueChange={field.onChange}
                                             >
-                                                <SelectTrigger className="w-full">
+                                                <SelectTrigger className="w-full" disabled={!selectedSeriesId || isSeriesLoading}>
                                                     <SelectValue placeholder="Selected Courses" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="course1">Course 1</SelectItem>
-                                                    <SelectItem value="course2">Course 2</SelectItem>
-                                                    <SelectItem value="course3">Course 3</SelectItem>
-                                                    <SelectItem value="course4">Course 4</SelectItem>
+                                                    {(!selectedSeriesId || coursesForSelectedSeries.length === 0) && (
+                                                        <SelectItem value="no-course" disabled>
+                                                            {selectedSeriesId ? 'No courses found' : 'Select a series first'}
+                                                        </SelectItem>
+                                                    )}
+                                                    {coursesForSelectedSeries.map((course) => (
+                                                        <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
+                                                    ))}
                                                 </SelectContent>
                                             </Select>
                                         )}
@@ -366,7 +422,13 @@ export default function CreateQuizAssignment() {
                                     control={control}
                                     rules={{
                                         required: "Question is required",
-                                        minLength: { value: 10, message: "Question must be at least 10 characters" }
+                                        minLength: { value: 10, message: "Question must be at least 10 characters" },
+                                        validate: (value) => {
+                                            if (!value || value.trim().length < 10) {
+                                                return "Question must be at least 10 characters"
+                                            }
+                                            return true
+                                        }
                                     }}
                                     render={({ field }) => (
                                         <Textarea
@@ -374,155 +436,44 @@ export default function CreateQuizAssignment() {
                                             placeholder="Type your question here..."
                                             value={field.value}
                                             onChange={field.onChange}
-                                            className={`min-h-[100px] ${errors.question && isSubmitted && watchedQuestion.trim() ? 'border-red-500' : ''}`}
+                                            className={`min-h-[100px] ${errors.question && (isSubmitted || watchedQuestion.trim()) ? 'border-red-500' : ''}`}
                                         />
                                     )}
                                 />
-                                {errors.question && isSubmitted && watchedQuestion.trim() && (
+                                {errors.question && (isSubmitted || watchedQuestion.trim()) && (
                                     <span className="text-xs text-red-500">{errors.question.message}</span>
                                 )}
                             </div>
                         </div>
                     </div>
 
-                    <div className="space-y-4 sm:space-y-6  mt-5">
-                        {/* Answer Options Section */}
-                        <div className='bg-white rounded-xl border'>
-                            <h3 className="text-sm font-semibold text-center text-gray-400 mb-4 px-4  py-4 rounded-t-xl bg-[#FEF9F2]">ANSWER</h3>
-                            <div className='p-4'>
-                                <div className="space-y-3">
-                                    {watchedOptions.map((option, index) => (
-                                        <div key={index} className="relative">
-                                            <div className="relative">
-                                                <Input
-                                                    placeholder="Enter your option"
-                                                    value={option}
-                                                    onChange={(e) => updateOption(index, e.target.value)}
-                                                    className={`pl-12 pr-10 py-6 border-gray-200 ${!option.trim() && isSubmitted && watchedQuestion.trim() ? 'border-red-500' : ''}`}
-                                                />
-                                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-gray-200 rounded-md w-6 h-6 flex items-center justify-center">
-                                                    <span className="text-sm font-medium text-gray-700">
-                                                        {getOptionLabel(index)}
-                                                    </span>
-                                                </div>
-                                                {watchedOptions.length > 2 && (
-                                                    <Button
-                                                        size="sm"
-                                                        variant="ghost"
-                                                        className="absolute cursor-pointer right-2 top-1/2 transform -translate-y-1/2 text-red-500 hover:text-red-700 h-6 w-6 p-0"
-                                                        onClick={() => removeOption(index)}
-                                                    >
-                                                        <Trash2 className="h-3 w-3" />
-                                                    </Button>
-                                                )}
-                                            </div>
-                                            {!option.trim() && isSubmitted && watchedQuestion.trim() && (
-                                                <span className="text-xs text-red-500 mt-1 block">Option {getOptionLabel(index)} is required</span>
-                                            )}
-                                        </div>
-                                    ))}
-                                    <Button
-                                        variant="outline"
-                                        onClick={addOption}
-                                        className="mt-2 w-full px-10 sm:w-auto cursor-pointer"
-                                    >
-                                        + Add Option
-                                    </Button>
-                                    {watchedOptions.length < 2 && isSubmitted && watchedQuestion.trim() && (
-                                        <span className="text-xs text-red-500 block">At least 2 options are required</span>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
+                    {/* Hidden field for options validation */}
+                    <Controller
+                        name="options"
+                        control={control}
+                        rules={{
+                            validate: (value) => {
+                                const validOptions = value.filter(option => option.trim().length > 0)
+                                if (validOptions.length < 2) {
+                                    return "At least 2 options must be filled"
+                                }
+                                return true
+                            }
+                        }}
+                        render={() => <div style={{ display: 'none' }} />}
+                    />
 
-                        {/* Correct Answer Section */}
-                        <div className='bg-white rounded-xl border'>
-                            <h3 className="text-sm font-semibold text-center text-gray-400 mb-4 px-4  py-4 rounded-t-xl bg-[#FEF9F2]">CORRECT ANSWER</h3>
-                            <div className="flex flex-col gap-3 lg:flex-row items-center justify-between bg-[#F9F9F9] p-3 mx-5 ">
-                                <div>
-                                    <span className="text-sm font-medium text-gray-700">Select correct answer</span>
-                                </div>
-                                <div className='flex items-center flex-col sm:flex-row gap-3'>
-                                    <Controller
-                                        name="correctAnswer"
-                                        control={control}
-                                        rules={{
-                                            required: "Please select a correct answer",
-                                            validate: (value) => {
-                                                if (!value) return "Please select a correct answer"
-                                                const optionIndex = value.charCodeAt(0) - 65
-                                                const selectedOption = watchedOptions[optionIndex]
-                                                if (!selectedOption || !selectedOption.trim()) {
-                                                    return "Selected option is empty"
-                                                }
-                                                return true
-                                            }
-                                        }}
-                                        render={({ field }) => (
-                                            <Select
-                                                value={field.value}
-                                                onValueChange={field.onChange}
-                                            >
-                                                <SelectTrigger className={`w-full sm:w-48 ${errors.correctAnswer && isSubmitted && watchedQuestion.trim() ? 'border-red-500' : ''}`}>
-                                                    <SelectValue placeholder="Correct answer" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {watchedOptions.map((option, index) => (
-                                                        <SelectItem key={index} value={getOptionLabel(index)}>
-                                                            {getOptionLabel(index)}: {option || `Option ${getOptionLabel(index)}`}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                    />
-                                    <div className="flex items-center space-x-2">
-                                        <Label htmlFor="points" className="text-sm">Point</Label>
-                                        <Controller
-                                            name="points"
-                                            control={control}
-                                            rules={{
-                                                required: "Points are required",
-                                                min: { value: 1, message: "Points must be at least 1" },
-                                                max: { value: 100, message: "Points cannot exceed 100" }
-                                            }}
-                                            render={({ field }) => (
-                                                <Input
-                                                    id="points"
-                                                    type="number"
-                                                    value={field.value}
-                                                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                                                    className="w-20"
-                                                />
-                                            )}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                            {errors.correctAnswer && isSubmitted && watchedQuestion.trim() && (
-                                <div className="px-5">
-                                    <span className="text-xs text-red-500">{errors.correctAnswer.message}</span>
-                                </div>
-                            )}
-                            {errors.points && isSubmitted && watchedQuestion.trim() && (
-                                <div className="px-5">
-                                    <span className="text-xs text-red-500">{errors.points.message}</span>
-                                </div>
-                            )}
-
-                            {/* Add Quiz Button */}
-                            <div className="flex justify-end p-4">
-                                <Button
-                                    onClick={addQuiz}
-                                    className="bg-[#0F2598] cursor-pointer hover:bg-[#0F2598]/90 text-white w-full sm:w-auto"
-                                    disabled={false}
-                                    type="button"
-                                >
-                                    + Add Quiz
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
+                    <CorrectAnswer
+                        control={control}
+                        errors={errors}
+                        isSubmitted={isSubmitted}
+                        watchedOptions={watchedOptions}
+                        watchedQuestion={watchedQuestion}
+                        getValues={getValues}
+                        setValue={setValue}
+                        trigger={trigger}
+                        onAddQuiz={addQuiz}
+                    />
                 </div>
             </div>
         </div>

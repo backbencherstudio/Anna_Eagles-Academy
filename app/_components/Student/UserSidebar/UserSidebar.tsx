@@ -7,8 +7,8 @@ import { FiLogOut } from 'react-icons/fi';
 import LoadingOverlay from '@/components/Resuable/LoadingOverlay';
 import Logo from '@/components/Icons/Logo';
 import USerSidebarMenu from './USerSidebarMenu';
-import { useAppDispatch } from '@/redux/hooks';
-import { useLogoutMutation } from '@/redux/api/authApi';
+import { useAppDispatch } from '@/rtk/hooks';
+import { useLogoutMutation } from '@/rtk/api/authApi';
 
 // Menu configuration and item rendering are encapsulated in SideBarMenu
 
