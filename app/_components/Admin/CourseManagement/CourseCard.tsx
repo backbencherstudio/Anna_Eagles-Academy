@@ -2,10 +2,12 @@
 
 import React, { useState } from 'react'
 import Image from 'next/image'
-import { Eye, EyeIcon, Paperclip } from 'lucide-react'
 import EditIcon from '@/components/Icons/CustomIcon/EditIcon'
-import { FaEye } from 'react-icons/fa'
 import { useRouter } from 'next/navigation'
+import { Trash2 } from 'lucide-react'
+import { useDeleteSingleSeriesMutation } from '@/redux/api/managementCourseApis'
+import toast from 'react-hot-toast'
+import ConfirmDialog from '@/components/Resuable/ConfirmDialog'
 
 interface CourseCardProps {
     course: {
@@ -40,7 +42,10 @@ interface CourseCardProps {
 export default function CourseCard({ course }: CourseCardProps) {
     const [imageError, setImageError] = useState(false)
     const [imageLoading, setImageLoading] = useState(true)
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+    const [isDeleting, setIsDeleting] = useState(false)
     const router = useRouter()
+    const [deleteSeries] = useDeleteSingleSeriesMutation()
     const formatDate = (dateString: string) => {
         const date = new Date(dateString)
         return date.toISOString().split('T')[0]
@@ -106,7 +111,7 @@ export default function CourseCard({ course }: CourseCardProps) {
     // Component for placeholder when image is not available or fails to load
     const ImagePlaceholder = () => (
         <div className="w-full h-full p-3">
-            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl flex items-center justify-center">
+            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 rounded flex items-center justify-center">
                 <div className="text-center text-gray-400">
                     <svg className="w-16 h-16 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
@@ -132,6 +137,20 @@ export default function CourseCard({ course }: CourseCardProps) {
         router.push(`/admin/create-course/${course.id}`)
     }
 
+    const handleDeleteCourse = async () => {
+        setIsDeleting(true)
+        try {
+            const res: any = await deleteSeries(course.id).unwrap()
+            toast.success(res?.message || 'Course deleted successfully')
+            setShowDeleteDialog(false)
+        } catch (error: any) {
+            const errorMessage = error?.data?.message || error?.message || 'Failed to delete course'
+            toast.error(typeof errorMessage === 'string' ? errorMessage : 'Failed to delete course')
+        } finally {
+            setIsDeleting(false)
+        }
+    }
+
     return (
         <div className="bg-white rounded-2xl transition-shadow duration-200 overflow-hidden border border-[#EEE]">
             {/* Banner */}
@@ -153,12 +172,19 @@ export default function CourseCard({ course }: CourseCardProps) {
                     <ImagePlaceholder />
                 )}
 
-                {/* Top-right action icon */}
-                <button onClick={handleUpdateCourse} className='absolute right-4 top-4 cursor-pointer'>
-                    <div className=" p-1 rounded bg-[#D0D0D047] border border-[#E9E9EA33] flex items-center justify-center text-[#F1C27D] hover:bg-[#F1C27D]/80 hover:text-black transition-all duration-300 ">
-                        <EditIcon />
-                    </div>
-                </button>
+                {/* Top-right action icons */}
+                <div className="absolute right-4 top-4 flex gap-2">
+                    <button onClick={handleUpdateCourse} className="cursor-pointer">
+                        <div className="p-1 rounded bg-[#00000047] border border-[#E9E9EA33] flex items-center justify-center text-[#F1C27D] hover:bg-white hover:text-black transition-all duration-300">
+                            <EditIcon />
+                        </div>
+                    </button>
+                    <button onClick={() => setShowDeleteDialog(true)} className="cursor-pointer">
+                        <div className="p-1 rounded bg-[#00000047] border border-[#E9E9EA33] flex items-center justify-center text-red-400 hover:bg-white hover:text-red-600 transition-all duration-300">
+                            <Trash2 size={16} />
+                        </div>
+                    </button>
+                </div>
             </div>
 
             {/* Content */}
@@ -252,6 +278,19 @@ export default function CourseCard({ course }: CourseCardProps) {
                     )}
                 </div>
             </div>
+
+            {/* Delete Confirmation Dialog */}
+            <ConfirmDialog
+                open={showDeleteDialog}
+                onOpenChange={setShowDeleteDialog}
+                onConfirm={handleDeleteCourse}
+                title="Delete Course"
+                description={`Are you sure you want to delete "${course.title}"? This action cannot be undone.`}
+                confirmText="Delete"
+                cancelText="Cancel"
+                confirmVariant="destructive"
+                isLoading={isDeleting}
+            />
         </div>
     )
 }

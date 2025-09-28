@@ -47,12 +47,11 @@ export default function SetAvailability({
     // Set existing dates when series data is loaded
     useEffect(() => {
         if (seriesData?.data?.start_date && seriesData?.data?.end_date && !dateRange?.from && !dateRange?.to) {
-            // Parse dates without timezone conversion to avoid date shifting
-            const startDateStr = seriesData.data.start_date.split('T')[0] // Get only date part
-            const endDateStr = seriesData.data.end_date.split('T')[0] // Get only date part
+            const startDateStr = seriesData.data.start_date.split('T')[0]
+            const endDateStr = seriesData.data.end_date.split('T')[0]
             
-            const startDate = new Date(startDateStr + 'T00:00:00') // Create local date
-            const endDate = new Date(endDateStr + 'T00:00:00') // Create local date
+            const startDate = new Date(startDateStr + 'T00:00:00')
+            const endDate = new Date(endDateStr + 'T00:00:00') 
             
             onDateRangeChange({ from: startDate, to: endDate })
         }
@@ -74,8 +73,7 @@ export default function SetAvailability({
 
         try {
             const formData = new FormData()
-            
-            // Format dates without timezone conversion to preserve selected dates
+        
             const formatDate = (date: Date) => {
                 const year = date.getFullYear()
                 const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -91,7 +89,6 @@ export default function SetAvailability({
                 formData 
             }).unwrap()
 
-            // No need to remove cookie since we're using dynamic routes
             
             toast.success(res?.message || 'Course availability updated successfully')
             onSuccess?.()
