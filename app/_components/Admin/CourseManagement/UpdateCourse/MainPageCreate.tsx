@@ -257,8 +257,6 @@ export default function MainPageCreate() {
                     courseTitle={courseForm.title || 'Untitled Course'}
                     dateRange={courseForm.dateRange}
                     onDateRangeChange={handleDateRangeChange}
-                    isSubmitting={isSubmitting}
-                    onSubmit={handleSubmit}
                     showErrors={showErrors}
                 />
             </div>

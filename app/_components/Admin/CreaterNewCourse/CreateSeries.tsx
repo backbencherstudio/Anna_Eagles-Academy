@@ -10,8 +10,6 @@ import { Button } from '@/components/ui/button'
 import { useForm } from 'react-hook-form'
 import ButtonSpring from '@/components/Resuable/ButtonSpring'
 import { useCreateSeriesMutation, useGetSingleSeriesQuery, useUpdateSingleSeriesMutation } from '@/redux/api/managementCourseApis'
-import { getCookie, setCookie } from '@/lib/tokenUtils'
-import { Pencil } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 type CreateSeriesProps = {
     seriesId?: string | null
@@ -94,23 +92,21 @@ export default function CreateSeries({ seriesId, onNext }: CreateSeriesProps) {
 
             if (isEditMode && seriesId) {
                 const res: any = await updateSeries({ series_id: seriesId, formData })
+                // For updates, call onNext to proceed to next step
+                onNext?.({
+                    title: data.title,
+                    enrollCount: Number(data.enrollCount),
+                    courseType: data.courseType,
+                    thumbnailFile: data.thumbnailFile,
+                    description: data.description,
+                    note: data.note,
+                })
             } else {
                 const res: any = await createSeries(formData)
                 if ('data' in res && res.data?.data?.id) {
-                    // Navigate to the new series ID for editing
-                    router.push(`/admin/create-new-course/${res.data.data.id}`)
+                    router.push(`/admin/create-course/${res.data.data.id}?step=2`)
                 }
             }
-
-            onNext?.({
-                title: data.title,
-                enrollCount: Number(data.enrollCount),
-                courseType: data.courseType,
-                thumbnailFile: data.thumbnailFile,
-                description: data.description,
-                note: data.note,
-            })
-            // After successful create/update, exit edit mode to disable fields
             setIsEditMode(false)
         } finally {
             setSubmitting(false)

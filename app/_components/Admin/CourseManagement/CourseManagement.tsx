@@ -35,7 +35,7 @@ export default function CourseManagement() {
         data: coursesData,
         isLoading: coursesLoading,
         error: coursesError,
-        refetch
+
     } = useGetAllCoursesQuery({
         search: searchQuery,
         page: pagination.page,

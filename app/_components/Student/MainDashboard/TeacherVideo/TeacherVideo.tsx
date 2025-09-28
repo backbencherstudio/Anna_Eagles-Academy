@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import React, { useMemo } from 'react'
 
 interface TeacherVideoItem {
@@ -60,7 +61,7 @@ export default function TeacherVideo() {
                         {/* Thumbnail */}
                         <div className="w-full h-28 rounded-xl overflow-hidden bg-gray-200 relative">
                             {item.thumbnail ? (
-                                <img src={item.thumbnail} alt={item.title} className="w-full h-full object-cover" />
+                                <Image width={100} height={100} src={item.thumbnail} alt={item.title} className="w-full h-full object-cover" />
                             ) : null}
                             <div className="absolute inset-0 flex items-center justify-center">
                                 <div className="h-10 w-10 rounded-full bg-white/90 flex items-center justify-center shadow">
