@@ -1,5 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import axiosClient from '@/lib/axisoClients';
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { createAuthBaseQuery } from '@/lib/axisoClients';
 
 // Types
 export interface User {
@@ -66,43 +66,9 @@ const clearToken = () => {
   }
 };
 
-// Custom base query that uses axiosClient
-const baseQuery = async (args: any, api: any, extraOptions: any) => {
-  try {
-    const { url, method = 'GET', body, ...rest } = args;
-    
-    let response;
-    switch (method) {
-      case 'POST':
-        response = await axiosClient.post(url, body);
-        break;
-      case 'GET':
-        response = await axiosClient.get(url);
-        break;
-      case 'PUT':
-        response = await axiosClient.put(url, body);
-        break;
-      case 'DELETE':
-        response = await axiosClient.delete(url);
-        break;
-      default:
-        response = await axiosClient.get(url);
-    }
-
-    return { data: response.data };
-  } catch (error: any) {
-    return {
-      error: {
-        status: error.response?.status || 500,
-        data: error.response?.data || error.message || 'An error occurred',
-      },
-    };
-  }
-};
-
 export const authApi = createApi({
   reducerPath: 'authApi',
-  baseQuery,
+  baseQuery: createAuthBaseQuery(),
   tagTypes: ['User', 'Auth'],
   endpoints: (builder) => ({
     // Login endpoint

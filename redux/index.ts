@@ -5,6 +5,8 @@ import courseManagementReducer from '@/redux/slices/courseManagementSlice'
 import managementCourseReducer from '@/redux/slices/managementCourseSlice'
 import { authApi } from '@/redux/api/authApi'
 import { managementCourseApi } from './api/managementCourseApis'
+import { manageMaterialsApi } from './api/manageMaterialsApis'
+import { courseFilterApi } from './api/courseFilterApis'
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +16,8 @@ export const store = configureStore({
     managementCourse: managementCourseReducer,
     [authApi.reducerPath]: authApi.reducer,
     [managementCourseApi.reducerPath]: managementCourseApi.reducer,
+    [manageMaterialsApi.reducerPath]: manageMaterialsApi.reducer,
+    [courseFilterApi.reducerPath]: courseFilterApi.reducer,
   },
 
 
@@ -43,7 +47,7 @@ export const store = configureStore({
           'courseManagement.moduleLessons'
         ],
       },
-    }).concat(authApi.middleware, managementCourseApi.middleware),
+    }).concat(authApi.middleware, managementCourseApi.middleware, manageMaterialsApi.middleware, courseFilterApi.middleware),
 })
 
 export type RootState = ReturnType<typeof store.getState>

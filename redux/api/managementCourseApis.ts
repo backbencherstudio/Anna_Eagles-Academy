@@ -1,52 +1,10 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import axiosClient from '@/lib/axisoClients';
-
-// Custom base query using axiosClient
-const baseQuery = async (args: { url: string; method: string; data?: any; params?: any }) => {
-    try {
-        const { url, method, data, params } = args;
-
-        let response;
-        switch (method.toUpperCase()) {
-            case 'GET':
-                response = await axiosClient.get(url, { params });
-                break;
-            case 'POST':
-                response = await axiosClient.post(url, data, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                });
-                break;
-            case 'PATCH':
-                response = await axiosClient.patch(url, data, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                });
-                break;
-            case 'DELETE':
-                response = await axiosClient.delete(url);
-                break;
-            default:
-                throw new Error(`Unsupported method: ${method}`);
-        }
-
-        return { data: response.data };
-    } catch (error: any) {
-        return {
-            error: {
-                status: error.response?.status,
-                data: error.response?.data || error.message,
-            },
-        };
-    }
-};
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { createBaseQuery } from '@/lib/axisoClients';
 
 
 export const managementCourseApi = createApi({
     reducerPath: 'managementCourseApi',
-    baseQuery,
+    baseQuery: createBaseQuery(),
     tagTypes: ['ManagementCourse', 'Course'],
     endpoints: (builder) => ({
 

@@ -2371,7 +2371,7 @@ __metadata:
     react-country-flag: "npm:^3.1.0"
     react-day-picker: "npm:^9.8.0"
     react-dom: "npm:19.1.0"
-    react-hook-form: "npm:^7.61.1"
+    react-hook-form: "npm:^7.63.0"
     react-hot-toast: "npm:^2.5.2"
     react-icons: "npm:^5.5.0"
     react-phone-input-2: "npm:^2.15.1"
@@ -5351,12 +5351,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-hook-form@npm:^7.61.1":
-  version: 7.61.1
-  resolution: "react-hook-form@npm:7.61.1"
+"react-hook-form@npm:^7.63.0":
+  version: 7.63.0
+  resolution: "react-hook-form@npm:7.63.0"
   peerDependencies:
     react: ^16.8.0 || ^17 || ^18 || ^19
-  checksum: 10c0/c241bca80f6d5f9f8b4f24b668670a3ee7249f9cf99537219c4ac1072431493d3768a910b6f2aaff20689a727d0e2797aeacb1ab9285b3e59309de3dd1bead41
+  checksum: 10c0/0b46c0f41bcda524eae03aed16ac48237a351886d48495df8e67190da1eabc5bc113788db42e23c802f2a5e641f15bcca070a9092cbc26b4133e96b9a62c938e
   languageName: node
   linkType: hard
 
