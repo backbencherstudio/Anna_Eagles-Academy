@@ -1,7 +1,6 @@
 import React from 'react'
 import { Card, CardContent } from '@/components/ui/card'
-import { ArrowRight, Edit } from 'lucide-react'
-import { useGetAllDataQuizQuery } from '@/rtk/api/quizApis'
+import { Edit } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { useRouter } from 'next/navigation'
 
@@ -15,8 +14,11 @@ interface UnpublishedQuizItem {
     total_marks: number
 }
 
-export default function UnpublishedQuiz() {
-    const { data: quizData, isLoading, isError } = useGetAllDataQuizQuery({})
+interface UnpublishedQuizProps {
+    unpublishedQuizzes: UnpublishedQuizItem[]
+}
+
+export default function UnpublishedQuiz({ unpublishedQuizzes }: UnpublishedQuizProps) {
     const router = useRouter()
 
     const handleEditQuiz = (quizId: string) => {
@@ -26,48 +28,20 @@ export default function UnpublishedQuiz() {
     const formatScheduledDate = (publishedAt: string) => {
         try {
             const date = parseISO(publishedAt)
-            return `Scheduled for: ${format(date, 'd, MMMM - hh:mm a')}`
+            // Extract the time components directly from the ISO string to avoid timezone conversion
+            const year = date.getUTCFullYear()
+            const month = date.getUTCMonth()
+            const day = date.getUTCDate()
+            const hours = date.getUTCHours()
+            const minutes = date.getUTCMinutes()
+            
+            // Create a new date object with the UTC components
+            const utcDate = new Date(year, month, day, hours, minutes)
+            return `Scheduled for: ${format(utcDate, 'd, MMMM - hh:mm a')}`
         } catch (error) {
             return 'Invalid date'
         }
     }
-
-    if (isLoading) {
-        return (
-            <div>
-                <h2 className="text-[#1D1F2C] text-lg font-medium mb-4">Unpublished Quiz</h2>
-                <div className="space-y-3">
-                    {[...Array(2)].map((_, index) => (
-                        <Card key={index} className="animate-pulse">
-                            <CardContent className="p-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-4 h-4 bg-gray-200 rounded flex-shrink-0"></div>
-                                    <div className="flex-1">
-                                        <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                                    </div>
-                                    <div className="w-4 h-4 bg-gray-200 rounded"></div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            </div>
-        )
-    }
-
-    if (isError) {
-        return (
-            <div>
-                <h2 className="text-[#1D1F2C] text-lg font-medium mb-4">Unpublished Quiz</h2>
-                <div className="text-center py-8">
-                    <p className="text-red-500">Failed to load unpublished quizzes</p>
-                </div>
-            </div>
-        )
-    }
-
-    const unpublishedQuizzes = quizData?.data?.unpublished_quizzes || []
 
     return (
         <div>

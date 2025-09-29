@@ -5,7 +5,7 @@ import { createAuthBaseQuery } from '@/lib/axisoClients';
 export const quizApi = createApi({
     reducerPath: 'quizApi',
     baseQuery: createAuthBaseQuery(),
-    tagTypes: ['Quiz'],
+    tagTypes: ['Quiz', 'QuizDashboard'],
     endpoints: (builder) => ({
 
         // create quiz
@@ -15,7 +15,7 @@ export const quizApi = createApi({
                 method: 'POST',
                 body: quiz,
             }),
-            invalidatesTags: ['Quiz'],
+            invalidatesTags: ['Quiz', 'QuizDashboard'],
         }),
         // get all quizzes
         getAllQuizzes: builder.query({
@@ -42,6 +42,7 @@ export const quizApi = createApi({
                 method: 'PATCH',
                 body: quiz,
             }),
+            invalidatesTags: ['Quiz', 'QuizDashboard'],
         }),
 
         // delete quiz
@@ -50,7 +51,7 @@ export const quizApi = createApi({
                 url: `/api/admin/quiz/${quiz_id}`,
                 method: 'DELETE',
             }),
-            invalidatesTags: ['Quiz'],
+            invalidatesTags: ['Quiz', 'QuizDashboard'],
         }),
 
 
@@ -60,7 +61,7 @@ export const quizApi = createApi({
                 url: '/api/admin/quiz/dashboard',
                 method: 'GET',
             }),
-            providesTags: ['Quiz'],
+            providesTags: ['QuizDashboard'],
         }),
 
     }),

@@ -1,104 +1,77 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Plus } from 'lucide-react'
+import { Plus, RefreshCw } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useGetAllDataQuizQuery } from '@/rtk/api/quizApis'
 import PublishedQuiz from './PublishedQuiz'
 import UnpublishedQuiz from './UnpublishedQuiz'
 
-// Data type definition
-interface Assignment {
+// Data type definition based on API response
+interface QuizSubmission {
     id: string
-    title: string
-    submissions: number
-    totalStudents: number
-    status: 'active' | 'completed' | 'draft'
+    status: string
+    total_grade: number
+    percentage: number
+    submitted_at: string
 }
 
-// Sample data declaration
-const sampleAssignments: Assignment[] = [
-    {
-        id: '1',
-        title: 'Analysis of Chemical Reaction Results',
-        submissions: 10,
-        totalStudents: 34,
-        status: 'active'
-    },
-    {
-        id: '2',
-        title: 'Exploring New Materials: Stoichiometry',
-        submissions: 12,
-        totalStudents: 34,
-        status: 'active'
-    },
-    {
-        id: '3',
-        title: 'Lab Report: Chemical Reaction Observations',
-        submissions: 21,
-        totalStudents: 34,
-        status: 'active'
-    },
-    {
-        id: '4',
-        title: 'Exploring New Materials: Stoichiometry',
-        submissions: 30,
-        totalStudents: 34,
-        status: 'active'
-    },
-    {
-        id: '5',
-        title: 'Lab Report: Chemical Reaction Observations',
-        submissions: 18,
-        totalStudents: 34,
-        status: 'active'
-    },
-    {
-        id: '6',
-        title: 'Analysis of Chemical Reaction Results',
-        submissions: 8,
-        totalStudents: 34,
-        status: 'active'
+interface QuizData {
+    id: string
+    title: string
+    due_at: string
+    published_at: string
+    is_published: boolean
+    created_at: string
+    total_marks: number
+    series_id: string
+    series: {
+        id: string
+        title: string
     }
-]
+    course: {
+        id: string
+        title: string
+    }
+    _count: {
+        submissions: number
+    }
+    submissions: QuizSubmission[]
+    submission_count: number
+    total_students: number
+    remaining_time?: number
+}
+
 
 export default function AssignmentQuiz() {
-    const [assignments, setAssignments] = useState<Assignment[]>([])
-    const [loading, setLoading] = useState(true)
     const router = useRouter()
-    // Simulate data fetching with useEffect
-    useEffect(() => {
-        const fetchAssignments = async () => {
-            try {
-                // Simulate API call delay
-                await new Promise(resolve => setTimeout(resolve, 300))
-                setAssignments(sampleAssignments)
-            } catch (error) {
-                console.error('Error fetching assignments:', error)
-            } finally {
-                setLoading(false)
-            }
-        }
 
-        fetchAssignments()
-    }, [])
+    // Fetch quiz dashboard data from API
+    const { data: quizData, isLoading, isError, refetch } = useGetAllDataQuizQuery(undefined)
 
     const handleCreateAssignment = () => {
         router.push('/admin/create-quiz')
-        // Handle create new assignment logic
-        // console.log('Create new assignment clicked')
     }
 
-    if (loading) {
+    const handleRefresh = () => {
+        refetch()
+    }
+
+    // Show loading state
+    if (isLoading) {
         return (
             <div className="bg-white rounded-lg p-4">
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b border-gray-200 pb-4">
                     <h1 className="text-lg sm:text-xl font-semibold text-gray-900">Assignments (Quiz)</h1>
-                    <Button disabled className="bg-[#0F2598] cursor-pointer hover:bg-[#0F2598]/80 text-white px-4 py-2 rounded-lg flex items-center gap-2 w-full sm:w-auto">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Create new Assignment
-                    </Button>
+                    <div>
+
+                        <Button disabled className="bg-[#0F2598] cursor-pointer hover:bg-[#0F2598]/80 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                            <Plus className="w-4 h-4" />
+                            Create new Assignment
+                        </Button>
+                    </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {[...Array(6)].map((_, index) => (
@@ -115,6 +88,48 @@ export default function AssignmentQuiz() {
         )
     }
 
+    // Show error state
+    if (isError) {
+        return (
+            <div className="bg-white rounded-lg p-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b border-gray-200 pb-4">
+                    <h1 className="text-lg sm:text-xl font-semibold text-gray-900">Assignments (Quiz)</h1>
+                    <div className="flex gap-2 w-full sm:w-auto">
+                        <Button
+                            onClick={handleRefresh}
+                            variant="outline"
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg"
+                        >
+                            <RefreshCw className="w-4 h-4" />
+                            Refresh
+                        </Button>
+                        <Button
+                            onClick={handleCreateAssignment}
+                            className="bg-[#0F2598] cursor-pointer hover:bg-[#0F2598]/80 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 gap-2"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Create new Assignment
+                        </Button>
+                    </div>
+                </div>
+                <div className="text-center py-12">
+                    <p className="text-red-500 text-lg mb-4">Failed to load quiz data</p>
+                    <p className="text-gray-600 mb-4">Please check your connection and try again</p>
+                    <Button
+                        onClick={handleRefresh}
+                        className="bg-blue-500 hover:bg-blue-600 text-white"
+                    >
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Retry
+                    </Button>
+                </div>
+            </div>
+        )
+    }
+
+    // Get submitted quizzes for display
+    const submittedQuizzes = quizData?.data?.submitted_quizzes || []
+
     return (
         <>
             <div className="bg-white rounded-lg p-4 border border-gray-100">
@@ -123,34 +138,48 @@ export default function AssignmentQuiz() {
                     <h1 className="text-lg sm:text-xl font-semibold text-gray-900">
                         Assignments (Quiz)
                     </h1>
-                    <Button
-                        onClick={handleCreateAssignment}
-                        className="bg-[#0F2598] cursor-pointer hover:bg-[#0F2598]/80 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 gap-2 w-full sm:w-auto"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Create new Assignment
-                    </Button>
+                    <div >
+
+                        <Button
+                            onClick={handleCreateAssignment}
+                            className="bg-[#0F2598] cursor-pointer hover:bg-[#0F2598]/80 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 gap-2"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Create new Assignment
+                        </Button>
+                    </div>
                 </div>
 
-                {/* Assignment Cards Grid */}
+                {/* Quiz Cards Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                    {assignments.map((assignment) => (
+                    {submittedQuizzes.map((quiz: QuizData) => (
                         <Card
-                            key={assignment.id}
+                            key={quiz.id}
                             className="hover:shadow transition-shadow duration-200 cursor-pointer border border-gray-200"
                         >
                             <CardContent className="p-4">
                                 {/* Orange square indicator */}
                                 <div className="w-4 h-4 bg-[#FC4B0E] rounded mb-3"></div>
 
-                                {/* Assignment title */}
+                                {/* Quiz title */}
                                 <h3 className="font-semibold text-gray-900 text-xs sm:text-sm mb-2 line-clamp-2">
-                                    {assignment.title}
+                                    {quiz.title}
                                 </h3>
+
+                                {/* Course and Series info */}
+                                <div className="text-xs text-gray-500 mb-2">
+                                    <p className="truncate">{quiz.series?.title}</p>
+                                    <p className="truncate">{quiz.course?.title}</p>
+                                </div>
 
                                 {/* Submission status */}
                                 <p className="text-sm text-gray-600">
-                                    {assignment.submissions}/{assignment.totalStudents} Submission
+                                    {quiz.submission_count}/{quiz.total_students} Submission
+                                </p>
+
+                                {/* Total marks */}
+                                <p className="text-xs text-gray-500 mt-1">
+                                    {quiz.total_marks} marks
                                 </p>
                             </CardContent>
                         </Card>
@@ -158,15 +187,15 @@ export default function AssignmentQuiz() {
                 </div>
 
                 {/* Empty state */}
-                {assignments.length === 0 && !loading && (
+                {submittedQuizzes.length === 0 && (
                     <div className="text-center py-12">
-                        <p className="text-gray-500 text-lg">No assignments found</p>
+                        <p className="text-gray-500 text-lg">No quiz assignments found</p>
                         <Button
                             onClick={handleCreateAssignment}
                             className="mt-4 bg-orange-500 hover:bg-orange-600"
                         >
                             <Plus className="w-4 h-4 mr-2" />
-                            Create your first assignment
+                            Create your first quiz assignment
                         </Button>
                     </div>
                 )}
@@ -174,8 +203,12 @@ export default function AssignmentQuiz() {
             {/* published and unpublished cards */}
             <div className="bg-white rounded-lg p-4 border border-gray-100 mt-5">
                 <div className='space-y-5'>
-                    <PublishedQuiz />
-                    <UnpublishedQuiz />
+                    <PublishedQuiz
+                        publishedQuizzes={quizData?.data?.published_quizzes || []}
+                    />
+                    <UnpublishedQuiz
+                        unpublishedQuizzes={quizData?.data?.unpublished_quizzes || []}
+                    />
                 </div>
             </div>
         </>

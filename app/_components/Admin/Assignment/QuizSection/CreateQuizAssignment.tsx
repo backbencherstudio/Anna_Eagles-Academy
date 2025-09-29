@@ -31,6 +31,19 @@ interface QuizFormData {
     quizTitle?: string
 }
 
+// Helper functions
+const createUTCDate = (date: Date) => new Date(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate(),
+    date.getUTCHours(),
+    date.getUTCMinutes(),
+    date.getUTCSeconds()
+)
+
+const formatTime = (date: Date) =>
+    `${date.getUTCHours().toString().padStart(2, '0')}:${date.getUTCMinutes().toString().padStart(2, '0')}`
+
 export default function CreateQuizAssignment() {
     // State management
     const [questions, setQuestions] = useState<Question[]>([])
@@ -70,9 +83,7 @@ export default function CreateQuizAssignment() {
             options: ['', '', ''],
             correctAnswer: '',
             points: 10
-        },
-        mode: 'onChange',
-        reValidateMode: 'onChange'
+        }
     })
 
     // Form watchers
@@ -84,7 +95,7 @@ export default function CreateQuizAssignment() {
     const seriesList = seriesData?.data || []
     const coursesForSelectedSeries = seriesList.find(s => s.id === selectedSeriesId)?.courses || []
 
-    // Reset course when series changes (but not in edit mode when loading data)
+    // Reset course when series changes
     useEffect(() => {
         if (!isEditMode || !quizData?.data) {
             setValue('selectedCourses', '')
@@ -107,10 +118,10 @@ export default function CreateQuizAssignment() {
                 const dueDate = new Date(quiz.due_at)
 
                 setInitialDates({
-                    startDateDeadline: publishedDate,
-                    startTimeDeadline: publishedDate.toTimeString().slice(0, 5), // HH:MM format
-                    submissionDeadline: dueDate,
-                    submissionTimeDeadline: dueDate.toTimeString().slice(0, 5) // HH:MM format
+                    startDateDeadline: createUTCDate(publishedDate),
+                    startTimeDeadline: formatTime(publishedDate),
+                    submissionDeadline: createUTCDate(dueDate),
+                    submissionTimeDeadline: formatTime(dueDate)
                 })
             }
 
@@ -136,34 +147,22 @@ export default function CreateQuizAssignment() {
 
     // Question management functions
     const addQuiz = handleSubmit((data) => {
-        // Validate options
         const validOptions = data.options.filter(option => option.trim().length > 0)
 
         if (validOptions.length < 2) {
-            setError('options', {
-                type: 'manual',
-                message: 'At least 2 options must be filled'
-            })
+            setError('options', { type: 'manual', message: 'At least 2 options must be filled' })
             return
         }
 
-        // Validate correct answer
         if (!data.correctAnswer) {
-            setError('correctAnswer', {
-                type: 'manual',
-                message: 'Please select a correct answer'
-            })
+            setError('correctAnswer', { type: 'manual', message: 'Please select a correct answer' })
             return
         }
 
-        // Validate that selected correct answer has content
         const optionIndex = data.correctAnswer.charCodeAt(0) - 65
         const selectedOption = data.options[optionIndex]
-        if (!selectedOption || !selectedOption.trim()) {
-            setError('correctAnswer', {
-                type: 'manual',
-                message: 'Selected correct answer option is empty'
-            })
+        if (!selectedOption?.trim()) {
+            setError('correctAnswer', { type: 'manual', message: 'Selected correct answer option is empty' })
             return
         }
 
@@ -176,13 +175,12 @@ export default function CreateQuizAssignment() {
         }
 
         if (selectedQuestionId) {
-            // Update existing question
-            setQuestions(prev => prev.map(q =>
-                q.id === selectedQuestionId ? questionData : q
-            ))
+            setQuestions(prev => prev.map(q => q.id === selectedQuestionId ? questionData : q))
         } else {
             setQuestions(prev => [...prev, questionData])
         }
+
+        // Reset form
         setValue('question', '')
         setValue('options', ['', '', ''])
         setValue('correctAnswer', '')
@@ -236,23 +234,17 @@ export default function CreateQuizAssignment() {
                 throw new Error('Invalid time format')
             }
 
-            // Create date in local timezone first
             const year = date.getFullYear()
             const month = date.getMonth()
             const day = date.getDate()
 
-            // Create new date with UTC time to avoid timezone conversion
-            const utcDate = new Date(Date.UTC(year, month, day, hour, minute, 0, 0))
-
-            return utcDate.toISOString()
+            return new Date(Date.UTC(year, month, day, hour, minute, 0, 0)).toISOString()
         }
 
         const { startDateDeadline, startTimeDeadline, submissionDeadline, submissionTimeDeadline } = dates
-
         const seriesId = getValues('selectedSeries')
         const courseId = getValues('selectedCourses')
-        const titleValue = getValues('quizTitle')
-        const title = (titleValue && typeof titleValue === 'string') ? titleValue.trim() : 'Untitled Quiz'
+        const title = getValues('quizTitle')?.trim() || 'Untitled Quiz'
 
         // Validate all required fields
         const validationError = validateQuizData(title, seriesId, courseId, questions)
@@ -275,13 +267,13 @@ export default function CreateQuizAssignment() {
         const questionsArray = questions.map((q, index) => {
             const correctIndex = q.correctAnswer ? (q.correctAnswer.charCodeAt(0) - 65) : -1
             return {
-                prompt: String(q.question),
-                points: Number(q.points) || 1,
+                prompt: q.question,
+                points: q.points || 1,
                 position: index,
                 answers: q.options
-                    .filter((opt) => typeof opt === 'string' && opt.trim().length > 0)
+                    .filter(opt => opt.trim().length > 0)
                     .map((opt, optIndex) => ({
-                        option: String(opt),
+                        option: opt,
                         position: optIndex,
                         is_correct: optIndex === correctIndex
                     }))
@@ -289,16 +281,14 @@ export default function CreateQuizAssignment() {
         })
 
         const payload = {
-            title: String(title),
+            title,
             instructions: 'Answer all questions. Each question is worth 1 point.',
-            series_id: String(seriesId),
-            course_id: String(courseId),
+            series_id: seriesId,
+            course_id: courseId,
             published_at: publishedAt,
             due_at: dueAt,
             questions: questionsArray
         }
-
-
 
         // Call API to create or update quiz
         try {
@@ -314,21 +304,13 @@ export default function CreateQuizAssignment() {
 
                 // Clear all fields after successful creation
                 setQuestions([])
-                reset({
-                    selectedSeries: '',
-                    selectedCourses: '',
-                    quizTitle: '',
-                    question: '',
-                    options: ['', '', ''],
-                    correctAnswer: '',
-                    points: 10
-                })
                 setSelectedQuestionId('')
+                reset()
                 clearErrors()
             }
         } catch (error: any) {
-            const errorMessage = error?.data?.message || error?.message || `Failed to ${isEditMode ? 'update' : 'create'} quiz. Please try again.`
-            alert(typeof errorMessage === 'string' ? errorMessage : 'An unexpected error occurred. Please try again.')
+            const errorMessage = error?.data?.message || error?.message || `Failed to ${isEditMode ? 'update' : 'create'} quiz`
+            alert(errorMessage)
         }
     }
 
@@ -402,7 +384,6 @@ export default function CreateQuizAssignment() {
                     onDeleteQuestion={deleteQuestion}
                     onDragEnd={(result) => handleDragEnd(result, questions, setQuestions)}
                     onAddNewQuestion={() => {
-                        // Clear only specific fields, preserve quiz title and selections
                         setValue('question', '')
                         setValue('options', ['', '', ''])
                         setValue('correctAnswer', '')

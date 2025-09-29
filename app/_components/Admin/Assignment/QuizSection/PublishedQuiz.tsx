@@ -1,8 +1,7 @@
 import React from 'react'
 import { Card, CardContent } from '@/components/ui/card'
-import { ArrowRight, Edit, Edit2 } from 'lucide-react'
-import { useGetAllDataQuizQuery } from '@/rtk/api/quizApis'
-import { format, parseISO, differenceInHours, differenceInDays } from 'date-fns'
+import { Edit } from 'lucide-react'
+import { parseISO, differenceInHours, differenceInDays } from 'date-fns'
 import { useRouter } from 'next/navigation'
 
 interface PublishedQuizItem {
@@ -16,8 +15,11 @@ interface PublishedQuizItem {
     remaining_time: number
 }
 
-export default function PublishedQuiz() {
-    const { data: quizData, isLoading, isError } = useGetAllDataQuizQuery({})
+interface PublishedQuizProps {
+    publishedQuizzes: PublishedQuizItem[]
+}
+
+export default function PublishedQuiz({ publishedQuizzes }: PublishedQuizProps) {
     const router = useRouter()
 
     const handleEditQuiz = (quizId: string) => {
@@ -28,8 +30,28 @@ export default function PublishedQuiz() {
         try {
             const dueDate = parseISO(dueAt)
             const now = new Date()
-            const hoursLeft = differenceInHours(dueDate, now)
-            const daysLeft = differenceInDays(dueDate, now)
+            
+            // Create UTC dates for accurate comparison
+            const dueDateUTC = new Date(Date.UTC(
+                dueDate.getUTCFullYear(),
+                dueDate.getUTCMonth(),
+                dueDate.getUTCDate(),
+                dueDate.getUTCHours(),
+                dueDate.getUTCMinutes(),
+                dueDate.getUTCSeconds()
+            ))
+            
+            const nowUTC = new Date(Date.UTC(
+                now.getUTCFullYear(),
+                now.getUTCMonth(),
+                now.getUTCDate(),
+                now.getUTCHours(),
+                now.getUTCMinutes(),
+                now.getUTCSeconds()
+            ))
+            
+            const hoursLeft = differenceInHours(dueDateUTC, nowUTC)
+            const daysLeft = differenceInDays(dueDateUTC, nowUTC)
 
             if (hoursLeft < 0) {
                 return 'Expired'
@@ -42,43 +64,6 @@ export default function PublishedQuiz() {
             return 'Invalid date'
         }
     }
-
-    if (isLoading) {
-        return (
-            <div>
-                <h2 className="text-[#1D1F2C] text-lg font-medium mb-4">Published Quiz</h2>
-                <div className="space-y-3">
-                    {[...Array(3)].map((_, index) => (
-                        <Card key={index} className="animate-pulse">
-                            <CardContent className="p-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-4 h-4 bg-gray-200 rounded flex-shrink-0"></div>
-                                    <div className="flex-1">
-                                        <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                                    </div>
-                                    <div className="w-4 h-4 bg-gray-200 rounded"></div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            </div>
-        )
-    }
-
-    if (isError) {
-        return (
-            <div>
-                <h2 className="text-[#1D1F2C] text-lg font-medium mb-4">Published Quiz</h2>
-                <div className="text-center py-8">
-                    <p className="text-red-500">Failed to load published quizzes</p>
-                </div>
-            </div>
-        )
-    }
-
-    const publishedQuizzes = quizData?.data?.published_quizzes || []
 
     return (
         <div>
