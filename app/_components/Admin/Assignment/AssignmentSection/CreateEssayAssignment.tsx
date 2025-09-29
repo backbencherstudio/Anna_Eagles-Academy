@@ -47,7 +47,8 @@ export default function CreateEssayAssignment() {
     const sidebarRef = useRef<AssignmentSidebarRef>(null)
     const router = useRouter()
     const params = useParams()
-    const assignmentId = (params as any)?.id as string | undefined
+    const rawId = (params as any)?.id as string | string[] | undefined
+    const assignmentId = Array.isArray(rawId) ? rawId[0] : rawId
     const isEditMode = !!assignmentId
     // Redux state
     const {
@@ -347,6 +348,52 @@ export default function CreateEssayAssignment() {
     // handle back button
     const handleBack = () => {
         router.push('/admin/assignment-management?tab=essay')
+    }
+
+    // Loading state for edit mode
+    if (isEditMode && isSingleLoading) {
+        return (
+            <div className="bg-white p-5 rounded-xl">
+                <div className="animate-pulse space-y-4">
+                    <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <div className="lg:col-span-1">
+                            <div className="h-64 bg-gray-200 rounded"></div>
+                        </div>
+                        <div className="lg:col-span-2 space-y-4">
+                            <div className="h-32 bg-gray-200 rounded"></div>
+                            <div className="h-32 bg-gray-200 rounded"></div>
+                            <div className="h-32 bg-gray-200 rounded"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    // Show error state if assignment fetch fails
+    if (isEditMode && isSingleError) {
+        return (
+            <div className="bg-white p-5 rounded-xl">
+                <div className="text-center py-8">
+                    <div className="mb-4">
+                        <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                            <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                            </svg>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Failed to Load Assignment</h3>
+                        <p className="text-gray-600 mb-4">Unable to load the assignment data. Please check your connection and try again.</p>
+                    </div>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                        Retry
+                    </button>
+                </div>
+            </div>
+        )
     }
 
     return (
