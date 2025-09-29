@@ -7,11 +7,11 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import QuizCreateDate from '@/components/Resuable/QuizCreateDate'
+import QuizCreateDate, { type DeadlineFormData } from '@/components/Resuable/QuizCreateDate'
 import AssignmentSidebar, { AssignmentSidebarRef } from './AssignmentSidebar'
 import AnotherQuestion from './Anotherquestion'
 import { useGetSeriesWithCoursesQuery } from '@/rtk/api/admin/courseFilterApis'
-import { useCreateAssignmentMutation } from '@/rtk/api/admin/assignmentApis'
+import { useCreateAssignmentMutation, useGetSingleAssignmentQuery, useUpdateAssignmentMutation } from '@/rtk/api/admin/assignmentApis'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '@/rtk'
 import {
@@ -30,7 +30,7 @@ import {
     clearError
 } from '@/rtk/slices/assignmentManagementSlice'
 import toast from 'react-hot-toast'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 
 interface EssayFormData {
@@ -46,6 +46,9 @@ export default function CreateEssayAssignment() {
     const dispatch = useDispatch()
     const sidebarRef = useRef<AssignmentSidebarRef>(null)
     const router = useRouter()
+    const params = useParams()
+    const assignmentId = (params as any)?.id as string | undefined
+    const isEditMode = !!assignmentId
     // Redux state
     const {
         formData,
@@ -57,7 +60,11 @@ export default function CreateEssayAssignment() {
 
     // API hooks
     const { data: seriesData, isLoading: isSeriesLoading, isError: isSeriesError } = useGetSeriesWithCoursesQuery()
-    const [createAssignment] = useCreateAssignmentMutation()
+    const [createAssignment, { isLoading: isCreating }] = useCreateAssignmentMutation()
+    const [updateAssignment, { isLoading: isUpdating }] = useUpdateAssignmentMutation()
+    const { data: singleAssignmentData, isLoading: isSingleLoading, isError: isSingleError } = useGetSingleAssignmentQuery(assignmentId as string, { skip: !isEditMode || !assignmentId })
+
+    const [initialDates, setInitialDates] = React.useState<DeadlineFormData | null>(null)
 
     const {
         control,
@@ -103,9 +110,62 @@ export default function CreateEssayAssignment() {
 
     // Reset course when series changes
     useEffect(() => {
-        setValue('selectedCourses', '')
-        dispatch(updateFormField({ field: 'selectedCourses', value: '' }))
-    }, [selectedSeriesId, setValue, dispatch])
+        // In edit mode, if course already set for this series, do not reset
+        if (!isEditMode) {
+            setValue('selectedCourses', '')
+            dispatch(updateFormField({ field: 'selectedCourses', value: '' }))
+        }
+    }, [selectedSeriesId, setValue, dispatch, isEditMode])
+
+    // Load assignment data for editing
+    useEffect(() => {
+        if (isEditMode && singleAssignmentData?.data) {
+            const a = singleAssignmentData.data
+            // Prefill main fields
+            setValue('mainTitle', a.title)
+            setValue('selectedSeries', a.series_id || a.series?.id || '')
+            setValue('selectedCourses', a.course_id || a.course?.id || '')
+
+            // Dates for header
+            if (a.published_at && a.due_at) {
+                const publishedDate = new Date(a.published_at)
+                const dueDate = new Date(a.due_at)
+
+                const toUTCClone = (d: Date) => new Date(
+                    d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds()
+                )
+                const two = (n: number) => String(n).padStart(2, '0')
+                const fmt = (d: Date) => `${two(d.getUTCHours())}:${two(d.getUTCMinutes())}`
+
+                setInitialDates({
+                    startDateDeadline: toUTCClone(publishedDate),
+                    startTimeDeadline: fmt(publishedDate),
+                    submissionDeadline: toUTCClone(dueDate),
+                    submissionTimeDeadline: fmt(dueDate)
+                })
+            }
+
+            // Populate questions into sidebar and redux
+            if (sidebarRef.current) {
+                sidebarRef.current.clearAllEssays()
+            }
+            dispatch(clearAllEssays())
+
+            const questions = ([...(a.questions || [])]).sort((x: any, y: any) => (x.position ?? 0) - (y.position ?? 0))
+            questions.forEach((q: any, index: number) => {
+                const essay = {
+                    id: q.id || `${Date.now()}-${index}`,
+                    title: q.title || q.prompt || '',
+                    points: q.points || 0,
+                    submissionDeadline: (a.due_at as string)
+                }
+                dispatch(addEssay(essay))
+                if (sidebarRef.current) {
+                    sidebarRef.current.addEssay(essay)
+                }
+            })
+        }
+    }, [isEditMode, singleAssignmentData, setValue, dispatch])
 
     const handleAddEssay = handleSubmit((data) => {
         const essaysToAdd = []
@@ -234,7 +294,7 @@ export default function CreateEssayAssignment() {
             : new Date()
 
         // Format data according to required structure
-        const publishData = {
+        const publishData: any = {
             title: formData.mainTitle || "Assignment",
             description: formData.mainTitle || "Complete the following questions.",
             series_id: formData.selectedSeries || "",
@@ -251,8 +311,13 @@ export default function CreateEssayAssignment() {
         try {
             dispatch(setCreatingAssignment(true))
             dispatch(clearError())
-            const result = await createAssignment(publishData).unwrap()
-            toast.success('Assignment created successfully!')
+            if (isEditMode && assignmentId) {
+                const result = await updateAssignment({ id: assignmentId, ...publishData }).unwrap()
+                toast.success(result?.message || 'Assignment updated successfully!')
+            } else {
+                const result = await createAssignment(publishData).unwrap()
+                toast.success('Assignment created successfully!')
+            }
             dispatch(resetForm())
             reset({
                 mainTitle: '',
@@ -272,7 +337,7 @@ export default function CreateEssayAssignment() {
         } catch (error: any) {
             // Error handlin
             dispatch(setReduxError(error?.data?.message || 'Failed to create assignment. Please try again.'))
-            toast.error(error?.data?.message || 'Failed to create assignment. Please try again.')
+            toast.error(error?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} assignment. Please try again.`)
         } finally {
             dispatch(setCreatingAssignment(false))
         }
@@ -295,8 +360,12 @@ export default function CreateEssayAssignment() {
             {/* Header */}
             <QuizCreateDate
                 onPublish={handlePublish}
-                publishButtonText={isCreatingAssignment ? "Creating..." : "+ Publish"}
-                publishButtonDisabled={essaysCount === 0 || isCreatingAssignment}
+                publishButtonText={
+                    (isCreating || isUpdating) ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? '+ Update Assignment' : '+ Publish')
+                }
+                publishButtonDisabled={essaysCount === 0 || isCreating || isUpdating || (isEditMode && isSingleLoading)}
+                initialDates={initialDates}
+                showValidation={true}
             />
 
             <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">

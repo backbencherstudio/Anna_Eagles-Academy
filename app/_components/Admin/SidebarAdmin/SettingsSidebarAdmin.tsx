@@ -1,5 +1,5 @@
 'use client'
-import { UserIcon, LockIcon, BellIcon, CreditCardIcon, FileTextIcon } from 'lucide-react'
+import { UserIcon, LockIcon } from 'lucide-react'
 import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'

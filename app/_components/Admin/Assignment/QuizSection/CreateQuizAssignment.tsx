@@ -12,6 +12,8 @@ import { useGetSeriesWithCoursesQuery } from '@/rtk/api/admin/courseFilterApis'
 import { useCreateQuizMutation, useGetSingleQuizQuery, useUpdateQuizMutation } from '@/rtk/api/admin/quizApis'
 import { useParams } from 'next/navigation'
 import toast from 'react-hot-toast'
+import { useRouter } from 'next/navigation'
+import { ArrowLeft } from 'lucide-react'
 
 
 interface Question {
@@ -46,6 +48,7 @@ const formatTime = (date: Date) =>
     `${date.getUTCHours().toString().padStart(2, '0')}:${date.getUTCMinutes().toString().padStart(2, '0')}`
 
 export default function CreateQuizAssignment() {
+    const router = useRouter()
     // State management
     const [questions, setQuestions] = useState<Question[]>([])
     const [selectedQuestionId, setSelectedQuestionId] = useState<string>('')
@@ -361,8 +364,20 @@ export default function CreateQuizAssignment() {
         )
     }
 
+
+    // handle back button
+    const handleBack = () => {
+        router.push('/admin/assignment-management?tab=quiz')
+    }
+
     return (
         <div className=" bg-white p-5 rounded-xl">
+            <div className="flex justify-between items-center mb-4">
+                <button onClick={handleBack} className="cursor-pointer border border-gray-200 rounded-md py-1 px-2 w-full sm:w-auto flex items-center gap-2 text-sm hover:bg-gray-100 transition-all duration-300">
+                    <ArrowLeft className="w-4 h-4" />
+                    Back
+                </button>
+            </div>
             {/* Header */}
             <QuizCreateDate
                 onPublish={handlePublish}

@@ -1,10 +1,9 @@
 import CreateEssayAssignment from '@/app/_components/Admin/Assignment/AssignmentSection/CreateEssayAssignment'
 import React from 'react'
 
-export default function CreateAssignmentRootPage() {
+
+export default function CreateAssignmentPage() {
     return (
-        <div>
-            <CreateEssayAssignment />
-        </div>
+        <CreateEssayAssignment />
     )
 }

@@ -7,11 +7,13 @@ import { Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '@/rtk'
-import { useGetAllAssignmentsQuery } from '@/rtk/api/admin/assignmentApis'
+import { useGetAllAssignmentsQuery, useDeleteAssignmentMutation } from '@/rtk/api/admin/assignmentApis'
 import { setDashboardData, setLoading } from '@/rtk/slices/assignmentManagementSlice'
 import PublishedAssignment from './PublishedAssignment'
 import UnpublishedAssignment from './UnpublishedAssignment'
 import AssignmentsSubmission from './AssignmentsSubmission'
+import ConfirmDialog from '@/components/Resuable/ConfirmDialog'
+import toast from 'react-hot-toast'
 
 export default function AssignmentEssay() {
     const dispatch = useDispatch()
@@ -22,12 +24,15 @@ export default function AssignmentEssay() {
         assignmentsWithSubmissions,
         publishedAssignments,
         unpublishedAssignments,
-        dashboardData,
         isLoading
     } = useSelector((state: RootState) => state.assignmentManagement)
 
     // API hook
-    const { data: assignmentsData, isLoading: isApiLoading, error } = useGetAllAssignmentsQuery({})
+    const { data: assignmentsData, isLoading: isApiLoading, error, refetch } = useGetAllAssignmentsQuery({})
+    const [deleteAssignment, { isLoading: isDeleting }] = useDeleteAssignmentMutation()
+
+    const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
+    const [assignmentToDelete, setAssignmentToDelete] = React.useState<{ id: string; title: string } | null>(null)
 
     // Update Redux state when API data changes
     useEffect(() => {
@@ -43,6 +48,29 @@ export default function AssignmentEssay() {
 
     const handleCardClick = (assignment: any) => {
         console.log('Assignment clicked:', assignment)
+    }
+
+    const handleRequestDelete = (assignment: { id: string; title: string }) => {
+        setAssignmentToDelete({ id: assignment.id, title: assignment.title })
+        setDeleteDialogOpen(true)
+    }
+
+    const handleEditAssignment = (assignment: { id: string }) => {
+        router.push(`/admin/create-assignment/${assignment.id}`)
+    }
+
+    const confirmDelete = async () => {
+        if (!assignmentToDelete) return
+        try {
+            const res = await deleteAssignment(assignmentToDelete.id).unwrap()
+            toast.success(res?.message || 'Assignment deleted successfully!')
+            setDeleteDialogOpen(false)
+            setAssignmentToDelete(null)
+            await refetch()
+        } catch (err: any) {
+            const msg = err?.data?.message || err?.message || 'Failed to delete assignment'
+            toast.error(msg)
+        }
     }
 
     // Check if there are any assignments at all
@@ -101,12 +129,16 @@ export default function AssignmentEssay() {
                     <PublishedAssignment
                         assignments={publishedAssignments}
                         onCardClick={handleCardClick}
+                        onDeleteAssignment={handleRequestDelete}
+                        onEditAssignment={handleEditAssignment}
                     />
 
                     {/* Unpublished Assignment Section */}
                     <UnpublishedAssignment
                         assignments={unpublishedAssignments}
                         onCardClick={handleCardClick}
+                        onDeleteAssignment={handleRequestDelete}
+                        onEditAssignment={handleEditAssignment}
                     />
                 </div>
             </div>
@@ -124,6 +156,19 @@ export default function AssignmentEssay() {
                     </Button>
                 </div>
             )}
+
+            {/* Delete Confirmation Dialog */}
+            <ConfirmDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                title="Delete Assignment"
+                description={`Are you sure you want to delete "${assignmentToDelete?.title || ''}"? This action cannot be undone.`}
+                confirmText="Delete"
+                cancelText="Cancel"
+                onConfirm={confirmDelete}
+                confirmVariant="destructive"
+                isLoading={isDeleting}
+            />
         </>
     )
 }
