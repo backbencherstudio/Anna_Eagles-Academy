@@ -178,7 +178,7 @@ export default function CreateEssayAssignment() {
                     id: selectedEssayId,
                     title: data.assignmentTitle,
                     points: data.points,
-                    submissionDeadline: data.submissionDeadline.toISOString() // Convert Date to string
+                    submissionDeadline: data.submissionDeadline.toISOString() 
                 }
 
                 dispatch(updateEssay({ id: selectedEssayId, essay: updatedEssay }))
@@ -191,7 +191,7 @@ export default function CreateEssayAssignment() {
                     id: Date.now().toString(),
                     title: data.assignmentTitle,
                     points: data.points,
-                    submissionDeadline: data.submissionDeadline.toISOString() // Convert Date to string
+                    submissionDeadline: data.submissionDeadline.toISOString() 
                 }
 
                 essaysToAdd.push(newEssay)
@@ -206,7 +206,7 @@ export default function CreateEssayAssignment() {
                     id: (Date.now() + index + 1).toString(),
                     title: question.assignmentTitle,
                     points: question.points,
-                    submissionDeadline: data.submissionDeadline.toISOString() // Convert Date to string
+                    submissionDeadline: data.submissionDeadline.toISOString() 
                 }
                 essaysToAdd.push(additionalEssay)
                 dispatch(addEssay(additionalEssay))
@@ -228,7 +228,7 @@ export default function CreateEssayAssignment() {
             selectedCourses: getValues('selectedCourses'),
             assignmentTitle: '',
             points: 20,
-            submissionDeadline: new Date(formData.submissionDeadline) // Convert string to Date
+            submissionDeadline: new Date(formData.submissionDeadline)
         })
         dispatch(selectEssay(''))
         dispatch(clearAdditionalQuestions())
@@ -244,7 +244,7 @@ export default function CreateEssayAssignment() {
             if (essay) {
                 setValue('assignmentTitle', essay.title)
                 setValue('points', essay.points)
-                setValue('submissionDeadline', new Date(essay.submissionDeadline)) // Convert string to Date
+                setValue('submissionDeadline', new Date(essay.submissionDeadline))
 
                 // Update Redux state
                 dispatch(updateFormField({ field: 'assignmentTitle', value: essay.title }))
@@ -262,7 +262,7 @@ export default function CreateEssayAssignment() {
             selectedCourses: getValues('selectedCourses'),
             assignmentTitle: '',
             points: 20,
-            submissionDeadline: new Date(formData.submissionDeadline) // Convert string to Date
+            submissionDeadline: new Date(formData.submissionDeadline)
         })
         dispatch(selectEssay(''))
         dispatch(clearAdditionalQuestions())
