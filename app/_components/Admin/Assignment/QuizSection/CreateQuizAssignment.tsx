@@ -11,6 +11,7 @@ import CorrectAnswer from './CorrectAnswer'
 import { useGetSeriesWithCoursesQuery } from '@/rtk/api/courseFilterApis'
 import { useCreateQuizMutation, useGetSingleQuizQuery, useUpdateQuizMutation } from '@/rtk/api/quizApis'
 import { useParams } from 'next/navigation'
+import toast from 'react-hot-toast'
 
 
 interface Question {
@@ -249,7 +250,7 @@ export default function CreateQuizAssignment() {
         // Validate all required fields
         const validationError = validateQuizData(title, seriesId, courseId, questions)
         if (validationError) {
-            alert(validationError)
+            toast.error(validationError)
             return
         }
 
@@ -259,7 +260,7 @@ export default function CreateQuizAssignment() {
             publishedAt = combineDateTimeToISO(startDateDeadline, startTimeDeadline)
             dueAt = combineDateTimeToISO(submissionDeadline, submissionTimeDeadline)
         } catch (error) {
-            alert('Please select valid start and submission dates')
+            toast.error('Please select valid start and submission dates')
             return
         }
 
@@ -293,14 +294,14 @@ export default function CreateQuizAssignment() {
         // Call API to create or update quiz
         try {
             if (isEditMode) {
-                await updateQuiz({
+                const response = await updateQuiz({
                     id: quizId,
                     ...payload
                 }).unwrap()
-                alert('Quiz updated successfully!')
+                toast.success(response.message || 'Quiz updated successfully!')
             } else {
-                await createQuiz(payload).unwrap()
-                alert('Quiz created successfully!')
+                const response = await createQuiz(payload).unwrap()
+                toast.success(response.message || 'Quiz created successfully!')
 
                 // Clear all fields after successful creation
                 setQuestions([])
@@ -310,7 +311,7 @@ export default function CreateQuizAssignment() {
             }
         } catch (error: any) {
             const errorMessage = error?.data?.message || error?.message || `Failed to ${isEditMode ? 'update' : 'create'} quiz`
-            alert(errorMessage)
+            toast.error(errorMessage)
         }
     }
 

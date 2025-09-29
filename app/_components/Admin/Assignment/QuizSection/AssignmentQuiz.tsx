@@ -190,13 +190,6 @@ export default function AssignmentQuiz() {
                 {submittedQuizzes.length === 0 && (
                     <div className="text-center py-12">
                         <p className="text-gray-500 text-lg">No quiz assignments found</p>
-                        <Button
-                            onClick={handleCreateAssignment}
-                            className="mt-4 bg-orange-500 hover:bg-orange-600"
-                        >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Create your first quiz assignment
-                        </Button>
                     </div>
                 )}
             </div>
