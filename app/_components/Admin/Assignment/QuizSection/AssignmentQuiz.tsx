@@ -72,7 +72,7 @@ export default function AssignmentQuiz() {
         const fetchAssignments = async () => {
             try {
                 // Simulate API call delay
-                await new Promise(resolve => setTimeout(resolve, 1000))
+                await new Promise(resolve => setTimeout(resolve, 300))
                 setAssignments(sampleAssignments)
             } catch (error) {
                 console.error('Error fetching assignments:', error)

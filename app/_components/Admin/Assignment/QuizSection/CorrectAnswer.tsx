@@ -29,6 +29,7 @@ interface CorrectAnswerProps {
     setValue: UseFormSetValue<QuizFormData>
     trigger: UseFormTrigger<QuizFormData>
     onAddQuiz: () => void
+    isEditing?: boolean
 }
 
 // Option management functions
@@ -38,9 +39,9 @@ export const addOption = (getValues: UseFormGetValues<QuizFormData>, setValue: U
 }
 
 export const updateOption = (
-    index: number, 
-    value: string, 
-    getValues: UseFormGetValues<QuizFormData>, 
+    index: number,
+    value: string,
+    getValues: UseFormGetValues<QuizFormData>,
     setValue: UseFormSetValue<QuizFormData>,
     trigger: UseFormTrigger<QuizFormData>,
     watchedQuestion: string
@@ -48,7 +49,7 @@ export const updateOption = (
     const currentOptions = getValues('options')
     const updatedOptions = currentOptions.map((option, i) => i === index ? value : option)
     setValue('options', updatedOptions)
-    
+
     // Trigger validation for options
     if (watchedQuestion.trim()) {
         trigger('options')
@@ -56,15 +57,15 @@ export const updateOption = (
 }
 
 export const removeOption = (
-    index: number, 
-    getValues: UseFormGetValues<QuizFormData>, 
+    index: number,
+    getValues: UseFormGetValues<QuizFormData>,
     setValue: UseFormSetValue<QuizFormData>
 ) => {
     const currentOptions = getValues('options')
     if (currentOptions.length > 2) {
         const updatedOptions = currentOptions.filter((_, i) => i !== index)
         setValue('options', updatedOptions)
-       
+
         const currentCorrectAnswer = getValues('correctAnswer')
         if (currentCorrectAnswer === String.fromCharCode(65 + index)) {
             setValue('correctAnswer', '')
@@ -81,7 +82,8 @@ export default function CorrectAnswer({
     getValues,
     setValue,
     trigger,
-    onAddQuiz
+    onAddQuiz,
+    isEditing = false
 }: CorrectAnswerProps) {
     const getOptionLabel = (index: number) => {
         return String.fromCharCode(65 + index)
@@ -101,7 +103,7 @@ export default function CorrectAnswer({
                                         placeholder="Enter your option"
                                         value={option}
                                         onChange={(e) => updateOption(index, e.target.value, getValues, setValue, trigger, watchedQuestion)}
-                                                    className={`pl-12 pr-10 py-6 border-gray-200 ${!option.trim() && isSubmitted && watchedQuestion.trim() ? 'border-red-500' : ''}`}
+                                        className={`pl-12 pr-10 py-6 border-gray-200 ${!option.trim() && isSubmitted && watchedQuestion.trim() ? 'border-red-500' : ''}`}
                                     />
                                     <div className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-gray-200 rounded-md w-6 h-6 flex items-center justify-center">
                                         <span className="text-sm font-medium text-gray-700">
@@ -113,7 +115,7 @@ export default function CorrectAnswer({
                                             size="sm"
                                             variant="ghost"
                                             className="absolute cursor-pointer right-2 top-1/2 transform -translate-y-1/2 text-red-500 hover:text-red-700 h-6 w-6 p-0"
-                                                        onClick={() => removeOption(index, getValues, setValue)}
+                                            onClick={() => removeOption(index, getValues, setValue)}
                                         >
                                             <Trash2 className="h-3 w-3" />
                                         </Button>
@@ -216,7 +218,7 @@ export default function CorrectAnswer({
                     </div>
                 )}
 
-                {/* Add Quiz Button */}
+                {/* Add/Update Quiz Button */}
                 <div className="flex justify-end p-4">
                     <Button
                         onClick={onAddQuiz}
@@ -224,7 +226,7 @@ export default function CorrectAnswer({
                         disabled={false}
                         type="button"
                     >
-                        + Add Quiz
+                        {isEditing ? 'Update Question' : 'Add Question'}
                     </Button>
                 </div>
             </div>

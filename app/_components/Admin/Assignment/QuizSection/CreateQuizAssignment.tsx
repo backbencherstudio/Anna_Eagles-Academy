@@ -6,8 +6,8 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import QuizCreateDate, { type DeadlineFormData } from '@/components/Resuable/QuizCreateDate'
-import QuizSidebar, { handleDragEnd } from './QuizSection/quizSidebar'
-import CorrectAnswer from './QuizSection/CorrectAnswer'
+import QuizSidebar, { handleDragEnd } from './quizSidebar'
+import CorrectAnswer from './CorrectAnswer'
 import { useGetSeriesWithCoursesQuery } from '@/rtk/api/courseFilterApis'
 import { useCreateQuizMutation, useGetSingleQuizQuery, useUpdateQuizMutation } from '@/rtk/api/quizApis'
 import { useParams } from 'next/navigation'
@@ -36,7 +36,7 @@ export default function CreateQuizAssignment() {
     const [questions, setQuestions] = useState<Question[]>([])
     const [selectedQuestionId, setSelectedQuestionId] = useState<string>('')
     const [initialDates, setInitialDates] = useState<DeadlineFormData | null>(null)
-    
+
     // Route parameters
     const params = useParams()
     const quizId = params?.id as string
@@ -96,16 +96,16 @@ export default function CreateQuizAssignment() {
         if (quizData?.data && isEditMode) {
             const quiz = quizData.data
             setValue('quizTitle', quiz.title)
-            
+
             // Set series and course together
             setValue('selectedSeries', quiz.series_id)
             setValue('selectedCourses', quiz.course_id)
-            
+
             // Set initial dates for QuizCreateDate component
             if (quiz.published_at && quiz.due_at) {
                 const publishedDate = new Date(quiz.published_at)
                 const dueDate = new Date(quiz.due_at)
-                
+
                 setInitialDates({
                     startDateDeadline: publishedDate,
                     startTimeDeadline: publishedDate.toTimeString().slice(0, 5), // HH:MM format
@@ -113,17 +113,14 @@ export default function CreateQuizAssignment() {
                     submissionTimeDeadline: dueDate.toTimeString().slice(0, 5) // HH:MM format
                 })
             }
-            
+
             // Convert API questions to local format
             if (quiz.questions && quiz.questions.length > 0) {
                 const convertedQuestions: Question[] = quiz.questions.map((q: any, index: number) => {
-                    // Find the correct answer index
                     const correctAnswerIndex = q.answers.findIndex((a: any) => a.is_correct)
                     const correctAnswer = correctAnswerIndex >= 0 ? String.fromCharCode(65 + correctAnswerIndex) : ''
-                    
-                    // Create a copy of answers array before sorting to avoid mutation
                     const sortedAnswers = [...q.answers].sort((a: any, b: any) => a.position - b.position)
-                    
+
                     return {
                         id: q.id || (Date.now().toString() + index),
                         question: q.prompt,
@@ -170,24 +167,26 @@ export default function CreateQuizAssignment() {
             return
         }
 
-        // Create new question
-        const newQuestion: Question = {
-            id: Date.now().toString(),
+        const questionData: Question = {
+            id: selectedQuestionId || Date.now().toString(),
             question: data.question,
             options: data.options,
             correctAnswer: data.correctAnswer,
             points: data.points
         }
 
-        setQuestions(prev => [...prev, newQuestion])
-
-        // Clear only specific fields, preserve quiz title
+        if (selectedQuestionId) {
+            // Update existing question
+            setQuestions(prev => prev.map(q =>
+                q.id === selectedQuestionId ? questionData : q
+            ))
+        } else {
+            setQuestions(prev => [...prev, questionData])
+        }
         setValue('question', '')
         setValue('options', ['', '', ''])
         setValue('correctAnswer', '')
         setValue('points', 10)
-        // Don't clear quizTitle - keep it as is
-
         setSelectedQuestionId('')
         clearErrors()
     })
@@ -206,7 +205,6 @@ export default function CreateQuizAssignment() {
     const deleteQuestion = (questionId: string) => {
         setQuestions(prev => prev.filter(q => q.id !== questionId))
         if (selectedQuestionId === questionId) {
-            // Clear form fields but preserve quiz title and selections
             setValue('question', '')
             setValue('options', ['', '', ''])
             setValue('correctAnswer', '')
@@ -305,15 +303,15 @@ export default function CreateQuizAssignment() {
         // Call API to create or update quiz
         try {
             if (isEditMode) {
-                await updateQuiz({ 
-                    id: quizId, 
-                    ...payload 
+                await updateQuiz({
+                    id: quizId,
+                    ...payload
                 }).unwrap()
                 alert('Quiz updated successfully!')
             } else {
                 await createQuiz(payload).unwrap()
                 alert('Quiz created successfully!')
-                
+
                 // Clear all fields after successful creation
                 setQuestions([])
                 reset({
@@ -369,8 +367,8 @@ export default function CreateQuizAssignment() {
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">Failed to Load Quiz</h3>
                         <p className="text-gray-600 mb-4">Unable to load the quiz data. Please check your connection and try again.</p>
                     </div>
-                    <button 
-                        onClick={() => window.location.reload()} 
+                    <button
+                        onClick={() => window.location.reload()}
                         className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                     >
                         Retry
@@ -386,9 +384,9 @@ export default function CreateQuizAssignment() {
             <QuizCreateDate
                 onPublish={handlePublish}
                 publishButtonText={
-                    isCreatingQuiz ? "Publishing..." : 
-                    isUpdatingQuiz ? "Updating..." : 
-                    isEditMode ? "+ Update Quiz" : "+ Publish"
+                    isCreatingQuiz ? "Publishing..." :
+                        isUpdatingQuiz ? "Updating..." :
+                            isEditMode ? "+ Update Quiz" : "+ Publish"
                 }
                 publishButtonDisabled={questions.length === 0 || isCreatingQuiz || isUpdatingQuiz}
                 showValidation={true}
@@ -595,6 +593,7 @@ export default function CreateQuizAssignment() {
                         setValue={setValue}
                         trigger={trigger}
                         onAddQuiz={addQuiz}
+                        isEditing={!!selectedQuestionId}
                     />
                 </div>
             </div>

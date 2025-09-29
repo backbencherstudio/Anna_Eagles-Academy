@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react'
-import CreateQuizAssignment from '@/app/_components/Admin/Assignment/CreateQuizAssignment'
+import CreateQuizAssignment from '@/app/_components/Admin/Assignment/QuizSection/CreateQuizAssignment'
 
 /**
  * Create Quiz Page Component
