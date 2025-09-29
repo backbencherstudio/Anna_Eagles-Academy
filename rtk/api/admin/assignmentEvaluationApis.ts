@@ -9,6 +9,9 @@ export const assignmentEvaluationApi = createApi({
     tagTypes: ['AssignmentEvaluation'],
     endpoints: (builder) => ({
 
+
+        // ====================== Essay Assignment Evaluations ======================
+
         // get all assignment evaluations  
         getAllAssignmentEvaluations: builder.query({
             query: ({ page = 1, limit = 8, search = '', series_id = '', course_id = '' }: { page?: number; limit?: number; search?: string; series_id?: string; course_id?: string }) => ({
@@ -48,9 +51,32 @@ export const assignmentEvaluationApi = createApi({
             }),
             invalidatesTags: ['AssignmentEvaluation'],
         }),
+
+
+        // ====================== Quiz Assignment Evaluations ======================
+
+
+        // quiz get all assignment evaluations
+        getAllQuizAssignmentEvaluations: builder.query({
+            query: ({ page = 1, limit = 8, search = '', series_id = '', course_id = '' }: { page?: number; limit?: number; search?: string; series_id?: string; course_id?: string }) => ({
+                url: '/api/admin/quiz-submission',
+                method: 'GET',
+                params: { page, limit, search, series_id, course_id },
+            }),
+            providesTags: ['AssignmentEvaluation'],
+        }),
+
+        // single quiz assignment evaluation
+        getSingleQuizAssignmentEvaluation: builder.query({
+            query: (assignment_id: string) => ({
+                url: `/api/admin/quiz-submission/${assignment_id}`,
+                method: 'GET',
+            }),
+            providesTags: ['AssignmentEvaluation'],
+        }),
     }),
 });
 
 
 // get single assignment evaluation
-export const { useGetAllAssignmentEvaluationsQuery, useGetSubmissionGradeMutation, useGetSingleAssignmentEvaluationQuery, useGradeUpdateMutation } = assignmentEvaluationApi;
+export const { useGetAllAssignmentEvaluationsQuery, useGetSubmissionGradeMutation, useGetSingleAssignmentEvaluationQuery, useGradeUpdateMutation, useGetAllQuizAssignmentEvaluationsQuery, useGetSingleQuizAssignmentEvaluationQuery } = assignmentEvaluationApi;

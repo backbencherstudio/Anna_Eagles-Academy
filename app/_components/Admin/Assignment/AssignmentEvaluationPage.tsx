@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
 import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
-import { useGetSingleAssignmentEvaluationQuery, useGradeUpdateMutation, useGetSubmissionGradeMutation } from '@/rtk/api/admin/assignmentEvaluationApis'
+import { useGetSingleAssignmentEvaluationQuery, useGradeUpdateMutation, useGetSubmissionGradeMutation, useGetSingleQuizAssignmentEvaluationQuery } from '@/rtk/api/admin/assignmentEvaluationApis'
 
 // No local sample data – real API is used below
 
@@ -22,7 +22,12 @@ export default function AssignmentEvaluationPage() {
     const params = useParams()
 
     const submissionId = params.id as string
-    const { data: submissionResp, isFetching, refetch } = useGetSingleAssignmentEvaluationQuery(submissionId)
+    const type = (searchParams?.get('type') || 'essay') as 'essay' | 'quiz'
+    const essayQuery = useGetSingleAssignmentEvaluationQuery(submissionId, { skip: type !== 'essay' })
+    const quizQuery = useGetSingleQuizAssignmentEvaluationQuery(submissionId, { skip: type !== 'quiz' })
+    const isFetching = type === 'quiz' ? quizQuery.isFetching : essayQuery.isFetching
+    const refetch = type === 'quiz' ? quizQuery.refetch : essayQuery.refetch
+    const submissionResp = type === 'quiz' ? quizQuery.data : essayQuery.data
     const [gradeUpdate, { isLoading: isSaving }] = useGradeUpdateMutation()
     const [submitGrade] = useGetSubmissionGradeMutation()
 
@@ -33,10 +38,11 @@ export default function AssignmentEvaluationPage() {
         // initialize grades from API's existing marks_awarded
         const initial: { [answerId: string]: number } = {}
         submission.answers?.forEach((ans: any) => {
-            initial[ans.id] = typeof ans.marks_awarded === 'number' ? ans.marks_awarded : 0
+            const base = type === 'quiz' ? (typeof ans.points_earned === 'number' ? ans.points_earned : 0) : (typeof ans.marks_awarded === 'number' ? ans.marks_awarded : 0)
+            initial[ans.id] = base
         })
         setGradesByAnswerId(initial)
-        setOverallFeedback(submission.overall_feedback || '')
+        setOverallFeedback((submission.overall_feedback || submission.feedback || '') as string)
         // If already graded or explicit view mode, keep the page in submitted state (read-only)
         const forceView = (searchParams?.get('mode') || '') === 'view'
         setIsSubmitted(!forceEdit && (Boolean(submission.graded_at) || forceView))
@@ -153,9 +159,9 @@ export default function AssignmentEvaluationPage() {
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <div>
-                        <h1 className="text-xl font-semibold text-gray-900">Assignment Evaluation</h1>
+                        <h1 className="text-xl font-semibold text-gray-900">{type === 'quiz' ? 'Quiz Submission' : 'Assignment Evaluation'}</h1>
                         <p className="text-sm text-gray-500">
-                            Student: {submission.student?.name || 'Unknown'} | Course: {submission.assignment?.course?.title || 'Unknown'}
+                            Student: {submission.student?.name || 'Unknown'} | Course: {type === 'quiz' ? (submission.quiz?.course?.title || 'Unknown') : (submission.assignment?.course?.title || 'Unknown')}
                         </p>
                     </div>
                 </div>
@@ -219,11 +225,11 @@ export default function AssignmentEvaluationPage() {
                                 Question {index + 1}
                             </Label>
                             <p className="text-lg font-semibold text-gray-900">
-                                {ans.question?.title || 'Question'}
+                                {type === 'quiz' ? (ans.question?.prompt || 'Question') : (ans.question?.title || 'Question')}
                             </p>
                             {isSubmitted && (
                                 <div className="mt-1 text-sm text-gray-600">
-                                    Marks: <span className="font-medium">{typeof ans.marks_awarded === 'number' ? ans.marks_awarded : 0}</span> / {ans.question?.points || 0}
+                                    Marks: <span className="font-medium">{type === 'quiz' ? (typeof ans.points_earned === 'number' ? ans.points_earned : 0) : (typeof ans.marks_awarded === 'number' ? ans.marks_awarded : 0)}</span> / {ans.question?.points || 0}
                                 </div>
                             )}
                         </div>
@@ -235,7 +241,7 @@ export default function AssignmentEvaluationPage() {
                             </Label>
                             <div className="bg-gray-50 p-4 rounded-lg">
                                 <p className="text-gray-900 leading-relaxed whitespace-pre-wrap">
-                                    {ans.answer_text || ''}
+                                    {type === 'quiz' ? (ans.answer_text ?? (ans.is_correct ? 'Correct' : 'Incorrect')) : (ans.answer_text || '')}
                                 </p>
                             </div>
                         </div>
