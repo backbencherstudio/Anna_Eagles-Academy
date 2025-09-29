@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Pencil, Trash2 } from 'lucide-react'
 import ConfirmDialog from '@/components/Resuable/ConfirmDialog'
 import toast from 'react-hot-toast'
-import { useDeleteSingleLessonMutation } from '@/rtk/api/managementCourseApis'
+import { useDeleteSingleLessonMutation } from '@/rtk/api/admin/managementCourseApis'
 
 type SavedLesson = {
     id: string

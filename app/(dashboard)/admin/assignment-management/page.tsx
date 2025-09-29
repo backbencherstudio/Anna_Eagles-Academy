@@ -1,5 +1,5 @@
 'use client'
-import AssignmentEssay from '@/app/_components/Admin/Assignment/AssignmentEssay'
+import AssignmentEssay from '@/app/_components/Admin/Assignment/AssignmentSection/AssignmentEssay'
 import AssignmentQuiz from '@/app/_components/Admin/Assignment/QuizSection/AssignmentQuiz'
 import { Tabs, TabsContent, TabsList } from '@/components/ui/tabs'
 import { TabsTrigger } from '@/components/ui/tabs'

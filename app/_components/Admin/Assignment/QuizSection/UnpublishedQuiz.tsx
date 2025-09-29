@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Edit, Trash2 } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { useRouter } from 'next/navigation'
-import { useDeleteQuizMutation } from '@/rtk/api/quizApis'
+import { useDeleteQuizMutation } from '@/rtk/api/admin/quizApis'
 import ConfirmDialog from '@/components/Resuable/ConfirmDialog'
 import toast from 'react-hot-toast'
 

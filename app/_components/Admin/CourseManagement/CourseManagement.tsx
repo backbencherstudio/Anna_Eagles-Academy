@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
 import { setSearchQuery, setPagination, PAGINATION_CONSTANTS } from '@/rtk/slices/courseManagementSlice'
-import { useGetAllCoursesQuery } from '@/rtk/api/managementCourseApis'
+import { useGetAllCoursesQuery } from '@/rtk/api/admin/managementCourseApis'
 import toast from 'react-hot-toast'
 import { useDebounce } from '@/hooks/useDebounce'
 

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Plus, RefreshCw } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useGetAllDataQuizQuery } from '@/rtk/api/quizApis'
+import { useGetAllDataQuizQuery } from '@/rtk/api/admin/quizApis'
 import PublishedQuiz from './PublishedQuiz'
 import UnpublishedQuiz from './UnpublishedQuiz'
 

@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { useForm } from 'react-hook-form'
 import ButtonSpring from '@/components/Resuable/ButtonSpring'
-import { useCreateSeriesMutation, useGetSingleSeriesQuery, useUpdateSingleSeriesMutation } from '@/rtk/api/managementCourseApis'
+import { useCreateSeriesMutation, useGetSingleSeriesQuery, useUpdateSingleSeriesMutation } from '@/rtk/api/admin/managementCourseApis'
 import { useRouter } from 'next/navigation'
 type CreateSeriesProps = {
     seriesId?: string | null

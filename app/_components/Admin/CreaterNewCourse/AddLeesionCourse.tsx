@@ -22,7 +22,7 @@ import {
     useGetAllModulesQuery,
     useGetSingleLessonQuery,
     useUpdateSingleLessonMutation
-} from '@/rtk/api/managementCourseApis'
+} from '@/rtk/api/admin/managementCourseApis'
 
 // Components
 import LessonList from './LessonList'

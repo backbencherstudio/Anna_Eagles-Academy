@@ -3,11 +3,13 @@ import audioReducer from '@/rtk/slices/audioSlice'
 import authReducer from '@/rtk/slices/authSlice'
 import courseManagementReducer from '@/rtk/slices/courseManagementSlice'
 import managementCourseReducer from '@/rtk/slices/managementCourseSlice'
+import assignmentManagementReducer from '@/rtk/slices/assignmentManagementSlice'
 import { authApi } from '@/rtk/api/authApi'
-import { managementCourseApi } from './api/managementCourseApis'
-import { manageMaterialsApi } from './api/manageMaterialsApis'
-import { courseFilterApi } from './api/courseFilterApis'
-import { quizApi } from './api/quizApis'
+import { managementCourseApi } from './api/admin/managementCourseApis'
+import { manageMaterialsApi } from './api/admin/manageMaterialsApis'
+import { courseFilterApi } from './api/admin/courseFilterApis'
+import { quizApi } from './api/admin/quizApis'
+import { assignmentApi } from './api/admin/assignmentApis'
 
 export const store = configureStore({
   reducer: {
@@ -15,11 +17,13 @@ export const store = configureStore({
     auth: authReducer,
     courseManagement: courseManagementReducer,
     managementCourse: managementCourseReducer,
+    assignmentManagement: assignmentManagementReducer,
     [authApi.reducerPath]: authApi.reducer,
     [managementCourseApi.reducerPath]: managementCourseApi.reducer,
     [manageMaterialsApi.reducerPath]: manageMaterialsApi.reducer,
     [courseFilterApi.reducerPath]: courseFilterApi.reducer,
     [quizApi.reducerPath]: quizApi.reducer,
+    [assignmentApi.reducerPath]: assignmentApi.reducer,
   },
 
 
@@ -46,10 +50,12 @@ export const store = configureStore({
           'courseManagement.courseForm.dateRange',
           'courseManagement.moduleIntroVideos',
           'courseManagement.moduleEndVideos',
-          'courseManagement.moduleLessons'
+          'courseManagement.moduleLessons',
+          'assignmentManagement.formData.submissionDeadline',
+          'assignmentManagement.essays'
         ],
       },
-    }).concat(authApi.middleware, managementCourseApi.middleware, manageMaterialsApi.middleware, courseFilterApi.middleware, quizApi.middleware),
+    }).concat(authApi.middleware, managementCourseApi.middleware, manageMaterialsApi.middleware, courseFilterApi.middleware, quizApi.middleware, assignmentApi.middleware),
 })
 
 export type RootState = ReturnType<typeof store.getState>

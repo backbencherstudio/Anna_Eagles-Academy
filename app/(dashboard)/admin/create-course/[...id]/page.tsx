@@ -8,7 +8,7 @@ import CreateSeries from '@/app/_components/Admin/CreaterNewCourse/CreateSeries'
 import CourseModuesAdded from '@/app/_components/Admin/CreaterNewCourse/CourseModuesAdded'
 import AddLeesionCourse from '@/app/_components/Admin/CreaterNewCourse/AddLeesionCourse'
 import SetAvailability from '@/app/_components/Admin/CourseManagement/CreateCourse/SetAvailability'
-import { useGetAllModulesQuery, useGetSingleSeriesQuery } from '@/rtk/api/managementCourseApis'
+import { useGetAllModulesQuery, useGetSingleSeriesQuery } from '@/rtk/api/admin/managementCourseApis'
 
 
 type SeriesData = {
