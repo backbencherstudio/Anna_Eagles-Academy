@@ -1,0 +1,55 @@
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+
+export interface AssignmentEvaluationQueryState {
+    page: number
+    limit: number
+    search: string
+    seriesId: string
+    courseId: string
+}
+
+const initialState: AssignmentEvaluationQueryState = {
+    page: 1,
+    limit: 8,
+    search: '',
+    seriesId: 'all',
+    courseId: 'all',
+}
+
+const assignmentEvaluationSlice = createSlice({
+    name: 'assignmentEvaluation',
+    initialState,
+    reducers: {
+        setPage(state, action: PayloadAction<number>) {
+            state.page = action.payload
+        },
+        setLimit(state, action: PayloadAction<number>) {
+            state.limit = action.payload
+            state.page = 1
+        },
+        setSearch(state, action: PayloadAction<string>) {
+            state.search = action.payload
+            state.page = 1
+        },
+        setSeriesId(state, action: PayloadAction<string>) {
+            state.seriesId = action.payload
+            state.courseId = 'all'
+            state.page = 1
+        },
+        setCourseId(state, action: PayloadAction<string>) {
+            state.courseId = action.payload
+            state.page = 1
+        },
+        resetFilters(state) {
+            state.search = ''
+            state.seriesId = 'all'
+            state.courseId = 'all'
+            state.page = 1
+            state.limit = 8
+        }
+    }
+})
+
+export const { setPage, setLimit, setSearch, setSeriesId, setCourseId, resetFilters } = assignmentEvaluationSlice.actions
+export default assignmentEvaluationSlice.reducer
+

@@ -128,7 +128,7 @@ export default function AssignmentGradeList() {
     }, [searchTerm, gradeData])
 
     const handleView = (item: GradeItem) => {
-        router.push(`/assignment-evaluation/${item.id}`)
+        router.push(`/admin/assignment-evaluation/${item.id}`)
     }
 
     const transformedData = filteredData.map(item => ({

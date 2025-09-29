@@ -10,6 +10,8 @@ import { manageMaterialsApi } from './api/admin/manageMaterialsApis'
 import { courseFilterApi } from './api/admin/courseFilterApis'
 import { quizApi } from './api/admin/quizApis'
 import { assignmentApi } from './api/admin/assignmentApis'
+import assignmentEvaluationReducer from '@/rtk/slices/assignmentEvaluationSlice'
+import { assignmentEvaluationApi } from '@/rtk/api/admin/assignmentEvaluationApis'
 
 export const store = configureStore({
   reducer: {
@@ -18,12 +20,14 @@ export const store = configureStore({
     courseManagement: courseManagementReducer,
     managementCourse: managementCourseReducer,
     assignmentManagement: assignmentManagementReducer,
+    assignmentEvaluation: assignmentEvaluationReducer,
     [authApi.reducerPath]: authApi.reducer,
     [managementCourseApi.reducerPath]: managementCourseApi.reducer,
     [manageMaterialsApi.reducerPath]: manageMaterialsApi.reducer,
     [courseFilterApi.reducerPath]: courseFilterApi.reducer,
     [quizApi.reducerPath]: quizApi.reducer,
     [assignmentApi.reducerPath]: assignmentApi.reducer,
+    [assignmentEvaluationApi.reducerPath]: assignmentEvaluationApi.reducer,
   },
 
 
@@ -55,7 +59,15 @@ export const store = configureStore({
           'assignmentManagement.essays'
         ],
       },
-    }).concat(authApi.middleware, managementCourseApi.middleware, manageMaterialsApi.middleware, courseFilterApi.middleware, quizApi.middleware, assignmentApi.middleware),
+    }).concat(
+      authApi.middleware,
+      managementCourseApi.middleware,
+      manageMaterialsApi.middleware,
+      courseFilterApi.middleware,
+      quizApi.middleware,
+      assignmentApi.middleware,
+      assignmentEvaluationApi.middleware,
+    ),
 })
 
 export type RootState = ReturnType<typeof store.getState>

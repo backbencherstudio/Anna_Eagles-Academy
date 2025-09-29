@@ -1,198 +1,115 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
+import toast from 'react-hot-toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
-import { useRouter, useParams } from 'next/navigation'
+import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
+import { useGetSingleAssignmentEvaluationQuery, useGradeUpdateMutation, useGetSubmissionGradeMutation } from '@/rtk/api/admin/assignmentEvaluationApis'
 
-// Data type definitions
-interface Question {
-    id: string
-    question: string
-    answer: string
-    maxPoints: number
-    grade?: number
-}
-
-interface AssignmentSubmission {
-    id: string
-    questions: Question[]
-    student: string
-    submissionDate: string
-    totalMaxPoints: number
-}
-
-// Sample data for demonstration
-const sampleSubmissionData: AssignmentSubmission[] = [
-    {
-        id: '1',
-        questions: [
-            {
-                id: '1-1',
-                question: 'What is the origin of the Bible?',
-                answer: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-                maxPoints: 10
-            },
-            {
-                id: '1-2',
-                question: 'Explain the historical context of biblical texts.',
-                answer: 'The historical context of biblical texts involves understanding the cultural, political, and social environment in which these texts were written. This includes the time period, geographical location, and the specific circumstances that influenced the authors.',
-                maxPoints: 15
-            },
-            {
-                id: '1-3',
-                question: 'What are the main themes in the Old Testament?',
-                answer: 'The main themes in the Old Testament include covenant, law, prophecy, wisdom, and the relationship between God and humanity. These themes are developed through various literary forms including narrative, poetry, and legal texts.',
-                maxPoints: 12
-            },
-            {
-                id: '1-4',
-                question: 'How do different religious traditions interpret biblical texts?',
-                answer: 'Different religious traditions interpret biblical texts through various hermeneutical approaches, including literal, allegorical, moral, and anagogical interpretations. Each tradition brings its own theological framework and historical context to the interpretation process.',
-                maxPoints: 13
-            },
-            {
-                id: '1-5',
-                question: 'What is the significance of biblical archaeology?',
-                answer: 'Biblical archaeology provides material evidence that helps verify historical events, understand cultural contexts, and illuminate the world in which biblical texts were written. It bridges the gap between ancient texts and modern understanding.',
-                maxPoints: 10
-            }
-        ],
-        student: 'Matthew Thomas',
-        submissionDate: '20/09/2024',
-        totalMaxPoints: 60
-    },
-    {
-        id: '2',
-        questions: [
-            {
-                id: '2-1',
-                question: 'Explain the concept of chemical bonding in detail.',
-                answer: 'Chemical bonding is the attraction between atoms, ions, or molecules that enables the formation of chemical compounds. The bond may result from the electrostatic force of attraction between oppositely charged ions as in ionic bonds, or through the sharing of electrons as in covalent bonds.',
-                maxPoints: 15
-            },
-            {
-                id: '2-2',
-                question: 'What are the different types of chemical bonds?',
-                answer: 'The main types of chemical bonds are ionic bonds, covalent bonds, and metallic bonds. Ionic bonds form between oppositely charged ions, covalent bonds involve electron sharing, and metallic bonds occur in metals with delocalized electrons.',
-                maxPoints: 12
-            },
-            {
-                id: '2-3',
-                question: 'How do intermolecular forces affect chemical properties?',
-                answer: 'Intermolecular forces, such as hydrogen bonding, dipole-dipole interactions, and London dispersion forces, affect properties like boiling point, melting point, solubility, and viscosity of substances.',
-                maxPoints: 10
-            }
-        ],
-        student: 'Isabella Hall',
-        submissionDate: '21/09/2024',
-        totalMaxPoints: 37
-    },
-    {
-        id: '3',
-        questions: [
-            {
-                id: '3-1',
-                question: 'Describe the process of photosynthesis and its importance.',
-                answer: 'Photosynthesis is the process by which plants, algae, and some bacteria convert light energy, usually from the sun, into chemical energy stored in glucose and other organic compounds.',
-                maxPoints: 20
-            },
-            {
-                id: '3-2',
-                question: 'What are the main stages of photosynthesis?',
-                answer: 'The main stages of photosynthesis are the light-dependent reactions and the Calvin cycle. The light-dependent reactions capture light energy and convert it to chemical energy, while the Calvin cycle uses this energy to fix carbon dioxide into organic molecules.',
-                maxPoints: 15
-            }
-        ],
-        student: 'Ella Harris',
-        submissionDate: '22/09/2024',
-        totalMaxPoints: 35
-    }
-]
+// No local sample data – real API is used below
 
 export default function AssignmentEvaluationPage() {
-    const [submission, setSubmission] = useState<AssignmentSubmission | null>(null)
-    const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0)
-    const [grades, setGrades] = useState<{ [key: string]: number }>({})
-    const [loading, setLoading] = useState(true)
     const [isSubmitted, setIsSubmitted] = useState(false)
-    const [submittedGrades, setSubmittedGrades] = useState<{ [key: string]: number }>({})
+    const [forceEdit, setForceEdit] = useState(false)
+    const [gradesByAnswerId, setGradesByAnswerId] = useState<{ [answerId: string]: number }>({})
+    const [overallFeedback, setOverallFeedback] = useState<string>('')
     const router = useRouter()
+    const searchParams = useSearchParams()
     const params = useParams()
 
+    const submissionId = params.id as string
+    const { data: submissionResp, isFetching, refetch } = useGetSingleAssignmentEvaluationQuery(submissionId)
+    const [gradeUpdate, { isLoading: isSaving }] = useGradeUpdateMutation()
+    const [submitGrade] = useGetSubmissionGradeMutation()
+
+    const submission = submissionResp?.data
+
     useEffect(() => {
-        const fetchSubmissionData = async () => {
-            try {
-                // Simulate API call delay
-                await new Promise(resolve => setTimeout(resolve, 1000))
+        if (!submission) return
+        // initialize grades from API's existing marks_awarded
+        const initial: { [answerId: string]: number } = {}
+        submission.answers?.forEach((ans: any) => {
+            initial[ans.id] = typeof ans.marks_awarded === 'number' ? ans.marks_awarded : 0
+        })
+        setGradesByAnswerId(initial)
+        setOverallFeedback(submission.overall_feedback || '')
+        // If already graded or explicit view mode, keep the page in submitted state (read-only)
+        const forceView = (searchParams?.get('mode') || '') === 'view'
+        setIsSubmitted(!forceEdit && (Boolean(submission.graded_at) || forceView))
+    }, [submission, searchParams, forceEdit])
 
-                // Get submission ID from URL params
-                const submissionId = params.id as string
+    const handleCancelEdit = () => {
+        if (!submission) {
+            setForceEdit(false)
+            return
+        }
+        // reset fields to backend values
+        const reset: { [answerId: string]: number } = {}
+        submission.answers?.forEach((ans: any) => {
+            reset[ans.id] = typeof ans.marks_awarded === 'number' ? ans.marks_awarded : 0
+        })
+        setGradesByAnswerId(reset)
+        setOverallFeedback(submission.overall_feedback || '')
+        setForceEdit(false)
+    }
 
-                // Find the submission data
-                const foundSubmission = sampleSubmissionData.find(sub => sub.id === submissionId)
+    const totalMaxPoints = useMemo(() => {
+        if (!submission?.answers) return 0
+        return submission.answers.reduce((sum: number, a: any) => sum + (a.question?.points || 0), 0)
+    }, [submission])
 
-                if (foundSubmission) {
-                    setSubmission(foundSubmission)
-                    // Initialize grades with max points for each question
-                    const initialGrades: { [key: string]: number } = {}
-                    foundSubmission.questions.forEach(q => {
-                        initialGrades[q.id] = q.maxPoints
-                    })
-                    setGrades(initialGrades)
-                } else {
-                    // Handle not found
-                    console.error('Submission not found')
-                }
-            } catch (error) {
-                console.error('Error fetching submission data:', error)
-            } finally {
-                setLoading(false)
+    const totalGivenPoints = useMemo(() => {
+        return Object.values(gradesByAnswerId).reduce((sum, v) => sum + (v || 0), 0)
+    }, [gradesByAnswerId])
+
+    const handleConfirmGrade = async () => {
+        if (!submissionId || !submission) return
+        const answersPayload = (submission.answers || []).map((ans: any) => ({
+            question_id: String(ans.question_id || ans.question?.id || ''),
+            marks_awarded: Number(gradesByAnswerId[ans.id] || 0),
+            feedback: ans.feedback || null,
+        }))
+        const payload = {
+            overall_feedback: overallFeedback,
+            answers: answersPayload,
+        }
+        try {
+            // If editing from view/graded state, use gradeUpdate (PATCH). Otherwise, use POST
+            const res = forceEdit || submission.graded_at
+                ? await gradeUpdate({ assignment_id: submissionId, grades: payload })
+                : await submitGrade({ assignment_id: submissionId, grades: payload })
+            if ('data' in (res as any)) {
+                await refetch()
+                setForceEdit(false)
+                setIsSubmitted(true)
+                toast.success('Grades updated successfully')
+            } else {
+                const err = (res as any)?.error?.data?.message || 'Failed to update grades'
+                toast.error(typeof err === 'string' ? err : 'Failed to update grades')
             }
-        }
-
-        fetchSubmissionData()
-    }, [params.id])
-
-    const handleConfirmGrade = () => {
-        // Handle grade confirmation logic here
-        console.log('Grade confirmed for submission:', submission?.id, 'Grades:', grades)
-
-        // You can add API call here to save the grades
-        // await saveGrades(submission?.id, grades)
-
-        // Show success state
-        setSubmittedGrades(grades)
-        setIsSubmitted(true)
-    }
-
-    const handleNextQuestion = () => {
-        if (submission && currentQuestionIndex < submission.questions.length - 1) {
-            setCurrentQuestionIndex(currentQuestionIndex + 1)
+        } catch (e: any) {
+            toast.error(e?.message || 'Failed to update grades')
         }
     }
 
-    const handlePreviousQuestion = () => {
-        if (currentQuestionIndex > 0) {
-            setCurrentQuestionIndex(currentQuestionIndex - 1)
-        }
-    }
 
-    const handleGradeChange = (questionId: string, value: number) => {
-        setGrades(prev => ({
+    const handleGradeChange = (answerId: string, value: number, maxPoints: number) => {
+        const safe = Math.max(0, Math.min(value, maxPoints))
+        setGradesByAnswerId(prev => ({
             ...prev,
-            [questionId]: value
+            [answerId]: safe
         }))
     }
 
     const handleBack = () => {
-        router.push('/assignment-evaluation')
+        router.push('/admin/assignment-evaluation')
     }
 
-    if (loading) {
+    if (isFetching) {
         return (
             <div className="bg-white rounded-lg p-6 border border-gray-100 ">
                 <div className="animate-pulse">
@@ -238,20 +155,38 @@ export default function AssignmentEvaluationPage() {
                     <div>
                         <h1 className="text-xl font-semibold text-gray-900">Assignment Evaluation</h1>
                         <p className="text-sm text-gray-500">
-                            Student: {submission.student} | Submitted: {submission.submissionDate}
+                            Student: {submission.student?.name || 'Unknown'} | Course: {submission.assignment?.course?.title || 'Unknown'}
                         </p>
                     </div>
                 </div>
+                {(searchParams?.get('mode') === 'view' || submission.graded_at) && !forceEdit && (
+                    <Button
+                        variant="ghost"
+                        onClick={() => setForceEdit(true)}
+                        className="p-2 bg-gray-100 hover:bg-gray-100 cursor-pointer"
+                        title="Edit grades"
+                    >
+                        Edit
+                    </Button>
+                )}
+                {forceEdit && (
+                    <Button
+                        variant="ghost"
+                        onClick={handleCancelEdit}
+                        className="px-3 py-2 bg-gray-100 hover:bg-gray-100 cursor-pointer text-gray-700"
+                        title="Cancel edit"
+                    >
+                        Cancel
+                    </Button>
+                )}
             </div>
 
-            {/* Total Points Display */}
-            {submission && (
-                <div className="mb-4 flex justify-end">
-                    <div className="text-sm text-gray-500">
-                        Total Points: {submission.totalMaxPoints}
-                    </div>
+            {/* Totals */}
+            <div className="mb-4 flex justify-end">
+                <div className="text-sm text-gray-500">
+                    Total: {totalGivenPoints}/{totalMaxPoints}
                 </div>
-            )}
+            </div>
 
             {/* Success Message */}
             {isSubmitted && (
@@ -267,9 +202,7 @@ export default function AssignmentEvaluationPage() {
                                 All Grades Submitted Successfully!
                             </h3>
                             <p className="text-sm text-green-700 mt-1">
-                                Total Grade: <span className="font-semibold">
-                                    {Object.values(submittedGrades).reduce((sum, grade) => sum + grade, 0)}/{submission.totalMaxPoints}
-                                </span> points
+                                Total Grade: <span className="font-semibold">{totalGivenPoints}/{totalMaxPoints}</span> points
                             </p>
                         </div>
                     </div>
@@ -277,8 +210,8 @@ export default function AssignmentEvaluationPage() {
             )}
 
             {/* All Questions and Answers */}
-            {submission && submission.questions.map((question, index) => (
-                <Card key={question.id} className="mb-6">
+            {submission && submission.answers?.map((ans: any, index: number) => (
+                <Card key={ans.id} className="mb-6">
                     <CardContent className="p-2">
                         {/* Question Section */}
                         <div className="mb-6">
@@ -286,8 +219,13 @@ export default function AssignmentEvaluationPage() {
                                 Question {index + 1}
                             </Label>
                             <p className="text-lg font-semibold text-gray-900">
-                                {question.question}
+                                {ans.question?.title || 'Question'}
                             </p>
+                            {isSubmitted && (
+                                <div className="mt-1 text-sm text-gray-600">
+                                    Marks: <span className="font-medium">{typeof ans.marks_awarded === 'number' ? ans.marks_awarded : 0}</span> / {ans.question?.points || 0}
+                                </div>
+                            )}
                         </div>
 
                         {/* Answer Section */}
@@ -297,7 +235,7 @@ export default function AssignmentEvaluationPage() {
                             </Label>
                             <div className="bg-gray-50 p-4 rounded-lg">
                                 <p className="text-gray-900 leading-relaxed whitespace-pre-wrap">
-                                    {question.answer}
+                                    {ans.answer_text || ''}
                                 </p>
                             </div>
                         </div>
@@ -306,20 +244,20 @@ export default function AssignmentEvaluationPage() {
                         {!isSubmitted && (
                             <div className="flex items-center justify-end space-x-4 pt-4 border-t">
                                 <div className="flex items-center space-x-3">
-                                    <Label htmlFor={`grade-${question.id}`} className="text-sm font-medium text-gray-700">
+                                    <Label htmlFor={`grade-${ans.id}`} className="text-sm font-medium text-gray-700">
                                         Select Grade
                                     </Label>
                                     <Input
-                                        id={`grade-${question.id}`}
+                                        id={`grade-${ans.id}`}
                                         type="number"
                                         min="0"
-                                        max={question.maxPoints}
-                                        value={grades[question.id] || 0}
-                                        onChange={(e) => handleGradeChange(question.id, parseInt(e.target.value) || 0)}
+                                        max={ans.question?.points || 0}
+                                        value={gradesByAnswerId[ans.id] ?? 0}
+                                        onChange={(e) => handleGradeChange(ans.id, parseInt(e.target.value) || 0, ans.question?.points || 0)}
                                         className="w-20 text-center"
                                     />
                                     <span className="text-sm text-gray-500">
-                                        / {question.maxPoints}
+                                        / {ans.question?.points || 0}
                                     </span>
                                 </div>
                             </div>
@@ -328,14 +266,35 @@ export default function AssignmentEvaluationPage() {
                 </Card>
             ))}
 
+            {/* Overall Feedback */}
+            {!isSubmitted && (
+                <div className="mb-6">
+                    <Label className="text-sm font-medium text-gray-700 mb-2 block">Overall Feedback</Label>
+                    <Input
+                        value={overallFeedback}
+                        onChange={(e) => setOverallFeedback(e.target.value)}
+                        placeholder="Write overall feedback"
+                    />
+                </div>
+            )}
+            {isSubmitted && submission?.overall_feedback && (
+                <div className="mb-6">
+                    <Label className="text-sm font-medium text-gray-700 mb-2 block">Overall Feedback</Label>
+                    <div className="text-gray-900 bg-gray-50 rounded p-3">
+                        {submission.overall_feedback}
+                    </div>
+                </div>
+            )}
+
             {/* Confirm All Grades Button */}
             {submission && !isSubmitted && (
                 <div className="flex justify-end mb-6">
                     <Button
                         onClick={handleConfirmGrade}
-                        className="bg-[#F1C27D] cursor-pointer hover:bg-[#F1C27D]/90 text-white px-6 py-2"
+                        disabled={isSaving}
+                        className="bg-[#0F2598] cursor-pointer hover:bg-[#0F2598]/90 text-white px-6 py-2"
                     >
-                        Confirm All Grades
+                        {isSaving ? 'Updating...' : 'Update All Grades'}
                     </Button>
                 </div>
             )}

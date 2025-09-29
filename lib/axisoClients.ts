@@ -85,24 +85,24 @@ export const createBaseQuery = () => {
 export const createAuthBaseQuery = () => {
   return async (args: any, api: any, extraOptions: any) => {
     try {
-      const { url, method = 'GET', body, ...rest } = args;
-      
+      const { url, method = 'GET', body, params } = args;
+
       let response;
-      switch (method) {
+      switch (method.toUpperCase()) {
         case 'POST':
           response = await axiosClient.post(url, body);
           break;
         case 'GET':
-          response = await axiosClient.get(url);
+          response = await axiosClient.get(url, { params });
           break;
         case 'PATCH':
           response = await axiosClient.patch(url, body);
           break;
         case 'DELETE':
-          response = await axiosClient.delete(url);
+          response = await axiosClient.delete(url, { params });
           break;
         default:
-          response = await axiosClient.get(url);
+          response = await axiosClient.get(url, { params });
       }
 
       return { data: response.data };
