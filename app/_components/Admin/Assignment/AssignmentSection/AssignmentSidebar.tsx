@@ -10,7 +10,7 @@ interface Essay {
     id: string
     title: string
     points: number
-    submissionDeadline: string // Changed from Date to string
+    submissionDeadline: string 
 }
 
 interface AssignmentSidebarProps {

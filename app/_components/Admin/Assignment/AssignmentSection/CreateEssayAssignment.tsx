@@ -14,12 +14,12 @@ import { useGetSeriesWithCoursesQuery } from '@/rtk/api/admin/courseFilterApis'
 import { useCreateAssignmentMutation } from '@/rtk/api/admin/assignmentApis'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '@/rtk'
-import { 
-    updateFormField, 
-    resetForm, 
-    addEssay, 
-    updateEssay, 
-    selectEssay, 
+import {
+    updateFormField,
+    resetForm,
+    addEssay,
+    updateEssay,
+    selectEssay,
     clearAllEssays,
     addAdditionalQuestion,
     updateAdditionalQuestion,
@@ -30,6 +30,8 @@ import {
     clearError
 } from '@/rtk/slices/assignmentManagementSlice'
 import toast from 'react-hot-toast'
+import { useRouter } from 'next/navigation'
+import { ArrowLeft } from 'lucide-react'
 
 interface EssayFormData {
     mainTitle: string
@@ -37,19 +39,19 @@ interface EssayFormData {
     selectedCourses: string
     assignmentTitle: string
     points: number
-    submissionDeadline: Date // Keep as Date for form handling
+    submissionDeadline: Date
 }
 
 export default function CreateEssayAssignment() {
     const dispatch = useDispatch()
     const sidebarRef = useRef<AssignmentSidebarRef>(null)
-    
+    const router = useRouter()
     // Redux state
-    const { 
-        formData, 
-        selectedEssayId, 
-        essaysCount, 
-        additionalQuestions, 
+    const {
+        formData,
+        selectedEssayId,
+        essaysCount,
+        additionalQuestions,
         isCreatingAssignment
     } = useSelector((state: RootState) => state.assignmentManagement)
 
@@ -131,7 +133,7 @@ export default function CreateEssayAssignment() {
                     points: data.points,
                     submissionDeadline: data.submissionDeadline.toISOString() // Convert Date to string
                 }
-                
+
                 essaysToAdd.push(newEssay)
                 dispatch(addEssay(newEssay))
             }
@@ -157,7 +159,7 @@ export default function CreateEssayAssignment() {
                 sidebarRef.current!.addEssay(essay)
             })
         }
-        
+
         // Reset form
         dispatch(resetForm())
         reset({
@@ -183,7 +185,7 @@ export default function CreateEssayAssignment() {
                 setValue('assignmentTitle', essay.title)
                 setValue('points', essay.points)
                 setValue('submissionDeadline', new Date(essay.submissionDeadline)) // Convert string to Date
-                
+
                 // Update Redux state
                 dispatch(updateFormField({ field: 'assignmentTitle', value: essay.title }))
                 dispatch(updateFormField({ field: 'points', value: essay.points }))
@@ -218,19 +220,19 @@ export default function CreateEssayAssignment() {
 
         // Get all essays from sidebar
         const essays = sidebarRef.current?.getAllEssays() || []
-        
+
         // Get form data
         const formData = getValues()
-        
+
         // Format dates for API
-        const publishedAt = dateData?.startDateDeadline 
+        const publishedAt = dateData?.startDateDeadline
             ? new Date(`${dateData.startDateDeadline.toISOString().split('T')[0]}T${dateData.startTimeDeadline || '00:00'}:00.000Z`)
             : new Date()
-        
-        const dueAt = dateData?.submissionDeadline 
+
+        const dueAt = dateData?.submissionDeadline
             ? new Date(`${dateData.submissionDeadline.toISOString().split('T')[0]}T${dateData.submissionTimeDeadline || '23:59'}:00.000Z`)
             : new Date()
-        
+
         // Format data according to required structure
         const publishData = {
             title: formData.mainTitle || "Assignment",
@@ -249,17 +251,8 @@ export default function CreateEssayAssignment() {
         try {
             dispatch(setCreatingAssignment(true))
             dispatch(clearError())
-            
-            console.log('Publishing Assignment:', publishData)
-            
-            // Call the API to create assignment
             const result = await createAssignment(publishData).unwrap()
-            
-            // Success handling
             toast.success('Assignment created successfully!')
-            console.log('Assignment created:', result)
-            
-            // Reset form and sidebar after successful creation
             dispatch(resetForm())
             reset({
                 mainTitle: '',
@@ -271,16 +264,13 @@ export default function CreateEssayAssignment() {
             })
             dispatch(selectEssay(''))
             dispatch(clearAdditionalQuestions())
-            
-            // Clear sidebar essays
             if (sidebarRef.current) {
                 sidebarRef.current.clearAllEssays()
             }
             dispatch(clearAllEssays())
-            
+
         } catch (error: any) {
-            // Error handling
-            console.error('Failed to create assignment:', error)
+            // Error handlin
             dispatch(setReduxError(error?.data?.message || 'Failed to create assignment. Please try again.'))
             toast.error(error?.data?.message || 'Failed to create assignment. Please try again.')
         } finally {
@@ -288,8 +278,20 @@ export default function CreateEssayAssignment() {
         }
     }
 
+
+    // handle back button
+    const handleBack = () => {
+        router.push('/admin/assignment-management?tab=essay')
+    }
+
     return (
         <div className="bg-white p-5 rounded-xl">
+            <div className="flex justify-between items-center mb-4">
+                <button onClick={handleBack} className="cursor-pointer border border-gray-200 rounded-md py-1 px-2 w-full sm:w-auto flex items-center gap-2 text-sm hover:bg-gray-100 transition-all duration-300">
+                    <ArrowLeft className="w-4 h-4" />
+                    Back
+                </button>
+            </div>
             {/* Header */}
             <QuizCreateDate
                 onPublish={handlePublish}
@@ -479,7 +481,7 @@ export default function CreateEssayAssignment() {
                     </div>
 
                     {/* Another Question Component */}
-                    <AnotherQuestion 
+                    <AnotherQuestion
                         additionalQuestions={additionalQuestions}
                         onAddQuestion={(question) => {
                             dispatch(addAdditionalQuestion(question))

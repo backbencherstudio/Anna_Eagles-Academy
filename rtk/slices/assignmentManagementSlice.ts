@@ -26,6 +26,61 @@ export interface AssignmentFormData {
     submissionDeadline: string 
 }
 
+// API Response Types
+export interface Assignment {
+    id: string
+    title: string
+    due_at: string
+    published_at: string
+    is_published: boolean
+    created_at: string
+    total_marks: number
+    series: {
+        id: string
+        title: string
+    }
+    course: {
+        id: string
+        title: string
+    }
+    remaining_time?: number
+}
+
+export interface AssignmentWithSubmission {
+    id: string
+    title: string
+    due_at: string
+    published_at: string
+    is_published: boolean
+    created_at: string
+    total_marks: number
+    series: {
+        id: string
+        title: string
+    }
+    course: {
+        id: string
+        title: string
+    }
+    submissions_count?: number
+    total_students?: number
+}
+
+export interface AssignmentDashboardData {
+    assignments_with_submissions: AssignmentWithSubmission[]
+    published_assignments: Assignment[]
+    unpublished_assignments: Assignment[]
+    total_published_assignments: number
+    total_unpublished_assignments: number
+    total_submissions: number
+    summary: {
+        total_assignments: number
+        active_assignments: number
+        pending_publication: number
+        total_submissions: number
+    }
+}
+
 export interface AssignmentState {
     // Form data
     formData: AssignmentFormData
@@ -37,6 +92,12 @@ export interface AssignmentState {
     
     // Additional questions
     additionalQuestions: AdditionalQuestion[]
+    
+    // Dashboard data
+    assignmentsWithSubmissions: AssignmentWithSubmission[]
+    publishedAssignments: Assignment[]
+    unpublishedAssignments: Assignment[]
+    dashboardData: AssignmentDashboardData | null
     
     // UI state
     isLoading: boolean
@@ -64,6 +125,10 @@ const initialState: AssignmentState = {
     selectedEssayId: '',
     essaysCount: 0,
     additionalQuestions: [],
+    assignmentsWithSubmissions: [],
+    publishedAssignments: [],
+    unpublishedAssignments: [],
+    dashboardData: null,
     isLoading: false,
     error: null,
     isCreatingAssignment: false,
@@ -171,6 +236,30 @@ const assignmentManagementSlice = createSlice({
             state.error = null
         },
         
+        // Dashboard actions
+        setDashboardData: (state, action: PayloadAction<AssignmentDashboardData>) => {
+            state.dashboardData = action.payload
+            state.assignmentsWithSubmissions = action.payload.assignments_with_submissions
+            state.publishedAssignments = action.payload.published_assignments
+            state.unpublishedAssignments = action.payload.unpublished_assignments
+        },
+        
+        setPublishedAssignments: (state, action: PayloadAction<Assignment[]>) => {
+            state.publishedAssignments = action.payload
+        },
+        
+        setUnpublishedAssignments: (state, action: PayloadAction<Assignment[]>) => {
+            state.unpublishedAssignments = action.payload
+        },
+        
+        setAssignmentsWithSubmissions: (state, action: PayloadAction<AssignmentWithSubmission[]>) => {
+            state.assignmentsWithSubmissions = action.payload
+        },
+        
+        setLoading: (state, action: PayloadAction<boolean>) => {
+            state.isLoading = action.payload
+        },
+        
         // Reset entire state
         resetAssignmentState: () => initialState
     }
@@ -196,6 +285,11 @@ export const {
     setCreatedAssignmentId,
     setError,
     clearError,
+    setDashboardData,
+    setPublishedAssignments,
+    setUnpublishedAssignments,
+    setAssignmentsWithSubmissions,
+    setLoading,
     resetAssignmentState
 } = assignmentManagementSlice.actions
 
