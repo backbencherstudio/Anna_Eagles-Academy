@@ -3,7 +3,7 @@ import { UserIcon, LockIcon, BellIcon, CreditCardIcon } from 'lucide-react'
 import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useAppSelector } from '@/redux/hooks'
+import { useAppSelector } from '@/rtk/hooks'
 
 
 export default function SettingsSidebarUser() {

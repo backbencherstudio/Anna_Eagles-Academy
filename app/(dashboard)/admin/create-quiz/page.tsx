@@ -1,20 +1,16 @@
 "use client"
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
 
-export default function CreateQuizRoot() {
-    const router = useRouter()
+import React from 'react'
+import CreateQuizAssignment from '@/app/_components/Admin/Assignment/CreateQuizAssignment'
 
-    useEffect(() => {
-        router.push('/admin/create-quiz/new')
-    }, [router])
-
+/**
+ * Create Quiz Page Component
+ * Handles both create and edit modes for quiz management
+ */
+export default function CreateQuizPage() {
     return (
-        <div className="flex items-center justify-center min-h-screen">
-            <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0F2598] mx-auto" />
-                <p className="mt-2 text-gray-600">Redirecting...</p>
-            </div>
+        <div className="">
+            <CreateQuizAssignment />
         </div>
     )
 }

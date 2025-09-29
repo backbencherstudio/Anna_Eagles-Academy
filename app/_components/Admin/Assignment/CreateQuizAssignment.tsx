@@ -32,27 +32,25 @@ interface QuizFormData {
 }
 
 export default function CreateQuizAssignment() {
+    // State management
     const [questions, setQuestions] = useState<Question[]>([])
     const [selectedQuestionId, setSelectedQuestionId] = useState<string>('')
     const [initialDates, setInitialDates] = useState<DeadlineFormData | null>(null)
+    
+    // Route parameters
     const params = useParams()
     const quizId = params?.id as string
     const isEditMode = !!quizId
 
-    // load series with courses for dependent dropdowns
+    // API hooks
     const { data: seriesData, isLoading: isSeriesLoading, isError: isSeriesError } = useGetSeriesWithCoursesQuery()
-    
-    // create quiz mutation
-    const [createQuiz, { isLoading: isCreatingQuiz, isError: isCreateError, isSuccess: isCreateSuccess }] = useCreateQuizMutation()
-    
-    // update quiz mutation
-    const [updateQuiz, { isLoading: isUpdatingQuiz, isError: isUpdateError, isSuccess: isUpdateSuccess }] = useUpdateQuizMutation()
-    
-    // get single quiz for editing
+    const [createQuiz, { isLoading: isCreatingQuiz }] = useCreateQuizMutation()
+    const [updateQuiz, { isLoading: isUpdatingQuiz }] = useUpdateQuizMutation()
     const { data: quizData, isLoading: isQuizLoading, isError: isQuizError } = useGetSingleQuizQuery(quizId, {
-        skip: !isEditMode
+        skip: !isEditMode || !quizId
     })
 
+    // Form management
     const {
         control,
         handleSubmit,
@@ -77,18 +75,23 @@ export default function CreateQuizAssignment() {
         reValidateMode: 'onChange'
     })
 
+    // Form watchers
     const watchedOptions = watch('options')
     const watchedQuestion = watch('question')
     const selectedSeriesId = watch('selectedSeries')
 
-    // reset course when series changes (but not in edit mode when loading data)
+    // Derived data
+    const seriesList = seriesData?.data || []
+    const coursesForSelectedSeries = seriesList.find(s => s.id === selectedSeriesId)?.courses || []
+
+    // Reset course when series changes (but not in edit mode when loading data)
     useEffect(() => {
         if (!isEditMode || !quizData?.data) {
             setValue('selectedCourses', '')
         }
     }, [selectedSeriesId, setValue, isEditMode, quizData])
 
-    // load quiz data for editing
+    // Load quiz data for editing
     useEffect(() => {
         if (quizData?.data && isEditMode) {
             const quiz = quizData.data
@@ -134,10 +137,7 @@ export default function CreateQuizAssignment() {
         }
     }, [quizData, isEditMode, setValue])
 
-    const seriesList = seriesData?.data || []
-    const coursesForSelectedSeries = seriesList.find(s => s.id === selectedSeriesId)?.courses || []
-
-
+    // Question management functions
     const addQuiz = handleSubmit((data) => {
         // Validate options
         const validOptions = data.options.filter(option => option.trim().length > 0)
@@ -206,7 +206,7 @@ export default function CreateQuizAssignment() {
     const deleteQuestion = (questionId: string) => {
         setQuestions(prev => prev.filter(q => q.id !== questionId))
         if (selectedQuestionId === questionId) {
-            // Clear only specific fields, preserve quiz title and selections
+            // Clear form fields but preserve quiz title and selections
             setValue('question', '')
             setValue('options', ['', '', ''])
             setValue('correctAnswer', '')
@@ -215,9 +215,7 @@ export default function CreateQuizAssignment() {
         }
     }
 
-
-
-    // Validation function
+    // Validation helper function
     const validateQuizData = (title: string, seriesId: string, courseId: string, questions: Question[]) => {
         if (!title?.trim()) return 'Please enter a quiz title'
         if (title.length > 200) return 'Quiz title must be shorter than or equal to 200 characters'
@@ -226,7 +224,7 @@ export default function CreateQuizAssignment() {
         return null
     }
 
-    // handle publish
+    // Handle quiz publish/update
     const handlePublish = async (dates?: DeadlineFormData) => {
         if (!dates) return
 
@@ -307,7 +305,6 @@ export default function CreateQuizAssignment() {
         // Call API to create or update quiz
         try {
             if (isEditMode) {
-                // For update, we need to pass id separately and payload as body
                 await updateQuiz({ 
                     id: quizId, 
                     ...payload 
@@ -316,10 +313,8 @@ export default function CreateQuizAssignment() {
             } else {
                 await createQuiz(payload).unwrap()
                 alert('Quiz created successfully!')
-            }
-            
-            // Clear all fields after successful publish (only for create mode)
-            if (!isEditMode) {
+                
+                // Clear all fields after successful creation
                 setQuestions([])
                 reset({
                     selectedSeries: '',
@@ -334,24 +329,24 @@ export default function CreateQuizAssignment() {
                 clearErrors()
             }
         } catch (error: any) {
-            const errorMessage = error?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} quiz. Please try again.`
-            alert(typeof errorMessage === 'string' ? errorMessage : errorMessage.join('\n'))
+            const errorMessage = error?.data?.message || error?.message || `Failed to ${isEditMode ? 'update' : 'create'} quiz. Please try again.`
+            alert(typeof errorMessage === 'string' ? errorMessage : 'An unexpected error occurred. Please try again.')
         }
     }
 
-    // Show loading state when fetching quiz data for editing
+    // Loading state for edit mode
     if (isEditMode && isQuizLoading) {
         return (
             <div className="bg-white p-5 rounded-xl">
-                <div className="animate-pulse">
-                    <div className="h-8 bg-gray-200 rounded mb-4"></div>
+                <div className="animate-pulse space-y-4">
+                    <div className="h-8 bg-gray-200 rounded w-1/3"></div>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                         <div className="lg:col-span-1">
                             <div className="h-64 bg-gray-200 rounded"></div>
                         </div>
-                        <div className="lg:col-span-2">
-                            <div className="h-32 bg-gray-200 rounded mb-4"></div>
-                            <div className="h-32 bg-gray-200 rounded mb-4"></div>
+                        <div className="lg:col-span-2 space-y-4">
+                            <div className="h-32 bg-gray-200 rounded"></div>
+                            <div className="h-32 bg-gray-200 rounded"></div>
                             <div className="h-32 bg-gray-200 rounded"></div>
                         </div>
                     </div>
@@ -365,7 +360,21 @@ export default function CreateQuizAssignment() {
         return (
             <div className="bg-white p-5 rounded-xl">
                 <div className="text-center py-8">
-                    <p className="text-red-500">Failed to load quiz data</p>
+                    <div className="mb-4">
+                        <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                            <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                            </svg>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Failed to Load Quiz</h3>
+                        <p className="text-gray-600 mb-4">Unable to load the quiz data. Please check your connection and try again.</p>
+                    </div>
+                    <button 
+                        onClick={() => window.location.reload()} 
+                        className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                        Retry
+                    </button>
                 </div>
             </div>
         )
