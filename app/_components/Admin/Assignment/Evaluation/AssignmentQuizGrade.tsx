@@ -92,7 +92,7 @@ export default function AssignmentQuizGrade() {
   useEffect(() => { dispatch(setCourseId('all')) }, [seriesId, dispatch])
 
   const handleView = (row: QuizRowItem) => {
-    router.push(`/admin/assignment-evaluation/${row.id}?mode=view&type=quiz`)
+    router.push(`/admin/quiz-evaluation/${row.id}?mode=view`)
   }
 
   const data = rows.map(item => ({

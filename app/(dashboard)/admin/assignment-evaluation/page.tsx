@@ -1,5 +1,5 @@
-import AssignmentEssayGrade from '@/app/_components/Admin/Assignment/AssignmentEssayGrade'
-import AssignmentQuizGrade from '@/app/_components/Admin/Assignment/AssignmentGradeList'
+import AssignmentEssayGrade from '@/app/_components/Admin/Assignment/Evaluation/AssignmentEssayGrade'
+import AssignmentQuizGrade from '@/app/_components/Admin/Assignment/Evaluation/AssignmentQuizGrade'
 
 
 import React from 'react'
