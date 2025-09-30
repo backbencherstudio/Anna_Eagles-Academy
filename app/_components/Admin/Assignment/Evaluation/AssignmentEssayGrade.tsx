@@ -213,12 +213,12 @@ export default function AssignmentEssayGrade() {
 
     return (
         <div className="bg-white rounded-lg p-4 border border-gray-100">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col xl:flex-row gap-4 xl:gap-0 justify-between items-center mb-4">
                 <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
                     Assignment (Essay)
                 </h2>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col  lg:flex-row items-center gap-2">
                     {/* Search Input */}
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />

@@ -17,7 +17,8 @@ import {
 interface AssignmentSubmissionData {
     id: string
     student?: { name: string; email?: string }
-    assignment?: { title?: string; course?: { title: string } }
+    assignment?: { title?: string; total_marks?: number; course?: { title: string } }
+    total_grade?: number
     answers?: Array<{
         id: string
         question_id: string
@@ -29,6 +30,7 @@ interface AssignmentSubmissionData {
     overall_feedback?: string
     feedback?: string
     graded_at?: string
+    percentage?: number
 }
 
 export default function AssignmentEvaluationPage() {
@@ -149,8 +151,8 @@ export default function AssignmentEvaluationPage() {
     // ===== LOADING STATE =====
     if (isFetching) {
         return (
-            <div className="bg-gray-50 min-h-screen p-6">
-                <div className="max-w-4xl mx-auto">
+            <div className="bg-gray-50 ">
+                <div className="">
                     <div className="bg-white rounded-lg p-6 border border-gray-100">
                         <div className="animate-pulse">
                             <div className="bg-gray-100 h-8 rounded mb-4"></div>
@@ -191,7 +193,7 @@ export default function AssignmentEvaluationPage() {
     return (
         <div className="bg-gray-50">
             <div className="">
-                <div className="bg-white rounded-lg p-6 border border-gray-100 ">
+                <div className="bg-white rounded-lg py-6 px-2 md:px-6 border border-gray-100 ">
                     {/* ===== PAGE HEADER ===== */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
                         <div className="flex items-center space-x-4">
@@ -203,7 +205,7 @@ export default function AssignmentEvaluationPage() {
                                 <ArrowLeft className="h-5 w-5" />
                             </Button>
                             <div>
-                                <h1 className="text-xl font-semibold text-gray-900">
+                                <h1 className="xl:text-xl font-semibold text-gray-900">
                                     {submission.assignment?.title || 'Assignment Evaluation'} (Essay)
                                 </h1>
                                 <p className="text-sm text-gray-500">
@@ -213,7 +215,7 @@ export default function AssignmentEvaluationPage() {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex justify-end">
                             {(isViewMode || submission.graded_at) && !forceEdit && (
                                 <Button
                                     variant="ghost"
@@ -256,9 +258,17 @@ export default function AssignmentEvaluationPage() {
                                 </div>
                             </div>
 
+
+                            {/* Total Grade Section  */}
                             <div className="text-right">
-                                <div className="lg:text-2xl text-xl font-medium text-green-800">{totalGivenPoints}/{totalMaxPoints}</div>
-                                <div className="lg:text-sm text-xs text-green-600">{percentage}%</div>
+                                <div className="lg:text-2xl text-xl font-medium text-green-800">
+                                    {(typeof submission.total_grade === 'number' ? submission.total_grade : totalGivenPoints)}/{submission.assignment?.total_marks ?? totalMaxPoints}
+                                </div>
+                                <div className="lg:text-sm text-xs text-green-600">
+                                    {
+                                        submission.percentage ? `${submission.percentage}%` : '0%'
+                                    }
+                                </div>
                             </div>
                         </div>
                     )}
@@ -287,7 +297,7 @@ export default function AssignmentEvaluationPage() {
                                             </div>
                                         )}
                                     </div>
-                                    <p className="text-lg font-semibold text-gray-900 mb-4">
+                                    <p className="xl:text-lg font-medium text-gray-900 mb-4">
                                         {ans.question?.title || 'Question'}
                                     </p>
                                 </div>

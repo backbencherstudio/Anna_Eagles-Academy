@@ -5,10 +5,10 @@ import ReusableTable from '@/components/Resuable/ReusableTable'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search } from 'lucide-react'
+import { Loader2, Search } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
-import { setCourseId,  setSearch as setSearchAction, setSeriesId } from '@/rtk/slices/assignmentQuizEvaluationSlice'
+import { setCourseId, setSearch as setSearchAction, setSeriesId } from '@/rtk/slices/assignmentQuizEvaluationSlice'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useGetSeriesWithCoursesQuery } from '@/rtk/api/admin/courseFilterApis'
 import { useGetAllQuizAssignmentEvaluationsQuery } from '@/rtk/api/admin/assignmentEvaluationApis'
@@ -40,7 +40,7 @@ export default function AssignmentQuizGrade() {
   const debouncedSearch = useDebounce(searchInput, 400)
   const [rows, setRows] = useState<QuizRowItem[]>([])
   const [loading, setLoading] = useState(true)
-
+  const [viewingId, setViewingId] = useState<string | null>(null)
   const { data: seriesResponse, isLoading: isSeriesLoading } = useGetSeriesWithCoursesQuery()
   const seriesList = seriesResponse?.data ?? []
   const coursesForSelectedSeries = seriesId === 'all' ? [] : (seriesList.find(s => s.id === seriesId)?.courses ?? [])
@@ -93,6 +93,7 @@ export default function AssignmentQuizGrade() {
 
   const handleView = (row: QuizRowItem) => {
     router.push(`/admin/quiz-evaluation/${row.id}?mode=view`)
+    setViewingId(row.id)
   }
 
   const data = rows.map(item => ({
@@ -118,17 +119,28 @@ export default function AssignmentQuizGrade() {
       <span className="text-sm font-medium bg-gray-100 rounded-md px-2 py-1 ">{item.totalGrade}</span>
     ),
     status: (
-      <div className="w-full flex items-center justify-center">
-        <Button onClick={() => handleView(item)} className="h-8 px-3 py-1 text-xs rounded-md font-medium text-white bg-[#0F2598] hover:bg-[#0F2598]/90 cursor-pointer">View</Button>
-      </div>
+      <Button
+      onClick={() => handleView(item)}
+      disabled={viewingId === item.id}
+      className="h-8 px-3 py-1 text-xs rounded-md font-medium text-white bg-[#0F2598] hover:bg-[#0F2598]/90 cursor-pointer"
+  >
+      {viewingId === item.id ? (
+          <span className="inline-flex items-center gap-1">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Viewing
+          </span>
+      ) : 'View'}
+  </Button>
     )
   }))
 
   return (
     <div className="bg-white rounded-lg p-4 border border-gray-100">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col xl:flex-row gap-4 xl:gap-0 justify-between items-center mb-4">
         <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Assignment (Quiz)</h2>
-        <div className="flex items-center gap-2">
+
+
+        <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-center gap-2">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search Student" className="pl-10 w-48" />
