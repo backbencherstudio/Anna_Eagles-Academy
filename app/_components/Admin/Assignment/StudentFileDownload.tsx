@@ -10,6 +10,7 @@ import { setSearch, setSeriesId, setCourseId } from '@/rtk/slices/studentFileDow
 import { useGetAllStudentFileDownloadsQuery } from '@/rtk/api/admin/studentFileDownloadApis'
 import SeriesFilterReuseable from '@/components/Resuable/SeriesFilter/SeriesFilterReuseable'
 import { useDebounce } from '@/hooks/useDebounce'
+import Image from 'next/image'
 
 // Table headers configuration
 const tableHeaders = [
@@ -29,7 +30,7 @@ export default function StudentFileDownload() {
 
     const { data, isFetching } = useGetAllStudentFileDownloadsQuery({ section_type, search, page, limit, series_id, course_id })
 
-    const items = data?.data?.student_files ?? []
+    const items = data?.data?.students ?? []
     const pagination = data?.data?.pagination ?? { total: items.length, page, limit, totalPages: 1 }
 
     // apply debounced search to store
@@ -59,20 +60,34 @@ export default function StudentFileDownload() {
 
     const transformedData = useMemo(() => {
         return items.map((item: any) => {
-            const studentName: string = item?.student?.name || 'Unknown'
+            const studentName: string = item?.name || 'Unknown'
             const initial = studentName.trim().charAt(0).toUpperCase() || 'S'
+            const files: any[] = Array.isArray(item?.student_files) ? item.student_files : []
+            const firstFile = files[0] || {}
+            const seriesTitle: string = firstFile?.series?.title || '-'
+            const courseTitle: string = firstFile?.course?.title || '-'
+            const avatarUrl: string | undefined = item?.avatar_url || undefined
             return {
                 id: item.id,
                 studentName: (
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                            {initial}
+                        {avatarUrl ? (
+                            <Image width={100} height={100} src={avatarUrl} alt={studentName} className="w-14 h-14 rounded-full object-cover" />
+                        ) : (
+                            <div className="w-14 h-14 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                                {initial}
+                            </div>
+                        )}
+                        <div className="flex flex-col">
+                            <span className="font-medium">{studentName}</span>
+                            {item?.email && (
+                                <span className="text-xs text-gray-500">{item.email}</span>
+                            )}
                         </div>
-                        <span className="font-medium">{studentName}</span>
                     </div>
                 ),
-                seriesName: item?.series?.title || '-',
-                courseName: item?.course?.title || '-',
+                seriesName: seriesTitle,
+                courseName: courseTitle,
                 submissionDate: formatDateTime(item?.created_at || ''),
                 status: (
                     <Button

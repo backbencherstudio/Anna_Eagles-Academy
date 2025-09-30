@@ -1,8 +1,9 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Card, CardContent, CardTitle } from '@/components/ui/card'
 import CameraIcon from '@/components/Icons/CameraIcon'
 import VideoModal from '@/components/Resuable/VideoModal'
+import { useGetSingleStudentFileDownloadQuery } from '@/rtk/api/admin/studentFileDownloadApis'
 
 type VideoItem = {
   id: string
@@ -12,13 +13,8 @@ type VideoItem = {
   video_url: string
 }
 
-const mockVideos: VideoItem[] = [
-  { id: '1', title: 'Week 1 Video Diary.mp4', weekLabel: 'Week 1', dateText: 'Jan 10, 2025', video_url: 'https://www.w3schools.com/html/mov_bbb.mp4' },
-  { id: '2', title: 'Week 2 Video Diary.mp4', weekLabel: 'Week 2', dateText: 'Jan 18, 2025', video_url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' },
-  { id: '3', title: 'Week 3 Video Diary.mp4', weekLabel: 'Week 3', dateText: 'Jan 20, 2025', video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' },
-]
-
-export default function WeeklyVideo() {
+export default function WeeklyVideo({ studentId }: { studentId: string }) {
+  const { data } = useGetSingleStudentFileDownloadQuery({ student_id: studentId, section_type: 'Weekly Video Diary' })
   const [open, setOpen] = useState(false)
   const [currentUrl, setCurrentUrl] = useState<string>('')
 
@@ -26,6 +22,19 @@ export default function WeeklyVideo() {
     setCurrentUrl(videoUrl)
     setOpen(true)
   }
+
+  const videos: VideoItem[] = useMemo(() => {
+    const files: any[] = data?.data?.student_files ?? []
+    return files
+      .filter(f => f.section_type === 'Weekly Video Diary')
+      .map(f => ({
+        id: f.id,
+        title: f.url?.split('/')?.pop() ?? 'Video Diary',
+        weekLabel: f.week_number ? `Week ${f.week_number}` : 'Week',
+        dateText: new Date(f.created_at).toLocaleDateString(),
+        video_url: f.file_url,
+      }))
+  }, [data])
 
   return (
     <Card className="border rounded-xl border-[#ECEFF3]">
@@ -37,7 +46,7 @@ export default function WeeklyVideo() {
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {mockVideos.map((v) => (
+            {videos.map((v) => (
               <Card key={v.id} className="rounded-2xl border border-[#ECEFF3] shadow-none">
                 <div className="p-4">
                   <div

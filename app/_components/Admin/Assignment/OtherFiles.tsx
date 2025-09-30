@@ -1,33 +1,30 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import DocumentsIcon from '@/components/Icons/DocumentsIcon'
+import { useGetSingleStudentFileDownloadQuery } from '@/rtk/api/admin/studentFileDownloadApis'
 
 type DocumentItem = {
   id: string
   title: string
   uploadedDate: string
   uploadedTime: string
-  tag?: string
+  url: string
 }
 
-const documents: DocumentItem[] = [
-  {
-    id: '1',
-    title: 'Biblical Studies Assignment.pdf',
-    uploadedDate: '08/01/2024',
-    uploadedTime: '11:59 PM',
-    tag: 'Assignment',
-  },
-  {
-    id: '2',
-    title: 'Prayer Journal.docx',
-    uploadedDate: '08/01/2024',
-    uploadedTime: '11:59 PM',
-    tag: 'Assignment',
-  },
-]
-
-export default function OtherFile() {
+export default function OtherFile({ studentId }: { studentId: string }) {
+  const { data } = useGetSingleStudentFileDownloadQuery({ student_id: studentId, section_type: 'Other File Submissions' })
+  const documents: DocumentItem[] = useMemo(() => {
+    const files: any[] = data?.data?.student_files ?? []
+    return files
+      .filter(f => f.section_type === 'Other File Submissions')
+      .map(f => ({
+        id: f.id,
+        title: f.url?.split('/')?.pop() ?? 'Submission',
+        uploadedDate: new Date(f.created_at).toLocaleDateString(),
+        uploadedTime: new Date(f.created_at).toLocaleTimeString(),
+        url: f.file_url,
+      }))
+  }, [data])
   return (
     <Card className="border rounded-xl border-[#ECEFF3]">
       <CardContent className="p-6">
@@ -65,9 +62,7 @@ export default function OtherFile() {
 
                 {/* Right side: download button  */}
                 <div className="flex justify-start sm:justify-end">
-                  <button className="inline-flex cursor-pointer items-center rounded-full border px-3 py-1 text-xs">
-                    Download
-                  </button>
+                  <a href={doc.url} target="_blank" rel="noreferrer" className="inline-flex cursor-pointer items-center rounded-full border px-3 py-1 text-xs">Download</a>
                 </div>
 
               </div>

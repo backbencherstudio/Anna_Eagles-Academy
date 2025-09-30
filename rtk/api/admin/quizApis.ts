@@ -17,6 +17,8 @@ export const quizApi = createApi({
             }),
             invalidatesTags: ['Quiz', 'QuizDashboard'],
         }),
+
+        
         // get all quizzes
         getAllQuizzes: builder.query({
             query: () => ({

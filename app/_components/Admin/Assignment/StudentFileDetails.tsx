@@ -4,112 +4,43 @@ import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ArrowLeft, Camera, FileText } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import WeeklyVideo from './WeeklyVideo'
 import OtherFiles from './OtherFiles'
+import { useGetSingleStudentFileDownloadQuery } from '@/rtk/api/admin/studentFileDownloadApis'
+import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
+import { setSectionType } from '@/rtk/slices/studentFileDownloadSlice'
 
-// Data types
-interface VideoDiary {
-    id: string
-    title: string
-    week: string
-    date: string
-    thumbnail: string
-    videoUrl?: string
-}
 
-interface FileSubmission {
-    id: string
-    fileName: string
-    uploadDate: string
-    uploadTime: string
-    fileType: string
-}
-
-interface StudentDetails {
-    id: string
-    name: string
-    videoDiaries: VideoDiary[]
-    fileSubmissions: FileSubmission[]
-}
-
-// Sample data
-const sampleStudentData: StudentDetails = {
-    id: '1',
-    name: 'Miles, Esther',
-    videoDiaries: [
-        {
-            id: '1',
-            title: 'Week 1 Video Diary.mp4',
-            week: 'Week 1',
-            date: 'Jan 10, 2025',
-            thumbnail: '/images/video-thumbnail.jpg',
-            videoUrl: '/videos/week1-diary.mp4'
-        },
-        {
-            id: '2',
-            title: 'Week 2 Video Diary.mp4',
-            week: 'Week 2',
-            date: 'Jan 18, 2025',
-            thumbnail: '/images/video-thumbnail.jpg',
-            videoUrl: '/videos/week2-diary.mp4'
-        },
-        {
-            id: '3',
-            title: 'Week 3 Video Diary.mp4',
-            week: 'Week 3',
-            date: 'Jan 20, 2025',
-            thumbnail: '/images/video-thumbnail.jpg',
-            videoUrl: '/videos/week3-diary.mp4'
-        }
-    ],
-    fileSubmissions: [
-        {
-            id: '1',
-            fileName: 'Biblical Studies Assignment.pdf',
-            uploadDate: '08/01/2024',
-            uploadTime: '11:59 PM',
-            fileType: 'pdf'
-        },
-        {
-            id: '2',
-            fileName: 'Prayer Journal.docx',
-            uploadDate: '08/01/2024',
-            uploadTime: '11:59 PM',
-            fileType: 'docx'
-        }
-    ]
-}
 
 export default function StudentFileDetails({ studentId }: { studentId: string }) {
-    const [studentData, setStudentData] = useState<StudentDetails | null>(null)
+    const dispatch = useAppDispatch()
+    const { section_type } = useAppSelector(s => s.studentFileDownload)
+    const { data, isFetching } = useGetSingleStudentFileDownloadQuery({ student_id: studentId, section_type })
+    const [studentName, setStudentName] = useState<string>('')
     const [loading, setLoading] = useState(true)
-    const [activeTab, setActiveTab] = useState('video-diaries')
+    const [activeTab, setActiveTab] = useState<'video-diaries' | 'file-submissions'>(section_type === 'Other File Submissions' ? 'file-submissions' : 'video-diaries')
     const router = useRouter()
     const searchParams = useSearchParams()
 
     // Initialize tab from URL query parameter
     useEffect(() => {
         const tabFromUrl = searchParams.get('tab')
-        if (tabFromUrl && (tabFromUrl === 'video-diaries' || tabFromUrl === 'file-submissions')) {
-            setActiveTab(tabFromUrl)
+        if (tabFromUrl === 'video-diaries') {
+            setActiveTab('video-diaries')
+            dispatch(setSectionType('Weekly Video Diary'))
+        } else if (tabFromUrl === 'file-submissions') {
+            setActiveTab('file-submissions')
+            dispatch(setSectionType('Other File Submissions'))
         }
-    }, [searchParams])
+    }, [searchParams, dispatch])
 
     useEffect(() => {
-        const fetchStudentData = async () => {
-            try {
-                await new Promise(resolve => setTimeout(resolve, 300))
-                setStudentData(sampleStudentData)
-            } catch (error) {
-                console.error('Error fetching student data:', error)
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchStudentData()
-    }, [studentId])
+        const files: any[] = data?.data?.student_files ?? []
+        const inferredName: string = files[0]?.student?.name || 'Student'
+        setStudentName(inferredName)
+        setLoading(isFetching)
+    }, [data, isFetching, studentId])
 
     const handleBack = () => {
         router.push('/admin/student-file-download')
@@ -118,10 +49,11 @@ export default function StudentFileDetails({ studentId }: { studentId: string })
 
 
     const handleTabChange = (value: string) => {
-        setActiveTab(value)
-        // Update URL with new tab parameter
+        const v = value === 'file-submissions' ? 'file-submissions' : 'video-diaries'
+        setActiveTab(v)
+        dispatch(setSectionType(v === 'video-diaries' ? 'Weekly Video Diary' : 'Other File Submissions'))
         const params = new URLSearchParams(searchParams.toString())
-        params.set('tab', value)
+        params.set('tab', v)
         router.push(`?${params.toString()}`, { scroll: false })
     }
 
@@ -141,16 +73,6 @@ export default function StudentFileDetails({ studentId }: { studentId: string })
         )
     }
 
-    if (!studentData) {
-        return (
-            <div className="bg-white rounded-lg p-6 border border-gray-100">
-                <div className="text-center py-12">
-                    <p className="text-gray-500 text-lg">Student not found</p>
-                </div>
-            </div>
-        )
-    }
-
     return (
         <div className="">
             {/* Header */}
@@ -164,7 +86,7 @@ export default function StudentFileDetails({ studentId }: { studentId: string })
                     <ArrowLeft className="h-4 w-4" />
                     Back
                 </Button>
-                <h1 className="text-2xl font-bold text-gray-900">{studentData.name}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{studentName || 'Student'}</h1>
             </div>
 
             {/* Tabs */}
@@ -178,12 +100,12 @@ export default function StudentFileDetails({ studentId }: { studentId: string })
 
                 {/* Video Diaries Tab */}
                 <TabsContent value="video-diaries" className="mt-6">
-                    <WeeklyVideo />
+                    <WeeklyVideo studentId={studentId} />
                 </TabsContent>
 
                 {/* File Submissions Tab */}
                 <TabsContent value="file-submissions" className="mt-6">
-                    <OtherFiles />
+                    <OtherFiles studentId={studentId} />
                 </TabsContent>
             </Tabs>
         </div>
