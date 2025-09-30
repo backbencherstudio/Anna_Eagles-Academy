@@ -16,8 +16,8 @@ import { useGetAllQuizAssignmentEvaluationsQuery } from '@/rtk/api/admin/assignm
 interface QuizRowItem {
   id: string
   studentName: string
+  seriesName: string
   courseName: string
-  quizTitle: string
   submissionDate: string
   totalGrade: string
   studentEmail?: string
@@ -25,10 +25,10 @@ interface QuizRowItem {
 
 const tableHeaders = [
   { key: 'studentName', label: 'STUDENT NAME', sortable: true },
+  { key: 'seriesName', label: 'SERIES', sortable: true },
   { key: 'courseName', label: 'COURSE NAME', sortable: true },
-  { key: 'quizTitle', label: 'QUIZ', sortable: true },
   { key: 'submissionDate', label: 'SUBMISSION DATE', sortable: true },
-  { key: 'totalGrade', label: 'SCORE', sortable: true },
+  { key: 'totalGrade', label: 'GRADE', sortable: true },
   { key: 'status', label: 'ACTION', sortable: false },
 ]
 
@@ -72,10 +72,10 @@ export default function AssignmentQuizGrade() {
     const items: QuizRowItem[] = raw.map(it => ({
       id: String(it.id ?? it._id ?? ''),
       studentName: it.student?.name ?? 'Unknown',
+      seriesName: it.quiz?.series?.title ?? 'Unknown',
       courseName: it.quiz?.course?.title ?? 'Unknown',
-      quizTitle: it.quiz?.title ?? 'Quiz',
       submissionDate: formatSubmissionDate(it.submitted_at ?? it.created_at ?? ''),
-      totalGrade: typeof it.total_grade === 'number' ? String(it.total_grade) : '-',
+      totalGrade: `${typeof it.total_grade === 'number' ? it.total_grade : 0}/${it.quiz?.total_marks ?? 0}`,
       studentEmail: it.student?.email ?? undefined,
     }))
 
@@ -103,20 +103,23 @@ export default function AssignmentQuizGrade() {
           {item.studentName.split(',')[0].charAt(0)}
         </div>
         <div className="flex flex-col">
-          <span className="font-medium">{item.studentName}</span>
+          <span className="font-medium capitalize">{item.studentName}</span>
           {item.studentEmail && <span className="text-xs text-gray-500">{item.studentEmail}</span>}
         </div>
       </div>
     ),
-    quizTitle: (
-      <span className="text-sm">{item.quizTitle}</span>
+    seriesName: (
+      <span className="text-sm font-medium text-gray-700 capitalize ">{item.seriesName}</span>
+    ),
+    courseName: (
+      <span className="text-sm capitalize">{item.courseName}</span>
     ),
     totalGrade: (
-      <span className="text-sm font-medium">{item.totalGrade}</span>
+      <span className="text-sm font-medium bg-gray-100 rounded-md px-2 py-1 ">{item.totalGrade}</span>
     ),
     status: (
       <div className="w-full flex items-center justify-center">
-        <Button onClick={() => handleView(item)} className="h-8 px-3 py-1 text-xs rounded-md font-medium text-white bg-gray-600 hover:bg-gray-600/90 cursor-pointer">View</Button>
+        <Button onClick={() => handleView(item)} className="h-8 px-3 py-1 text-xs rounded-md font-medium text-white bg-[#0F2598] hover:bg-[#0F2598]/90 cursor-pointer">View</Button>
       </div>
     )
   }))
