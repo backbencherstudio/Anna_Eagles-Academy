@@ -99,7 +99,7 @@ export default function StudentFileDetails({ studentId }: { studentId: string })
     useEffect(() => {
         const fetchStudentData = async () => {
             try {
-                await new Promise(resolve => setTimeout(resolve, 500))
+                await new Promise(resolve => setTimeout(resolve, 300))
                 setStudentData(sampleStudentData)
             } catch (error) {
                 console.error('Error fetching student data:', error)
@@ -112,7 +112,7 @@ export default function StudentFileDetails({ studentId }: { studentId: string })
     }, [studentId])
 
     const handleBack = () => {
-        router.back()
+        router.push('/admin/student-file-download')
     }
 
 
@@ -159,7 +159,7 @@ export default function StudentFileDetails({ studentId }: { studentId: string })
                     variant="ghost"
                     size="sm"
                     onClick={handleBack}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 cursor-pointer"
                 >
                     <ArrowLeft className="h-4 w-4" />
                     Back

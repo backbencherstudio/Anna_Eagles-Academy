@@ -281,7 +281,12 @@ export default function ReusableTable({
                     </DropdownMenu>
                 ) : null
             default:
-                return item[header.key]
+                const cellValue = item[header.key]
+                if (React.isValidElement(cellValue)) return cellValue
+                if (typeof cellValue === 'string') {
+                    return <span className="capitalize">{cellValue}</span>
+                }
+                return cellValue
         }
     }
 
