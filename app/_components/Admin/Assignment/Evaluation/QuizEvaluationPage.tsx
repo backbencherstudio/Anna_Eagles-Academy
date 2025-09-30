@@ -41,8 +41,8 @@ export default function QuizEvaluationPage() {
     // ===== LOADING STATE =====
     if (isFetching) {
         return (
-            <div className="bg-gray-50 min-h-screen p-6">
-                <div className="max-w-4xl mx-auto">
+            <div className="bg-gray-50">
+                <div className="">
                     <div className="animate-pulse">
                         <div className="bg-gray-100 h-8 rounded mb-6"></div>
                         <div className="bg-white rounded-lg p-8">

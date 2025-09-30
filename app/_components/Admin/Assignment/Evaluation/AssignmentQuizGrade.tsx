@@ -12,7 +12,7 @@ import { setCourseId, setSearch as setSearchAction, setSeriesId } from '@/rtk/sl
 import { useDebounce } from '@/hooks/useDebounce'
 import { useGetSeriesWithCoursesQuery } from '@/rtk/api/admin/courseFilterApis'
 import { useGetAllQuizAssignmentEvaluationsQuery } from '@/rtk/api/admin/assignmentEvaluationApis'
-
+import Image from 'next/image'
 interface QuizRowItem {
   id: string
   studentName: string
@@ -21,6 +21,7 @@ interface QuizRowItem {
   submissionDate: string
   totalGrade: string
   studentEmail?: string
+  avatar_url?: string
 }
 
 const tableHeaders = [
@@ -77,6 +78,7 @@ export default function AssignmentQuizGrade() {
       submissionDate: formatSubmissionDate(it.submitted_at ?? it.created_at ?? ''),
       totalGrade: `${typeof it.total_grade === 'number' ? it.total_grade : 0}/${it.quiz?.total_marks ?? 0}`,
       studentEmail: it.student?.email ?? undefined,
+      avatar_url: it.student?.avatar_url ?? undefined,
     }))
 
     setRows(items)
@@ -100,9 +102,13 @@ export default function AssignmentQuizGrade() {
     ...item,
     studentName: (
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-          {item.studentName.split(',')[0].charAt(0)}
-        </div>
+        {item.avatar_url ? (
+          <Image src={item.avatar_url} alt={item.studentName} width={100} height={100} className="w-12 h-12 rounded-full object-cover" />
+        ) : (
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+            {item.studentName.split(',')[0].charAt(0)}
+          </div>
+        )}
         <div className="flex flex-col">
           <span className="font-medium capitalize">{item.studentName}</span>
           {item.studentEmail && <span className="text-xs text-gray-500">{item.studentEmail}</span>}
@@ -120,17 +126,17 @@ export default function AssignmentQuizGrade() {
     ),
     status: (
       <Button
-      onClick={() => handleView(item)}
-      disabled={viewingId === item.id}
-      className="h-8 px-3 py-1 text-xs rounded-md font-medium text-white bg-[#0F2598] hover:bg-[#0F2598]/90 cursor-pointer"
-  >
-      {viewingId === item.id ? (
+        onClick={() => handleView(item)}
+        disabled={viewingId === item.id}
+        className="h-8 px-3 py-1 text-xs rounded-md font-medium text-white bg-[#0F2598] hover:bg-[#0F2598]/90 cursor-pointer"
+      >
+        {viewingId === item.id ? (
           <span className="inline-flex items-center gap-1">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              Viewing
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            Viewing
           </span>
-      ) : 'View'}
-  </Button>
+        ) : 'View'}
+      </Button>
     )
   }))
 

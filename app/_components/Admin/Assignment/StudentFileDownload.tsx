@@ -72,9 +72,9 @@ export default function StudentFileDownload() {
                 studentName: (
                     <div className="flex items-center gap-3">
                         {avatarUrl ? (
-                            <Image width={100} height={100} src={avatarUrl} alt={studentName} className="w-14 h-14 rounded-full object-cover" />
+                            <Image width={100} height={100} src={avatarUrl} alt={studentName} className="w-12 h-12 rounded-full object-cover" />
                         ) : (
-                            <div className="w-14 h-14 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                            <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
                                 {initial}
                             </div>
                         )}

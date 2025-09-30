@@ -12,6 +12,7 @@ import { useGetAllAssignmentEvaluationsQuery } from '@/rtk/api/admin/assignmentE
 import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
 import { setSearch as setSearchAction, setSeriesId, setCourseId } from '@/rtk/slices/assignmentEssayEvaluationSlice'
 import { useDebounce } from '@/hooks/useDebounce'
+import Image from 'next/image'
 
 // Data type definition
 interface EvaluationItem {
@@ -24,6 +25,7 @@ interface EvaluationItem {
     status: string
     studentEmail?: string
     isGraded?: boolean
+    avatar_url?: string
 }
 
 
@@ -118,7 +120,8 @@ export default function AssignmentEssayGrade() {
                 : '-',
             status: 'Grade',
             studentEmail: it.student?.email ?? undefined,
-            isGraded: Boolean(it.graded_at)
+            isGraded: Boolean(it.graded_at),
+            avatar_url: it.student?.avatar_url ?? undefined,
         }))
 
         setEvaluationData(items)
@@ -159,9 +162,13 @@ export default function AssignmentEssayGrade() {
         ...item,
         studentName: (
             <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                    {item.studentName.split(',')[0].charAt(0)}
-                </div>
+                {item.avatar_url ? (
+                    <Image src={item.avatar_url} alt={item.studentName} width={100} height={100} className="w-12 h-12 rounded-full object-cover" />
+                ) : (
+                    <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                        {item.studentName.split(',')[0].charAt(0)}
+                    </div>
+                )}
                 <div className="flex flex-col">
                     <span className="font-medium capitalize">{item.studentName}</span>
                     {item.studentEmail && (
@@ -276,7 +283,7 @@ export default function AssignmentEssayGrade() {
                 />
             </div>
 
-          
+
         </div>
     )
 }
