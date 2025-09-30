@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
-import { setCourseId, setLimit, setPage, setSearch as setSearchAction, setSeriesId } from '@/rtk/slices/assignmentEvaluationSlice'
+import { setCourseId,  setSearch as setSearchAction, setSeriesId } from '@/rtk/slices/assignmentQuizEvaluationSlice'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useGetSeriesWithCoursesQuery } from '@/rtk/api/admin/courseFilterApis'
 import { useGetAllQuizAssignmentEvaluationsQuery } from '@/rtk/api/admin/assignmentEvaluationApis'
@@ -35,7 +35,7 @@ const tableHeaders = [
 export default function AssignmentQuizGrade() {
   const dispatch = useAppDispatch()
   const router = useRouter()
-  const { page, limit, search, seriesId, courseId } = useAppSelector(s => s.assignmentEvaluation)
+  const { page, limit, search, seriesId, courseId } = useAppSelector(s => s.assignmentQuizEvaluation)
   const [searchInput, setSearchInput] = useState<string>(search)
   const debouncedSearch = useDebounce(searchInput, 400)
   const [rows, setRows] = useState<QuizRowItem[]>([])

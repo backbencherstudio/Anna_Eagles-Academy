@@ -62,7 +62,7 @@ export interface AssignmentWithSubmission {
         id: string
         title: string
     }
-    submissions_count?: number
+    submission_count?: number
     total_students?: number
 }
 

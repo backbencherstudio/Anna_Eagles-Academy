@@ -168,7 +168,7 @@ export default function AssignmentQuiz() {
 
                                 {/* Course and Series info */}
                                 <div className="text-xs text-gray-500 mb-2">
-                                    <p className="truncate">{quiz.series?.title}</p>
+                                    {/* <p className="truncate">{quiz.series?.title}</p> */}
                                     <p className="truncate">{quiz.course?.title}</p>
                                 </div>
 
@@ -177,10 +177,7 @@ export default function AssignmentQuiz() {
                                     {quiz.submission_count}/{quiz.total_students} Submission
                                 </p>
 
-                                {/* Total marks */}
-                                <p className="text-xs text-gray-500 mt-1">
-                                    {quiz.total_marks} marks
-                                </p>
+                            
                             </CardContent>
                         </Card>
                     ))}

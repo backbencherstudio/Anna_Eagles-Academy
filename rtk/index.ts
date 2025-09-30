@@ -11,6 +11,8 @@ import { courseFilterApi } from './api/admin/courseFilterApis'
 import { quizApi } from './api/admin/quizApis'
 import { assignmentApi } from './api/admin/assignmentApis'
 import assignmentEvaluationReducer from '@/rtk/slices/assignmentEvaluationSlice'
+import assignmentEssayEvaluationReducer from '@/rtk/slices/assignmentEssayEvaluationSlice'
+import assignmentQuizEvaluationReducer from '@/rtk/slices/assignmentQuizEvaluationSlice'
 import { assignmentEvaluationApi } from '@/rtk/api/admin/assignmentEvaluationApis'
 
 export const store = configureStore({
@@ -21,6 +23,8 @@ export const store = configureStore({
     managementCourse: managementCourseReducer,
     assignmentManagement: assignmentManagementReducer,
     assignmentEvaluation: assignmentEvaluationReducer,
+    assignmentEssayEvaluation: assignmentEssayEvaluationReducer,
+    assignmentQuizEvaluation: assignmentQuizEvaluationReducer,
     [authApi.reducerPath]: authApi.reducer,
     [managementCourseApi.reducerPath]: managementCourseApi.reducer,
     [manageMaterialsApi.reducerPath]: manageMaterialsApi.reducer,

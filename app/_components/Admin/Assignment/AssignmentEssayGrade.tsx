@@ -10,7 +10,7 @@ import { Search, Loader2 } from 'lucide-react'
 import { useGetSeriesWithCoursesQuery } from '@/rtk/api/admin/courseFilterApis'
 import { useGetAllAssignmentEvaluationsQuery } from '@/rtk/api/admin/assignmentEvaluationApis'
 import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
-import { setPage, setLimit, setSearch as setSearchAction, setSeriesId, setCourseId } from '@/rtk/slices/assignmentEvaluationSlice'
+import { setPage, setLimit, setSearch as setSearchAction, setSeriesId, setCourseId } from '@/rtk/slices/assignmentEssayEvaluationSlice'
 import { useDebounce } from '@/hooks/useDebounce'
 
 // Data type definition
@@ -64,7 +64,7 @@ const tableHeaders = [
 
 export default function AssignmentEssayGrade() {
     const dispatch = useAppDispatch()
-    const { page, limit, search, seriesId, courseId } = useAppSelector(s => s.assignmentEvaluation)
+    const { page, limit, search, seriesId, courseId } = useAppSelector(s => s.assignmentEssayEvaluation)
     const [searchInput, setSearchInput] = useState<string>(search)
     const debouncedSearch = useDebounce(searchInput, 400)
     const [evaluationData, setEvaluationData] = useState<EvaluationItem[]>([])

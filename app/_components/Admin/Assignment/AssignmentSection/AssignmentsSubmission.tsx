@@ -38,7 +38,7 @@ export default function AssignmentsSubmission({ assignments }: AssignmentsSubmis
 
                         {/* Submission info */}
                         <p className="text-xs text-gray-500 mt-1">
-                            {assignment.submissions_count || 0}/{assignment.total_students || 0} Submissions
+                            {assignment.submission_count || 0}/{assignment.total_students || 0} Submissions
                         </p>
                     </CardContent>
                 </Card>

@@ -143,19 +143,7 @@ export default function AssignmentEssay() {
                 </div>
             </div>
 
-            {/* Empty state */}
-            {!hasAnyAssignments && !isLoading && (
-                <div className="text-center py-12">
-                    <p className="text-gray-500 text-lg">No assignments found</p>
-                    <Button
-                        onClick={handleCreateAssignment}
-                        className="mt-4 bg-[#F1C27D] hover:bg-[#F1C27D]/80"
-                    >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Create your first assignment
-                    </Button>
-                </div>
-            )}
+        
 
             {/* Delete Confirmation Dialog */}
             <ConfirmDialog
