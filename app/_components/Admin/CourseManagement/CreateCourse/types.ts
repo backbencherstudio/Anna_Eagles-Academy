@@ -3,4 +3,4 @@ export type {
     Lesson, 
     Course, 
     CourseFormData 
-} from '@/rtk/slices/courseManagementSlice'
+} from '@/rtk/slices/admin/courseManagementSlice'

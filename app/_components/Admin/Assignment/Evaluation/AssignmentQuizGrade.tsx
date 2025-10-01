@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, Search } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
-import { setCourseId, setSearch as setSearchAction, setSeriesId } from '@/rtk/slices/assignmentQuizEvaluationSlice'
+import { setCourseId, setSearch as setSearchAction, setSeriesId } from '@/rtk/slices/admin/assignmentQuizEvaluationSlice'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useGetSeriesWithCoursesQuery } from '@/rtk/api/admin/courseFilterApis'
 import { useGetAllQuizAssignmentEvaluationsQuery } from '@/rtk/api/admin/assignmentEvaluationApis'

@@ -28,7 +28,7 @@ import {
     setCreatingAssignment,
     setError as setReduxError,
     clearError
-} from '@/rtk/slices/assignmentManagementSlice'
+} from '@/rtk/slices/admin/assignmentManagementSlice'
 import toast from 'react-hot-toast'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'

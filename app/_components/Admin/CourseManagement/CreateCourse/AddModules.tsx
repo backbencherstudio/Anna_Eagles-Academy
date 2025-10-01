@@ -16,8 +16,8 @@ import {
     updateModuleEndVideo,
     updateModuleLessons,
     setShowModuleForm
-} from '@/rtk/slices/courseManagementSlice'
-import type { Course, Lesson } from '@/rtk/slices/courseManagementSlice'
+} from '@/rtk/slices/admin/courseManagementSlice'
+import type { Course, Lesson } from '@/rtk/slices/admin/courseManagementSlice'
 
 export default function AddModules() {
     const dispatch = useAppDispatch()

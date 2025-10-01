@@ -13,7 +13,7 @@ import ButtonSpring from '@/components/Resuable/ButtonSpring'
 
 // Utils & Hooks
 import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
-import { setCurrentSeriesId } from '@/rtk/slices/managementCourseSlice'
+import { setCurrentSeriesId } from '@/rtk/slices/admin/managementCourseSlice'
 
 // API Hooks
 import {

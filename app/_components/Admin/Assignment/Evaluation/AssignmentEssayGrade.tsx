@@ -10,7 +10,7 @@ import { Search, Loader2 } from 'lucide-react'
 import { useGetSeriesWithCoursesQuery } from '@/rtk/api/admin/courseFilterApis'
 import { useGetAllAssignmentEvaluationsQuery } from '@/rtk/api/admin/assignmentEvaluationApis'
 import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
-import { setSearch as setSearchAction, setSeriesId, setCourseId } from '@/rtk/slices/assignmentEssayEvaluationSlice'
+import { setSearch as setSearchAction, setSeriesId, setCourseId } from '@/rtk/slices/admin/assignmentEssayEvaluationSlice'
 import { useDebounce } from '@/hooks/useDebounce'
 import Image from 'next/image'
 

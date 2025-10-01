@@ -9,7 +9,7 @@ import WeeklyVideo from './WeeklyVideo'
 import OtherFiles from './OtherFiles'
 import { useGetSingleStudentFileDownloadQuery } from '@/rtk/api/admin/studentFileDownloadApis'
 import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
-import { setSectionType } from '@/rtk/slices/studentFileDownloadSlice'
+import { setSectionType } from '@/rtk/slices/admin/studentFileDownloadSlice'
 
 
 

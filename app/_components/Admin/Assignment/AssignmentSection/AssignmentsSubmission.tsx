@@ -1,6 +1,6 @@
 import React from 'react'
 import { Card, CardContent } from '@/components/ui/card'
-import { AssignmentWithSubmission } from '@/rtk/slices/assignmentManagementSlice'
+import { AssignmentWithSubmission } from '@/rtk/slices/admin/assignmentManagementSlice'
 
 interface AssignmentsSubmissionProps {
     assignments: AssignmentWithSubmission[]

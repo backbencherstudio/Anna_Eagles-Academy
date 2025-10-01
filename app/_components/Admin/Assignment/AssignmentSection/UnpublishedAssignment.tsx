@@ -3,7 +3,7 @@
 import React from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Edit, Trash2 } from 'lucide-react'
-import { Assignment } from '@/rtk/slices/assignmentManagementSlice'
+import { Assignment } from '@/rtk/slices/admin/assignmentManagementSlice'
 import { parseISO } from 'date-fns'
 
 interface UnpublishedAssignmentProps {
