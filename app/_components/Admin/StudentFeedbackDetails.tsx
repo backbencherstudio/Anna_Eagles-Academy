@@ -8,7 +8,7 @@ import ConfirmDialog from '@/components/Resuable/ConfirmDialog'
 import Image from 'next/image'
 import { useGetSingleStudentFeedbackQuery, useApproveStudentFeedbackMutation, useRejectStudentFeedbackMutation } from '@/rtk/api/admin/studentFeedbackApis'
 import { useAppDispatch } from '@/rtk/hooks'
-import { setSelectedId, setSelectedStatus } from '@/rtk/slices/admin/studentFeedbackslice'
+import { setSelectedStatus } from '@/rtk/slices/admin/studentFeedbackslice'
 import toast from 'react-hot-toast'
 
 interface StudentFeedbackDetailsProps {

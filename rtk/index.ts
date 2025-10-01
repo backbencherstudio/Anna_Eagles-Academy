@@ -20,6 +20,8 @@ import teacherSectionReducer from '@/rtk/slices/admin/teacherSectionSlice'
 import { teacherSectionApi } from './api/admin/teacherSectionApis'
 import studentFeedbackReducer from '@/rtk/slices/admin/studentFeedbackslice'
 import { studentFeedbackApi } from '@/rtk/api/admin/studentFeedbackApis'
+import cardGeneratorReducer from '@/rtk/slices/admin/cardGeneratorSlice'
+import { cardGeneratorApi } from '@/rtk/api/admin/cardGeneratorApis'
 
 export const store = configureStore({
   reducer: {
@@ -34,6 +36,7 @@ export const store = configureStore({
     studentFileDownload: studentFileDownloadReducer,
     teacherSection: teacherSectionReducer,
     studentFeedback: studentFeedbackReducer,
+    cardGenerator: cardGeneratorReducer,
     [authApi.reducerPath]: authApi.reducer,
     [managementCourseApi.reducerPath]: managementCourseApi.reducer,
     [manageMaterialsApi.reducerPath]: manageMaterialsApi.reducer,
@@ -44,6 +47,7 @@ export const store = configureStore({
     [studentFileDownloadApi.reducerPath]: studentFileDownloadApi.reducer,
     [teacherSectionApi.reducerPath]: teacherSectionApi.reducer,
     [studentFeedbackApi.reducerPath]: studentFeedbackApi.reducer,
+    [cardGeneratorApi.reducerPath]: cardGeneratorApi.reducer,
   },
 
 
@@ -86,6 +90,7 @@ export const store = configureStore({
       studentFileDownloadApi.middleware,
       teacherSectionApi.middleware,
       studentFeedbackApi.middleware,
+      cardGeneratorApi.middleware,
     ),
 })
 
