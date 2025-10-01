@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import ReusableTable from '@/components/Resuable/ReusableTable'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
@@ -11,6 +11,7 @@ import { useGetAllStudentFileDownloadsQuery } from '@/rtk/api/admin/studentFileD
 import SeriesFilterReuseable from '@/components/Resuable/SeriesFilter/SeriesFilterReuseable'
 import { useDebounce } from '@/hooks/useDebounce'
 import Image from 'next/image'
+import ButtonSpring from '@/components/Resuable/ButtonSpring'
 
 // Table headers configuration
 const tableHeaders = [
@@ -26,12 +27,12 @@ export default function StudentFileDownload() {
     const dispatch = useAppDispatch()
     const { section_type, search, page, limit, series_id, course_id } = useAppSelector((s) => s.studentFileDownload)
     const [searchInput, setSearchInput] = useState<string>(search)
+    const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({})
     const debouncedSearch = useDebounce(searchInput, 300)
 
     const { data, isFetching } = useGetAllStudentFileDownloadsQuery({ section_type, search, page, limit, series_id, course_id })
 
     const items = data?.data?.students ?? []
-    const pagination = data?.data?.pagination ?? { total: items.length, page, limit, totalPages: 1 }
 
     // apply debounced search to store
     useEffect(() => {
@@ -40,8 +41,15 @@ export default function StudentFileDownload() {
         }
     }, [debouncedSearch, search, dispatch])
 
+
     const handleViewDetails = (item: any) => {
-        router.push(`/admin/student-file-download/${item.id}`)
+        if (loadingStates[item.id]) return
+
+        setLoadingStates(prev => ({ ...prev, [item.id]: true }))
+
+        setTimeout(() => {
+            router.push(`/admin/student-file-download/${item.id}`)
+        }, 100)
     }
 
     const formatDateTime = (value: string) => {
@@ -60,19 +68,21 @@ export default function StudentFileDownload() {
 
     const transformedData = useMemo(() => {
         return items.map((item: any) => {
-            const studentName: string = item?.name || 'Unknown'
-            const initial = studentName.trim().charAt(0).toUpperCase() || 'S'
-            const files: any[] = Array.isArray(item?.student_files) ? item.student_files : []
+            const studentName = item?.name || 'Unknown'
+            const initial = studentName.charAt(0).toUpperCase()
+            const files = item?.student_files || []
             const firstFile = files[0] || {}
-            const seriesTitle: string = firstFile?.series?.title || '-'
-            const courseTitle: string = firstFile?.course?.title || '-'
-            const avatarUrl: string | undefined = item?.avatar_url || undefined
+            const seriesTitle = firstFile?.series?.title || '-'
+            const courseTitle = firstFile?.course?.title || '-'
+            const avatarUrl = item?.avatar_url
+            const isLoading = loadingStates[item.id]
+
             return {
                 id: item.id,
                 studentName: (
                     <div className="flex items-center gap-3">
                         {avatarUrl ? (
-                            <Image width={100} height={100} src={avatarUrl} alt={studentName} className="w-12 h-12 rounded-full object-cover" />
+                            <Image width={48} height={48} src={avatarUrl} alt={studentName} className="w-12 h-12 rounded-full object-cover" />
                         ) : (
                             <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
                                 {initial}
@@ -80,26 +90,33 @@ export default function StudentFileDownload() {
                         )}
                         <div className="flex flex-col">
                             <span className="font-medium">{studentName}</span>
-                            {item?.email && (
-                                <span className="text-xs text-gray-500">{item.email}</span>
-                            )}
+                            {item?.email && <span className="text-xs text-gray-500">{item.email}</span>}
                         </div>
                     </div>
                 ),
                 seriesName: seriesTitle,
                 courseName: courseTitle,
                 submissionDate: formatDateTime(item?.created_at || ''),
-                status: (
+                status: isLoading ? (
+                    <ButtonSpring
+                        loading
+                        variant="spinner"
+                        size={16}
+                        color="#ffffff"
+                        label="Loading..."
+                        className="bg-[#0F2598] text-white px-4 py-2 text-sm rounded-md font-medium opacity-50 cursor-not-allowed"
+                    />
+                ) : (
                     <Button
                         onClick={() => handleViewDetails(item)}
-                        className="bg-[#0F2598] hover:bg-[#0F2598]/80 cursor-pointer text-white px-4 py-2 text-sm rounded-md font-medium"
+                        className="bg-[#0F2598] hover:bg-[#0F2598]/80 text-white px-4 py-2 text-sm rounded-md font-medium cursor-pointer"
                     >
                         View Details
                     </Button>
                 )
             }
         })
-    }, [items])
+    }, [items, loadingStates])
 
     return (
         <div className="bg-white rounded-lg p-6 border border-gray-100">
@@ -126,16 +143,14 @@ export default function StudentFileDownload() {
                 </div>
             </div>
 
-            <div className="overflow-x-auto">
-                <ReusableTable
-                    headers={tableHeaders}
-                    data={transformedData}
-                    showPagination={true}
-                    itemsPerPage={limit}
-                    itemsPerPageOptions={[5, 10, 15, 20]}
-                    isLoading={isFetching}
-                />
-            </div>
+            <ReusableTable
+                headers={tableHeaders}
+                data={transformedData}
+                showPagination
+                itemsPerPage={limit}
+                itemsPerPageOptions={[5, 10, 15, 20]}
+                isLoading={isFetching}
+            />
 
         </div>
     )
