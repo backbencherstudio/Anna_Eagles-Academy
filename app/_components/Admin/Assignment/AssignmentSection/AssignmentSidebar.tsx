@@ -188,4 +188,6 @@ const AssignmentSidebar = forwardRef<AssignmentSidebarRef, AssignmentSidebarProp
     )
 })
 
+AssignmentSidebar.displayName = 'AssignmentSidebar'
+
 export default AssignmentSidebar

@@ -1,69 +1,34 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import ReusableTable from '@/components/Resuable/ReusableTable'
 import { Button } from '@/components/ui/button'
+import Image from 'next/image'
 import { Input } from '@/components/ui/input'
-import { useRouter } from 'next/navigation'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Eye, Trash2, Search } from 'lucide-react'
 import ConfirmDialog from '@/components/Resuable/ConfirmDialog'
+import { useDebounce } from '@/hooks/useDebounce'
+import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
+import { setSearch, setType, setPage, setLimit } from '@/rtk/slices/admin/studentFeedbackslice'
+import { useGetAllStudentFeedbackQuery, useDeleteStudentFeedbackMutation } from '@/rtk/api/admin/studentFeedbackApis'
+import { useRouter } from 'next/navigation'
 
-// Data type definition
-interface FeedbackItem {
+
+type ApiFeedback = {
     id: string
-    studentName: string
-    feedbackType: 'Course review' | 'Weekly review'
-    time: string
-    date: string
-    status: 'Pending' | 'Approved'
+    week_number?: number | null
+    type: string
+    title?: string | null
+    description?: string | null
+    status: string
+    file_url?: string | null
+    created_at: string
+    updated_at: string
+    course?: { id: string; title: string }
+    user?: { id: string; name: string; email?: string; avatar?: string; avatar_url?: string }
 }
 
-// Sample data declaration
-const sampleFeedbackData: FeedbackItem[] = [
-    {
-        id: '1',
-        studentName: 'Ralph Edwards',
-        feedbackType: 'Course review',
-        time: '01:09 am',
-        date: '2024-07-15',
-        status: 'Pending'
-    },
-    {
-        id: '2',
-        studentName: 'Arlene McCoy',
-        feedbackType: 'Weekly review',
-        time: '01:34 pm',
-        date: '2024-07-20',
-        status: 'Pending'
-    },
-    {
-        id: '3',
-        studentName: 'Darlene Robertson',
-        feedbackType: 'Course review',
-        time: '08:20 pm',
-        date: '2024-08-01',
-        status: 'Approved'
-    },
-    {
-        id: '4',
-        studentName: 'Jenny Wilson',
-        feedbackType: 'Course review',
-        time: '07:13 pm',
-        date: '2024-08-05',
-        status: 'Approved'
-    },
-    {
-        id: '5',
-        studentName: 'Theresa Webb',
-        feedbackType: 'Weekly review',
-        time: '05:14 pm',
-        date: '2024-08-05',
-        status: 'Approved'
-    }
-]
-
-// Table headers configuration
 const tableHeaders = [
     {
         key: 'studentName',
@@ -98,98 +63,109 @@ const tableHeaders = [
 ]
 
 export default function StudentFeedbackList() {
-    const [feedbackData, setFeedbackData] = useState<FeedbackItem[]>([])
-    const [filteredData, setFilteredData] = useState<FeedbackItem[]>([])
-    const [loading, setLoading] = useState(true)
-    const [selectedFeedbackType, setSelectedFeedbackType] = useState<string>('all')
-    const [searchTerm, setSearchTerm] = useState<string>('')
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-    const [itemToDelete, setItemToDelete] = useState<FeedbackItem | null>(null)
+    const dispatch = useAppDispatch()
     const router = useRouter()
+    const { search, type, page, limit } = useAppSelector(s => s.studentFeedback)
 
-    const uniqueFeedbackTypes = Array.from(new Set(feedbackData.map(item => item.feedbackType)))
+    const [searchInput, setSearchInput] = useState<string>(search)
+    const debouncedSearch = useDebounce(searchInput, 400)
 
-    useEffect(() => {
-        const fetchFeedbackData = async () => {
-            try {
-                await new Promise(resolve => setTimeout(resolve, 500))
-                setFeedbackData(sampleFeedbackData)
-                setFilteredData(sampleFeedbackData)
-            } catch (error) {
-            } finally {
-                setLoading(false)
-            }
-        }
+    const { data, isFetching } = useGetAllStudentFeedbackQuery({ page, limit, search, type })
+    const [rejectFeedback, { isLoading: isRejecting }] = useDeleteStudentFeedbackMutation()
 
-        fetchFeedbackData()
-    }, [])
+    const feedbacks: ApiFeedback[] = data?.data?.feedbacks ?? []
 
     useEffect(() => {
-        let filtered = feedbackData
-
-        // Filter by feedback type
-        if (selectedFeedbackType !== 'all') {
-            filtered = filtered.filter(item => item.feedbackType === selectedFeedbackType)
+        if (debouncedSearch !== search) {
+            dispatch(setSearch(debouncedSearch))
+            if (page !== 1) dispatch(setPage(1))
         }
+    }, [debouncedSearch, search, dispatch, page])
 
-        // Filter by search term
-        if (searchTerm.trim()) {
-            filtered = filtered.filter(item => 
-                item.studentName.toLowerCase().includes(searchTerm.toLowerCase())
-            )
-        }
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+    const [itemToDelete, setItemToDelete] = useState<ApiFeedback | null>(null)
 
-        setFilteredData(filtered)
-    }, [selectedFeedbackType, searchTerm, feedbackData])
-
-    const handleView = (item: FeedbackItem) => {
-        // Navigate to feedback detail page
-        router.push(`/student-feedback/${item.id}`)
-    }
-
-    const handleDelete = (item: FeedbackItem) => {
+    const handleDelete = (item: ApiFeedback) => {
         setItemToDelete(item)
         setDeleteDialogOpen(true)
     }
 
-    const confirmDelete = () => {
-        if (itemToDelete) {
-            // Remove item from both arrays
-            const updatedData = feedbackData.filter(item => item.id !== itemToDelete.id)
-            const updatedFilteredData = filteredData.filter(item => item.id !== itemToDelete.id)
-            
-            setFeedbackData(updatedData)
-            setFilteredData(updatedFilteredData)
-            
-            console.log('Deleted feedback:', itemToDelete.id)
+    const confirmDelete = async () => {
+        if (!itemToDelete) return
+        try {
+            await rejectFeedback(itemToDelete.id).unwrap()
+        } catch (e) {
+        } finally {
+            setItemToDelete(null)
         }
-        setItemToDelete(null)
     }
 
-    const transformedData = filteredData.map(item => ({
+    const formatDate = (iso: string) => {
+        const d = new Date(iso)
+        if (isNaN(d.getTime())) return ''
+        return d.toLocaleDateString()
+    }
+
+    const formatTime = (iso: string) => {
+        const hhmmMatch = iso.match(/T(\d{2}):(\d{2})/)
+        if (!hhmmMatch) return ''
+        const hours24 = parseInt(hhmmMatch[1], 10)
+        const minutes = hhmmMatch[2]
+        const period = hours24 >= 12 ? 'PM' : 'AM'
+        const hours12 = ((hours24 % 12) || 12).toString()
+        return `${hours12}:${minutes} ${period}`
+    }
+
+    const handleView = (item: ApiFeedback) => {
+        router.push(`/admin/student-feedback/${item.id}`)
+    }
+
+    const toTitle = (v?: string) => {
+        if (!v) return ''
+        if (v === 'course_review') return 'Course review'
+        if (v === 'weekly_review') return 'Weekly review'
+        return v.replace(/_/g, ' ')
+    }
+
+    const transformedData = (feedbacks || []).map(item => ({
         ...item,
         studentName: (
             <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                    {item.studentName.split(' ')[0].charAt(0)}
+                {item.user?.avatar_url ? (
+                    <Image
+                        src={item.user.avatar_url}
+                        alt={item.user?.name || 'User'}
+                        width={48}
+                        height={48}
+                        className="w-12 h-12 rounded-full object-cover"
+                    />
+                ) : (
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                        {(item.user?.name || 'S').charAt(0).toUpperCase()}
+                    </div>
+                )}
+                <div className="flex flex-col">
+                    <span className="font-medium capitalize">{item.user?.name || 'Unknown'}</span>
+                    {item.user?.email && <span className="text-xs text-gray-500">{item.user.email}</span>}
                 </div>
-                <span className="">{item.studentName}</span>
             </div>
         ),
         feedbackType: (
-            <span className={`px-3 py-1 text-sm rounded  ${item.feedbackType === 'Course review'
+            <span className={`px-3 py-1 text-sm rounded  ${item.type === 'course_review'
                 ? 'bg-[#EFCEFF] text-[#AD0AFD]'
                 : 'bg-gray-200 text-gray-700'
                 }`}>
-                {item.feedbackType}
+                {toTitle(item.type)}
             </span>
         ),
+        time: formatTime(item.created_at),
+        date: formatDate(item.created_at),
         status: (
-            <span className={`px-3 py-1 text-sm rounded  ${item.status === 'Approved'
+            <span className={`px-3 py-1 text-sm rounded  ${((item.status === 'reject') ? 'rejected' : item.status) === 'approved'
                 ? 'bg-[#E7F7EF] text-[#27A376]'
                 : 'bg-[#FEF4CF] text-[#BB960B]'
                 }`}>
-                {item.status}
+                {(((item.status === 'reject') ? 'rejected' : item.status) || '').replace(/^./, c => c.toUpperCase())}
             </span>
         ),
         action: (
@@ -202,6 +178,7 @@ export default function StudentFeedbackList() {
                 </Button>
                 <Button
                     onClick={() => handleDelete(item)}
+                    disabled={isRejecting}
                     className="w-8 h-8 p-0 cursor-pointer bg-[#FF5757] hover:bg-[#FF5757]/80 text-white rounded-lg"
                 >
                     <Trash2 className="h-4 w-4" />
@@ -210,38 +187,35 @@ export default function StudentFeedbackList() {
         )
     }))
 
+    const pagination = data?.data?.pagination
+
     return (
         <div className="bg-white rounded-lg p-4 border border-gray-100">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-semibold text-[#1D1F2C]">
                     Student Feedback List
                 </h2>
-                
+
                 <div className="flex items-center gap-2">
-                    {/* Search Input */}
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                         <Input
                             type="text"
                             placeholder="Search Student"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
                             className="pl-10 w-48"
                         />
                     </div>
 
-                    {/* Feedback Type Filter */}
-                    <Select value={selectedFeedbackType} onValueChange={setSelectedFeedbackType}>
+                    <Select value={type || 'all'} onValueChange={(v) => { dispatch(setType(v === 'all' ? '' : v)); if (page !== 1) dispatch(setPage(1)) }}>
                         <SelectTrigger className="w-48">
                             <SelectValue placeholder="Feedback Type" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Types</SelectItem>
-                            {uniqueFeedbackTypes.map((type) => (
-                                <SelectItem className='cursor-pointer' key={type} value={type}>
-                                    {type}
-                                </SelectItem>
-                            ))}
+                            <SelectItem className='cursor-pointer' value="course_review">Course review</SelectItem>
+                            <SelectItem className='cursor-pointer' value="weekly_review">Weekly review</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -252,25 +226,30 @@ export default function StudentFeedbackList() {
                     headers={tableHeaders}
                     data={transformedData}
                     showPagination={true}
-                    itemsPerPage={5}
+                    // server-controlled pagination
+                    serverControlled={true}
+                    currentPage={pagination?.page ?? page}
+                    totalPages={pagination?.totalPages}
+                    totalItems={pagination?.total}
+                    itemsPerPage={pagination?.limit ?? limit}
                     itemsPerPageOptions={[5, 10, 15, 20]}
-                    isLoading={loading}
+                    onPageChange={(newPage) => dispatch(setPage(newPage))}
+                    onItemsPerPageChange={(newLimit) => { dispatch(setLimit(newLimit)); dispatch(setPage(1)) }}
+                    isLoading={isFetching}
                 />
             </div>
 
-            {/* Empty state */}
-            {filteredData.length === 0 && !loading && (
+            {(!feedbacks || feedbacks.length === 0) && !isFetching && (
                 <div className="text-center py-12">
                     <p className="text-gray-500 text-lg">No feedback found</p>
                 </div>
             )}
 
-            {/* Delete Confirmation Dialog */}
             <ConfirmDialog
                 open={deleteDialogOpen}
                 onOpenChange={setDeleteDialogOpen}
                 title="Delete Feedback"
-                description={`Are you sure you want to delete the feedback from ${itemToDelete?.studentName}? This action cannot be undone.`}
+                description={`Are you sure you want to delete this feedback? This action cannot be undone.`}
                 confirmText="Delete"
                 cancelText="Cancel"
                 onConfirm={confirmDelete}

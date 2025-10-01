@@ -300,7 +300,7 @@ export default function TeacherSectionPage() {
               headers={headers}
               data={data}
               itemsPerPage={limit}
-              itemsPerPageOptions={[5, 10, 15, 20]}
+              itemsPerPageOptions={[5, 8, 10, 15, 20]}
               showPagination
               isLoading={isLoading}
               skeletonRows={4}

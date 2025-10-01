@@ -46,13 +46,20 @@ interface ReusableTableProps {
     isLoading?: boolean
     skeletonRows?: number
     emptyStateMessage?: string
+    // Server-controlled pagination (for API-driven paging)
+    serverControlled?: boolean
+    currentPage?: number
+    totalPages?: number
+    totalItems?: number
+    onPageChange?: (page: number) => void
+    onItemsPerPageChange?: (itemsPerPage: number) => void
 }
 
 export default function ReusableTable({
     headers,
     data,
     actions,
-    itemsPerPage: initialItemsPerPage = 10,
+    itemsPerPage: itemsPerPageProp = 10,
     itemsPerPageOptions = [5, 10, 15, 20],
     showPagination = true,
     showCheckbox = false,
@@ -61,10 +68,19 @@ export default function ReusableTable({
     customCellRenderer,
     isLoading = false,
     skeletonRows,
-    emptyStateMessage = 'No records found.'
+    emptyStateMessage = 'No records found.',
+    serverControlled = false,
+    currentPage: currentPageProp,
+    totalPages: totalPagesProp,
+    totalItems: totalItemsProp,
+    onPageChange,
+    onItemsPerPageChange,
 }: ReusableTableProps) {
-    const [currentPage, setCurrentPage] = useState(1)
-    const [itemsPerPage, setItemsPerPage] = useState(initialItemsPerPage)
+    const [uncontrolledCurrentPage, setUncontrolledCurrentPage] = useState(1)
+    const [uncontrolledItemsPerPage, setUncontrolledItemsPerPage] = useState(itemsPerPageProp)
+
+    const currentPage = serverControlled ? (currentPageProp ?? 1) : uncontrolledCurrentPage
+    const itemsPerPage = serverControlled ? (itemsPerPageProp ?? uncontrolledItemsPerPage) : uncontrolledItemsPerPage
     const [sortKey, setSortKey] = useState('')
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
 
@@ -98,15 +114,19 @@ export default function ReusableTable({
     }, [filteredData, sortKey, sortDirection])
 
     // Calculate pagination values
-    const totalItems = filteredData.length
-    const totalPages = Math.ceil(totalItems / itemsPerPage)
+    const totalItems = serverControlled ? (totalItemsProp ?? filteredData.length) : filteredData.length
+    const totalPages = serverControlled ? (totalPagesProp ?? Math.ceil(totalItems / itemsPerPage)) : Math.ceil(totalItems / itemsPerPage)
 
     // Paginate data
     const paginatedData = useMemo(() => {
+        if (serverControlled) {
+            // Data is already page-limited by the server
+            return sortedData
+        }
         const startIndex = (currentPage - 1) * itemsPerPage
         const endIndex = startIndex + itemsPerPage
         return sortedData.slice(startIndex, endIndex)
-    }, [sortedData, currentPage, itemsPerPage])
+    }, [sortedData, currentPage, itemsPerPage, serverControlled])
 
     // Precompute skeleton widths for consistent shimmer per render
     const numberOfSkeletonRows = skeletonRows ?? itemsPerPage
@@ -134,18 +154,30 @@ export default function ReusableTable({
             setSortKey(key)
             setSortDirection('asc')
         }
-        setCurrentPage(1) // Reset to first page when sorting
+        if (serverControlled) {
+            onPageChange && onPageChange(1)
+        } else {
+            setUncontrolledCurrentPage(1)
+        }
     }
 
     // Handle page change
     const handlePageChange = (page: number) => {
-        setCurrentPage(page)
+        if (serverControlled) {
+            onPageChange && onPageChange(page)
+            return
+        }
+        setUncontrolledCurrentPage(page)
     }
 
     // Handle items per page change
     const handleItemsPerPageChange = (newItemsPerPage: number) => {
-        setItemsPerPage(newItemsPerPage)
-        setCurrentPage(1) // Reset to first page when changing items per page
+        if (serverControlled) {
+            onItemsPerPageChange && onItemsPerPageChange(newItemsPerPage)
+            return
+        }
+        setUncontrolledItemsPerPage(newItemsPerPage)
+        setUncontrolledCurrentPage(1)
     }
 
     // Handle checkbox selection

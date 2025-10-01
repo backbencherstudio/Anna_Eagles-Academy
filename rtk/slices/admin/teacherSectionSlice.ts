@@ -105,11 +105,11 @@ const teacherSectionSlice = createSlice({
     // Search and filter actions
     setSearchQuery: (state, action: PayloadAction<string>) => {
       state.searchQuery = action.payload
-      state.currentPage = 1 // Reset to first page when searching
+      state.currentPage = 1 
     },
     setSelectedType: (state, action: PayloadAction<string>) => {
       state.selectedType = action.payload
-      state.currentPage = 1 // Reset to first page when filtering
+      state.currentPage = 1 
     },
     
     // Pagination actions
@@ -118,7 +118,7 @@ const teacherSectionSlice = createSlice({
     },
     setLimit: (state, action: PayloadAction<number>) => {
       state.limit = action.payload
-      state.currentPage = 1 // Reset to first page when changing limit
+      state.currentPage = 1 
     },
     
     // Single item actions
