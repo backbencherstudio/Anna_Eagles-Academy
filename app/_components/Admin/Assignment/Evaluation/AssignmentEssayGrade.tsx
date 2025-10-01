@@ -10,7 +10,7 @@ import { Search, Loader2 } from 'lucide-react'
 import { useGetSeriesWithCoursesQuery } from '@/rtk/api/admin/courseFilterApis'
 import { useGetAllAssignmentEvaluationsQuery } from '@/rtk/api/admin/assignmentEvaluationApis'
 import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
-import { setSearch as setSearchAction, setSeriesId, setCourseId } from '@/rtk/slices/admin/assignmentEssayEvaluationSlice'
+import { setSearch as setSearchAction, setSeriesId, setCourseId, setPage, setLimit } from '@/rtk/slices/admin/assignmentEssayEvaluationSlice'
 import { useDebounce } from '@/hooks/useDebounce'
 import Image from 'next/image'
 
@@ -216,7 +216,17 @@ export default function AssignmentEssayGrade() {
         )
     }))
 
-
+    // Server pagination values from API
+    const totalItems = (
+        assignmentsResp?.data?.pagination?.total ??
+        assignmentsResp?.pagination?.total ??
+        filteredData.length
+    ) as number
+    const totalPages = (
+        assignmentsResp?.data?.pagination?.totalPages ??
+        assignmentsResp?.pagination?.totalPages ??
+        Math.ceil((totalItems || 0) / (limit || 1))
+    ) as number
 
     return (
         <div className="bg-white rounded-lg p-4 border border-gray-100">
@@ -275,8 +285,14 @@ export default function AssignmentEssayGrade() {
                     headers={tableHeaders}
                     data={transformedData}
                     showPagination={true}
+                    serverControlled={true}
+                    currentPage={page}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
                     itemsPerPage={limit}
                     itemsPerPageOptions={[5, 8, 10, 15, 20]}
+                    onPageChange={(p) => dispatch(setPage(p))}
+                    onItemsPerPageChange={(l) => dispatch(setLimit(l))}
                     isLoading={loading || isSeriesLoading || isAssignmentsFetching}                // onSort={handleSort}
                 // sortKey={sortKey}
                 // sortDirection={sortDirection}

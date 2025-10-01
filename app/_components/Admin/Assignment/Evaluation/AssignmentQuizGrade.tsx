@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, Search } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
-import { setCourseId, setSearch as setSearchAction, setSeriesId } from '@/rtk/slices/admin/assignmentQuizEvaluationSlice'
+import { setCourseId, setSearch as setSearchAction, setSeriesId, setPage, setLimit } from '@/rtk/slices/admin/assignmentQuizEvaluationSlice'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useGetSeriesWithCoursesQuery } from '@/rtk/api/admin/courseFilterApis'
 import { useGetAllQuizAssignmentEvaluationsQuery } from '@/rtk/api/admin/assignmentEvaluationApis'
@@ -173,8 +173,14 @@ export default function AssignmentQuizGrade() {
           headers={tableHeaders}
           data={data}
           showPagination={true}
+          serverControlled={true}
+          currentPage={page}
+          totalPages={(quizResp?.data?.pagination?.totalPages ?? quizResp?.pagination?.totalPages ?? Math.ceil(((quizResp?.data?.pagination?.total ?? quizResp?.pagination?.total ?? rows.length) || 0) / (limit || 1))) as number}
+          totalItems={(quizResp?.data?.pagination?.total ?? quizResp?.pagination?.total ?? rows.length) as number}
           itemsPerPage={limit}
           itemsPerPageOptions={[5, 8, 10, 15, 20]}
+          onPageChange={(p) => dispatch(setPage(p))}
+          onItemsPerPageChange={(l) => dispatch(setLimit(l))}
           isLoading={loading || isSeriesLoading || isFetching}
         />
       </div>

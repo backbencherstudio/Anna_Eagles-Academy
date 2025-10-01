@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
-import { setSearch, setSeriesId, setCourseId } from '@/rtk/slices/admin/studentFileDownloadSlice'
+import { setSearch, setSeriesId, setCourseId, setPage, setLimit } from '@/rtk/slices/admin/studentFileDownloadSlice'
 import { useGetAllStudentFileDownloadsQuery } from '@/rtk/api/admin/studentFileDownloadApis'
 import SeriesFilterReuseable from '@/components/Resuable/SeriesFilter/SeriesFilterReuseable'
 import { useDebounce } from '@/hooks/useDebounce'
@@ -32,7 +32,9 @@ export default function StudentFileDownload() {
 
     const { data, isFetching } = useGetAllStudentFileDownloadsQuery({ section_type, search, page, limit, series_id, course_id })
 
-    const items = data?.data?.students ?? []
+    const items = data?.data?.students ?? data?.students ?? []
+    const totalItems = (data?.data?.pagination?.total ?? data?.pagination?.total ?? items.length) as number
+    const totalPages = (data?.data?.pagination?.totalPages ?? data?.pagination?.totalPages ?? Math.ceil((totalItems || 0) / (limit || 1))) as number
 
     // apply debounced search to store
     useEffect(() => {
@@ -147,8 +149,14 @@ export default function StudentFileDownload() {
                 headers={tableHeaders}
                 data={transformedData}
                 showPagination
+                serverControlled={true}
+                currentPage={page}
+                totalPages={totalPages}
+                totalItems={totalItems}
                 itemsPerPage={limit}
                 itemsPerPageOptions={[5, 10, 15, 20]}
+                onPageChange={(p) => dispatch(setPage(p))}
+                onItemsPerPageChange={(l) => dispatch(setLimit(l))}
                 isLoading={isFetching}
             />
 

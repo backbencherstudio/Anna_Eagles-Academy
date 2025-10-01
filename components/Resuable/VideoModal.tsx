@@ -52,15 +52,22 @@ export default function VideoModal({
         <div className="w-full">
           <div className="relative w-full aspect-video overflow-hidden rounded-lg bg-black">
             <video
+              key={videoSrc}
               ref={videoRef}
               className="absolute inset-0 h-full w-full cursor-pointer"
               controls={controls}
               preload="metadata"
-              src={videoSrc}
               poster={poster}
               autoPlay={autoPlay}
+              muted={autoPlay}
+              playsInline
+              crossOrigin="anonymous"
               onLoadedMetadata={onLoadedMetadata}
-            />
+            >
+              <source src={videoSrc} type="video/mp4" />
+              Your browser does not support the video tag.
+              <a href={videoSrc} target="_blank" rel="noreferrer">Open video</a>
+            </video>
           </div>
         </div>
       </DialogContent>

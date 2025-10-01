@@ -1,9 +1,9 @@
-'use client'
+"use client"
 import React, { useMemo, useState } from 'react'
 import { Card, CardContent, CardTitle } from '@/components/ui/card'
 import CameraIcon from '@/components/Icons/CameraIcon'
-import VideoModal from '@/components/Resuable/VideoModal'
 import { useGetSingleStudentFileDownloadQuery } from '@/rtk/api/admin/studentFileDownloadApis'
+import VideoModal from '@/components/Resuable/VideoModal'
 
 type VideoItem = {
   id: string
@@ -50,13 +50,24 @@ export default function WeeklyVideo({ studentId }: { studentId: string }) {
               <Card key={v.id} className="rounded-2xl border border-[#ECEFF3] shadow-none">
                 <div className="p-4">
                   <div
-                    className="relative aspect-video w-full overflow-hidden rounded-xl bg-muted/60 flex items-center justify-center cursor-pointer"
+                    className="group relative aspect-video w-full overflow-hidden rounded-xl bg-black cursor-pointer"
                     onClick={() => handlePlayClick(v.video_url)}
                     role="button"
                     aria-label={`Play ${v.title}`}
                   >
-                    <div className="h-12 w-12 rounded-full bg-background shadow flex items-center justify-center">
-                      <div className="ml-0.5 h-0 w-0 border-y-8 border-y-transparent border-l-[14px] border-l-foreground" />
+                    <video
+                      key={v.video_url}
+                      className="absolute inset-0 h-full w-full object-cover"
+                      playsInline
+                      preload="metadata"
+                      crossOrigin="anonymous"
+                    >
+                      <source src={v.video_url + '#t=0.1'} type="video/mp4" />
+                    </video>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="h-12 w-12 rounded-full bg-white/70 group-hover:bg-[#0F2598] backdrop-blur-sm shadow group-hover:shadow-lg flex items-center justify-center transition-all duration-200 ease-out group-hover:scale-105 group-hover:ring-2 group-hover:ring-white/60">
+                        <div className="ml-0.5 h-0 w-0 border-y-8 border-y-transparent border-l-[14px] border-l-[#0F2598] group-hover:border-l-white transition-colors duration-200" />
+                      </div>
                     </div>
                   </div>
 
