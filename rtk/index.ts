@@ -16,6 +16,8 @@ import assignmentQuizEvaluationReducer from '@/rtk/slices/admin/assignmentQuizEv
 import { assignmentEvaluationApi } from '@/rtk/api/admin/assignmentEvaluationApis'
 import studentFileDownloadReducer from '@/rtk/slices/admin/studentFileDownloadSlice'
 import { studentFileDownloadApi } from './api/admin/studentFileDownloadApis'
+import teacherSectionReducer from '@/rtk/slices/admin/teacherSectionSlice'
+import { teacherSectionApi } from './api/admin/teacherSectionApis'
 
 export const store = configureStore({
   reducer: {
@@ -28,6 +30,7 @@ export const store = configureStore({
     assignmentEssayEvaluation: assignmentEssayEvaluationReducer,
     assignmentQuizEvaluation: assignmentQuizEvaluationReducer,
     studentFileDownload: studentFileDownloadReducer,
+    teacherSection: teacherSectionReducer,
     [authApi.reducerPath]: authApi.reducer,
     [managementCourseApi.reducerPath]: managementCourseApi.reducer,
     [manageMaterialsApi.reducerPath]: manageMaterialsApi.reducer,
@@ -36,6 +39,7 @@ export const store = configureStore({
     [assignmentApi.reducerPath]: assignmentApi.reducer,
     [assignmentEvaluationApi.reducerPath]: assignmentEvaluationApi.reducer,
     [studentFileDownloadApi.reducerPath]: studentFileDownloadApi.reducer,
+    [teacherSectionApi.reducerPath]: teacherSectionApi.reducer,
   },
 
 
@@ -76,6 +80,7 @@ export const store = configureStore({
       assignmentApi.middleware,
       assignmentEvaluationApi.middleware,
       studentFileDownloadApi.middleware,
+      teacherSectionApi.middleware,
     ),
 })
 

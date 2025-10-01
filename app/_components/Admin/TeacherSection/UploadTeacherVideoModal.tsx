@@ -12,33 +12,44 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar'
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { Clock as ClockIcon } from 'lucide-react'
+import { useCreateTeacherSectionMutation } from '@/rtk/api/admin/teacherSectionApis'
+import { useAppDispatch } from '@/rtk/hooks'
+import { setLoading, setError, setSuccess, clearState } from '@/rtk/slices/admin/teacherSectionSlice'
 
+// Types for teacher section upload
 type UploadType = 'Encouragement' | 'Scripture' | 'Announcement'
 
 interface UploadTeacherVideoModalProps {
     open: boolean
     onOpenChange: (open: boolean) => void
     defaultType?: UploadType
-    onSaveDraft?: (payload: any) => void
     onPublish?: (payload: any) => void
 }
 
 export default function UploadTeacherVideoModal({
     open,
     onOpenChange,
-
-    onSaveDraft,
+    defaultType,
     onPublish,
 }: UploadTeacherVideoModalProps) {
-    const [type, setType] = React.useState<UploadType>('Encouragement')
+    // Form state management
+    const [type, setType] = React.useState<UploadType>(defaultType || 'Encouragement')
     const [title, setTitle] = React.useState('')
     const [description, setDescription] = React.useState('')
     const [releaseDate, setReleaseDate] = React.useState<Date | undefined>(undefined)
     const [releaseTime, setReleaseTime] = React.useState<string>('')
     const [file, setFile] = React.useState<File | null>(null)
+
+    // Refs for time input
     const timeInputRef = React.useRef<HTMLInputElement | null>(null)
 
+    // Redux hooks
+    const dispatch = useAppDispatch()
+    const [createTeacherSection, { isLoading }] = useCreateTeacherSectionMutation()
 
+    /**
+     * Reset form and close modal
+     */
     const resetAndClose = () => {
         setTitle('')
         setDescription('')
@@ -48,6 +59,8 @@ export default function UploadTeacherVideoModal({
         onOpenChange(false)
     }
 
+    /**
+     */
     const formatDateForInput = (date: Date | undefined) => {
         if (!date) return ''
         const year = date.getFullYear()
@@ -56,15 +69,50 @@ export default function UploadTeacherVideoModal({
         return `${year}-${month}-${day}`
     }
 
-    const buildPayload = () => ({
-        type,
-        title,
-        description,
-        releaseDate: formatDateForInput(releaseDate),
-        releaseTime,
-        file,
-    })
+    /**
+     * Build payload for API call
+     * Converts date/time to ISO format and prepares data structure
+     */
+    const buildPayload = () => {
+        let releaseDateTime = ''
+        if (releaseDate && releaseTime) {
+            const dateTime = new Date(`${formatDateForInput(releaseDate)}T${releaseTime}:00`)
+            releaseDateTime = dateTime.toISOString()
+        }
 
+        return {
+            section_type: type.toUpperCase(),
+            title,
+            description,
+            release_date: releaseDateTime,
+            file: file || null
+        }
+    }
+
+
+    const handleCreateTeacherSection = async () => {
+        try {
+            dispatch(setLoading(true))
+            dispatch(clearState())
+
+            const payload = buildPayload()
+            const result = await createTeacherSection(payload).unwrap()
+
+            dispatch(setSuccess({
+                success: true,
+                message: 'Teacher section created successfully!'
+            }))
+
+            resetAndClose()
+            onPublish?.(result)
+        } catch (error: any) {
+            dispatch(setError(error?.data?.message || 'Failed to create teacher section'))
+        }
+    }
+
+    /**
+     * Dynamic field labels and placeholders based on selected type
+     */
     const fieldText = React.useMemo(() => {
         switch (type) {
             case 'Scripture':
@@ -92,6 +140,12 @@ export default function UploadTeacherVideoModal({
         }
     }, [type])
 
+    /**
+     * Check if form is valid for submission
+     */
+    const isFormValid = title && description && releaseDate && releaseTime &&
+        (type !== 'Encouragement' || file)
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-2xl p-6">
@@ -101,6 +155,7 @@ export default function UploadTeacherVideoModal({
                 </DialogHeader>
 
                 <div className="flex flex-col gap-5">
+                    {/* Section Type Selection */}
                     <div className="flex flex-col gap-2">
                         <Label>Video / Announcement Type</Label>
                         <Select value={type} onValueChange={(v) => setType(v as UploadType)}>
@@ -110,25 +165,43 @@ export default function UploadTeacherVideoModal({
                             <SelectContent>
                                 <SelectGroup>
                                     <SelectLabel>Type</SelectLabel>
-                                    <SelectItem className='cursor-pointer' value="Encouragement">Encouragement</SelectItem>
-                                    <SelectItem className='cursor-pointer' value="Scripture">Scripture</SelectItem>
-                                    <SelectItem className='cursor-pointer' value="Announcement">Announcement</SelectItem>
+                                    <SelectItem className='cursor-pointer' value="Encouragement">
+                                        Encouragement
+                                    </SelectItem>
+                                    <SelectItem className='cursor-pointer' value="Scripture">
+                                        Scripture
+                                    </SelectItem>
+                                    <SelectItem className='cursor-pointer' value="Announcement">
+                                        Announcement
+                                    </SelectItem>
                                 </SelectGroup>
                             </SelectContent>
                         </Select>
                     </div>
 
+                    {/* Title Input */}
                     <div className="flex flex-col gap-2">
                         <Label>{fieldText.titleLabel}</Label>
-                        <Input placeholder={fieldText.titlePlaceholder} value={title} onChange={(e) => setTitle(e.target.value)} />
+                        <Input
+                            placeholder={fieldText.titlePlaceholder}
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                        />
                     </div>
 
+                    {/* Description Input */}
                     <div className="flex flex-col gap-2">
                         <Label>{fieldText.descriptionLabel}</Label>
-                        <Textarea placeholder={fieldText.descriptionPlaceholder} value={description} onChange={(e) => setDescription(e.target.value)} />
+                        <Textarea
+                            placeholder={fieldText.descriptionPlaceholder}
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                        />
                     </div>
 
+                    {/* Release Date and Time */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Date Picker */}
                         <div className="flex flex-col gap-2">
                             <Label>Release Date</Label>
                             <Popover>
@@ -152,6 +225,8 @@ export default function UploadTeacherVideoModal({
                                 </PopoverContent>
                             </Popover>
                         </div>
+
+                        {/* Time Picker */}
                         <div className="flex flex-col gap-2">
                             <Label>Release Time</Label>
                             <div className="relative">
@@ -166,7 +241,11 @@ export default function UploadTeacherVideoModal({
                                         const input = timeInputRef.current as any
                                         if (input?.showPicker) {
                                             e.preventDefault()
-                                            try { input.showPicker() } catch { input.focus() }
+                                            try {
+                                                input.showPicker()
+                                            } catch {
+                                                input.focus()
+                                            }
                                         }
                                     }}
                                 />
@@ -176,7 +255,7 @@ export default function UploadTeacherVideoModal({
                                     onClick={() => {
                                         const input = timeInputRef.current
                                         if (input && typeof (input as any).showPicker === 'function') {
-                                            ; (input as any).showPicker()
+                                            (input as any).showPicker()
                                         } else {
                                             input?.focus()
                                         }
@@ -189,20 +268,31 @@ export default function UploadTeacherVideoModal({
                         </div>
                     </div>
 
+                    {/* Video File Upload (only for Encouragement type) */}
                     {type === 'Encouragement' && (
                         <div className="flex flex-col gap-2">
                             <Label>Video File</Label>
-                            <VideoFileUpload file={file} onFileChange={setFile} accept={'video/*'} inputId={'teacher-video-input'} />
+                            <VideoFileUpload
+                                file={file}
+                                onFileChange={setFile}
+                                accept={'video/*'}
+                                inputId={'teacher-video-input'}
+                            />
                         </div>
                     )}
 
-                    <div className="flex items-center gap-3 justify-start pt-2">
-                        <Button variant="outline" onClick={() => { onSaveDraft?.(buildPayload()); resetAndClose() }} className='cursor-pointer bg-[#ECEFF3] text-[#0F2598]'>Save as Draft</Button>
-                        <Button onClick={() => { onPublish?.(buildPayload()); resetAndClose() }} className='cursor-pointer bg-[#0F2598] hover:bg-[#0F2598]/90 text-white'>Upload & Publish</Button>
+                    {/* Submit Button */}
+                    <div className="flex justify-end pt-2">
+                        <Button
+                            onClick={handleCreateTeacherSection}
+                            disabled={isLoading || !isFormValid}
+                            className='cursor-pointer bg-[#0F2598] hover:bg-[#0F2598]/90 text-white disabled:opacity-50 disabled:cursor-not-allowed'
+                        >
+                            {isLoading ? 'Uploading...' : 'Upload'}
+                        </Button>
                     </div>
                 </div>
             </DialogContent>
         </Dialog>
     )
 }
-
