@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 
 import ReduxProvider from "@/components/ReduxProvider";
+import UploadProgressBar from "@/components/Resuable/UploadProgressBar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,6 +39,7 @@ export default function RootLayout({
         <ReduxProvider>
           {children}
           <Toaster />
+          <UploadProgressBar />
         </ReduxProvider>
       </body>
     </html>

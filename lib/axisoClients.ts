@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { startUpload, setUploadProgress, finishUpload, errorUpload } from '@/rtk/slices/uploadProgressSlice';
 
 const axiosClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_ENDPOINT,
@@ -39,7 +40,7 @@ axiosClient.interceptors.response.use(
 
 // Common base query for APIs that handle FormData (materials, courses)
 export const createBaseQuery = () => {
-  return async (args: { url: string; method: string; data?: any; params?: any }) => {
+  return async (args: { url: string; method: string; data?: any; params?: any }, api?: any) => {
     try {
       const { url, method, data, params } = args;
 
@@ -49,16 +50,33 @@ export const createBaseQuery = () => {
           response = await axiosClient.get(url, { params });
           break;
         case 'POST':
+          // Dispatch start upload if payload is FormData (file upload)
+          if (typeof FormData !== 'undefined' && data instanceof FormData) {
+            api?.dispatch?.(startUpload());
+          }
           response = await axiosClient.post(url, data, {
             headers: {
               'Content-Type': 'multipart/form-data',
             },
+            onUploadProgress: (progressEvent) => {
+              if (!progressEvent.total) return;
+              const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              api?.dispatch?.(setUploadProgress(percent));
+            },
           });
           break;
         case 'PATCH':
+          if (typeof FormData !== 'undefined' && data instanceof FormData) {
+            api?.dispatch?.(startUpload());
+          }
           response = await axiosClient.patch(url, data, {
             headers: {
               'Content-Type': 'multipart/form-data',
+            },
+            onUploadProgress: (progressEvent) => {
+              if (!progressEvent.total) return;
+              const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              api?.dispatch?.(setUploadProgress(percent));
             },
           });
           break;
@@ -69,8 +87,20 @@ export const createBaseQuery = () => {
           throw new Error(`Unsupported method: ${method}`);
       }
 
+      // mark success when uploading FormData
+      if (typeof FormData !== 'undefined' && (args.data instanceof FormData)) {
+        api?.dispatch?.(finishUpload());
+      }
+
       return { data: response.data };
     } catch (error: any) {
+      // mark error only if was uploading
+      try {
+        const isMultipart = typeof FormData !== 'undefined' && (args.data instanceof FormData);
+        if (isMultipart) {
+          api?.dispatch?.(errorUpload(error?.message));
+        }
+      } catch (_) {}
       return {
         error: {
           status: error.response?.status,

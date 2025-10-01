@@ -22,6 +22,7 @@ import studentFeedbackReducer from '@/rtk/slices/admin/studentFeedbackslice'
 import { studentFeedbackApi } from '@/rtk/api/admin/studentFeedbackApis'
 import cardGeneratorReducer from '@/rtk/slices/admin/cardGeneratorSlice'
 import { cardGeneratorApi } from '@/rtk/api/admin/cardGeneratorApis'
+import uploadProgressReducer from '@/rtk/slices/uploadProgressSlice'
 
 export const store = configureStore({
   reducer: {
@@ -37,6 +38,7 @@ export const store = configureStore({
     teacherSection: teacherSectionReducer,
     studentFeedback: studentFeedbackReducer,
     cardGenerator: cardGeneratorReducer,
+    uploadProgress: uploadProgressReducer,
     [authApi.reducerPath]: authApi.reducer,
     [managementCourseApi.reducerPath]: managementCourseApi.reducer,
     [manageMaterialsApi.reducerPath]: manageMaterialsApi.reducer,
