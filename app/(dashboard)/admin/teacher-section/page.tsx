@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from '@/components/ui/button'
-import { Download, Upload, Pencil, Trash2, Loader2, Search } from 'lucide-react'
+import { Upload, Pencil, Trash2, Search } from 'lucide-react'
 import React from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import ReusableTable from '@/components/Resuable/ReusableTable'
@@ -11,7 +11,7 @@ import UploadTeacherVideoModal from '@/app/_components/Admin/TeacherSection/Uplo
 import ButtonSpring from '@/components/Resuable/ButtonSpring'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useGetAllDataSectionsQuery } from '@/rtk/api/admin/teacherSectionApis'
+import { useGetAllDataSectionsQuery, useDeleteTeacherSectionMutation } from '@/rtk/api/admin/teacherSectionApis'
 import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
 import {
   setTableData,
@@ -19,6 +19,8 @@ import {
   setSelectedType,
   setCurrentPage,
   setLimit,
+  setSelectedItem,
+  clearSelectedItem,
   TeacherSectionData
 } from '@/rtk/slices/admin/teacherSectionSlice'
 import { useDebounce } from '@/hooks/useDebounce'
@@ -37,7 +39,8 @@ export default function TeacherSectionPage() {
     totalPages,
     searchQuery,
     selectedType,
-    limit
+    limit,
+    selectedItem
   } = useAppSelector((state) => state.teacherSection)
 
   // Local state for search input
@@ -81,7 +84,11 @@ export default function TeacherSectionPage() {
     { key: 'actions', label: 'ACTION', width: '15%' },
   ]
 
-  // Format date and time for display
+  /**
+   * Format date string to readable format with time
+   * @param dateString - ISO date string
+   * @returns Formatted date string
+   */
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('en-US', {
       year: 'numeric',
@@ -97,6 +104,11 @@ export default function TeacherSectionPage() {
   const [dialog, setDialog] = React.useState<{ open: boolean; row?: TeacherSectionData }>({ open: false })
   const [uploadOpen, setUploadOpen] = React.useState(false)
   const [isOpeningModal, setIsOpeningModal] = React.useState(false)
+  const [editModalOpen, setEditModalOpen] = React.useState(false)
+  const [viewModalOpen, setViewModalOpen] = React.useState(false)
+  
+  // API mutations
+  const [deleteTeacherSection] = useDeleteTeacherSectionMutation()
 
   const renderCell = React.useCallback((item: TeacherSectionData, header: { key: string; label: string }) => {
     if (header.key === 'title') {
@@ -106,8 +118,8 @@ export default function TeacherSectionPage() {
             className="font-medium text-gray-900 truncate cursor-pointer hover:text-blue-600 transition-colors text-sm"
             title={item.title}
             onClick={() => {
-              // Optional: Show full title in a tooltip or modal
-              console.log('Full title:', item.title)
+              dispatch(setSelectedItem(item))
+              setViewModalOpen(true)
             }}
           >
             {item.title}
@@ -167,7 +179,10 @@ export default function TeacherSectionPage() {
           <Button
             size="icon"
             className="h-7 w-7 bg-emerald-600 hover:bg-emerald-700 cursor-pointer"
-            onClick={() => console.log('Edit', item.id)}
+            onClick={() => {
+              dispatch(setSelectedItem(item))
+              setEditModalOpen(true)
+            }}
           >
             <Pencil className="h-3 w-3 text-white" />
           </Button>
@@ -206,11 +221,21 @@ export default function TeacherSectionPage() {
     router.push(nextUrl)
   }
 
-  const handleConfirmDelete = () => {
+  /**
+   * Handle teacher section deletion
+   * Calls delete API and refreshes data
+   */
+  const handleConfirmDelete = async () => {
     if (!dialog.row) return
-    // TODO: Implement delete API call
-    toast.success('Deleted successfully')
-    refetch() // Refresh data after deletion
+    
+    try {
+      await deleteTeacherSection(dialog.row.id).unwrap()
+      toast.success('Teacher section deleted successfully')
+      refetch() // Refresh data after deletion
+      setDialog({ open: false })
+    } catch (error: any) {
+      toast.error(error?.data?.message || 'Failed to delete teacher section')
+    }
   }
 
   return (
@@ -332,6 +357,33 @@ export default function TeacherSectionPage() {
           onPublish={() => {
             refetch() // Refresh data after successful upload
             toast.success('Teacher section uploaded successfully!')
+          }}
+        />
+
+        {/* Edit Modal */}
+        <UploadTeacherVideoModal
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          defaultType={selectedItem?.section_type as any}
+          editData={selectedItem}
+          onPublish={() => {
+            refetch() // Refresh data after successful update
+            toast.success('Teacher section updated successfully!')
+            setEditModalOpen(false)
+            dispatch(clearSelectedItem())
+          }}
+        />
+
+        {/* View Modal */}
+        <UploadTeacherVideoModal
+          open={viewModalOpen}
+          onOpenChange={setViewModalOpen}
+          defaultType={selectedItem?.section_type as any}
+          viewData={selectedItem}
+          readOnly={true}
+          onPublish={() => {
+            setViewModalOpen(false)
+            dispatch(clearSelectedItem())
           }}
         />
       </div>

@@ -12,9 +12,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar'
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { Clock as ClockIcon } from 'lucide-react'
-import { useCreateTeacherSectionMutation } from '@/rtk/api/admin/teacherSectionApis'
+import { useCreateTeacherSectionMutation, useUpdateTeacherSectionMutation, useGetSingleTeacherSectionQuery } from '@/rtk/api/admin/teacherSectionApis'
 import { useAppDispatch } from '@/rtk/hooks'
 import { setLoading, setError, setSuccess, clearState } from '@/rtk/slices/admin/teacherSectionSlice'
+import { TeacherSectionData } from '@/rtk/slices/admin/teacherSectionSlice'
 
 // Types for teacher section upload
 type UploadType = 'Encouragement' | 'Scripture' | 'Announcement'
@@ -23,6 +24,9 @@ interface UploadTeacherVideoModalProps {
     open: boolean
     onOpenChange: (open: boolean) => void
     defaultType?: UploadType
+    editData?: TeacherSectionData | null
+    viewData?: TeacherSectionData | null
+    readOnly?: boolean
     onPublish?: (payload: any) => void
 }
 
@@ -30,6 +34,9 @@ export default function UploadTeacherVideoModal({
     open,
     onOpenChange,
     defaultType,
+    editData,
+    viewData,
+    readOnly = false,
     onPublish,
 }: UploadTeacherVideoModalProps) {
     // Form state management
@@ -45,7 +52,61 @@ export default function UploadTeacherVideoModal({
 
     // Redux hooks
     const dispatch = useAppDispatch()
-    const [createTeacherSection, { isLoading }] = useCreateTeacherSectionMutation()
+    const [createTeacherSection, { isLoading: isCreating }] = useCreateTeacherSectionMutation()
+    const [updateTeacherSection, { isLoading: isUpdating }] = useUpdateTeacherSectionMutation()
+    
+    // Fetch single data for edit/view mode
+    const { data: singleData, isLoading: isLoadingSingle } = useGetSingleTeacherSectionQuery(
+        editData?.id || viewData?.id || '',
+        { skip: !editData?.id && !viewData?.id }
+    )
+    
+    const isLoading = isCreating || isUpdating || isLoadingSingle
+    const isEditMode = !!editData
+    const isViewMode = !!viewData || readOnly
+
+    /**
+     * Convert API section_type to UploadType format
+     * ENCOURAGEMENT -> Encouragement
+     * SCRIPTURE -> Scripture  
+     * ANNOUNCEMENT -> Announcement
+     */
+    const convertSectionType = (sectionType: string): UploadType => {
+        return sectionType.charAt(0).toUpperCase() + sectionType.slice(1).toLowerCase() as UploadType
+    }
+
+    /**
+     * Populate form with edit/view data
+     * Handles both passed data and API fetched data
+     */
+    React.useEffect(() => {
+        if (editData || viewData) {
+            const data = editData || viewData
+            if (data) {
+                setType(convertSectionType(data.section_type))
+                setTitle(data.title)
+                setDescription(data.description || '')
+                
+                if (data.release_date) {
+                    const date = new Date(data.release_date)
+                    setReleaseDate(date)
+                    setReleaseTime(date.toTimeString().slice(0, 5))
+                }
+            }
+        } else if (singleData?.data) {
+            // Use single data from API if available
+            const data = singleData.data
+            setType(convertSectionType(data.section_type))
+            setTitle(data.title)
+            setDescription(data.description || '')
+            
+            if (data.release_date) {
+                const date = new Date(data.release_date)
+                setReleaseDate(date)
+                setReleaseTime(date.toTimeString().slice(0, 5))
+            }
+        }
+    }, [editData, viewData, singleData])
 
     /**
      * Reset form and close modal
@@ -72,6 +133,7 @@ export default function UploadTeacherVideoModal({
     /**
      * Build payload for API call
      * Converts date/time to ISO format and prepares data structure
+     * Handles both create and update modes
      */
     const buildPayload = () => {
         let releaseDateTime = ''
@@ -80,33 +142,61 @@ export default function UploadTeacherVideoModal({
             releaseDateTime = dateTime.toISOString()
         }
 
-        return {
+        const basePayload = {
             section_type: type.toUpperCase(),
             title,
             description,
             release_date: releaseDateTime,
+        }
+
+        // For edit mode, include ID and handle file
+        if (isEditMode && (editData || singleData?.data)) {
+            const data = editData || singleData?.data
+            return {
+                id: data.id,
+                ...basePayload,
+                file: file || null
+            }
+        }
+
+        // For create mode
+        return {
+            ...basePayload,
             file: file || null
         }
     }
 
 
+    /**
+     * Handle teacher section creation/update
+     * Uses appropriate API call based on mode (create/edit)
+     */
     const handleCreateTeacherSection = async () => {
         try {
             dispatch(setLoading(true))
             dispatch(clearState())
 
             const payload = buildPayload()
-            const result = await createTeacherSection(payload).unwrap()
-
-            dispatch(setSuccess({
-                success: true,
-                message: 'Teacher section created successfully!'
-            }))
+            let result
+            
+            if (isEditMode) {
+                result = await updateTeacherSection(payload).unwrap()
+                dispatch(setSuccess({
+                    success: true,
+                    message: 'Teacher section updated successfully!'
+                }))
+            } else {
+                result = await createTeacherSection(payload).unwrap()
+                dispatch(setSuccess({
+                    success: true,
+                    message: 'Teacher section created successfully!'
+                }))
+            }
 
             resetAndClose()
             onPublish?.(result)
         } catch (error: any) {
-            dispatch(setError(error?.data?.message || 'Failed to create teacher section'))
+            dispatch(setError(error?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} teacher section`))
         }
     }
 
@@ -144,21 +234,29 @@ export default function UploadTeacherVideoModal({
      * Check if form is valid for submission
      */
     const isFormValid = title && description && releaseDate && releaseTime &&
-        (type !== 'Encouragement' || file)
+        (type !== 'Encouragement' || file || (isEditMode && (editData?.file_url || singleData?.data?.file_url)))
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-2xl p-6">
+            <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto p-6">
                 <DialogHeader>
-                    <DialogTitle>Upload Teacher Video</DialogTitle>
-                    <DialogDescription>Upload a new video message for students</DialogDescription>
+                    <DialogTitle>
+                        {isViewMode ? 'View Teacher Section' : 
+                         isEditMode ? 'Edit Teacher Section' : 
+                         'Upload Teacher Video'}
+                    </DialogTitle>
+                    <DialogDescription>
+                        {isViewMode ? 'View teacher section details' :
+                         isEditMode ? 'Edit teacher section information' :
+                         'Upload a new video message for students'}
+                    </DialogDescription>
                 </DialogHeader>
 
-                <div className="flex flex-col gap-5">
+                <div className="flex flex-col gap-4">
                     {/* Section Type Selection */}
                     <div className="flex flex-col gap-2">
                         <Label>Video / Announcement Type</Label>
-                        <Select value={type} onValueChange={(v) => setType(v as UploadType)}>
+                        <Select value={type} onValueChange={(v) => setType(v as UploadType)} disabled={isViewMode}>
                             <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select type" />
                             </SelectTrigger>
@@ -186,6 +284,7 @@ export default function UploadTeacherVideoModal({
                             placeholder={fieldText.titlePlaceholder}
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
+                            disabled={isViewMode}
                         />
                     </div>
 
@@ -196,6 +295,7 @@ export default function UploadTeacherVideoModal({
                             placeholder={fieldText.descriptionPlaceholder}
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
+                            disabled={isViewMode}
                         />
                     </div>
 
@@ -206,7 +306,7 @@ export default function UploadTeacherVideoModal({
                             <Label>Release Date</Label>
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant="outline" className="w-full cursor-pointer justify-start text-left font-normal">
+                                    <Button variant="outline" className="w-full cursor-pointer justify-start text-left font-normal" disabled={isViewMode}>
                                         <CalendarIcon className="mr-2 h-4 w-4" />
                                         {releaseDate ? (
                                             releaseDate.toLocaleDateString()
@@ -237,6 +337,7 @@ export default function UploadTeacherVideoModal({
                                     onChange={(e) => setReleaseTime(e.target.value)}
                                     className="pr-10 time-input cursor-pointer"
                                     ref={timeInputRef}
+                                    disabled={isViewMode}
                                     onMouseDown={(e) => {
                                         const input = timeInputRef.current as any
                                         if (input?.showPicker) {
@@ -270,26 +371,37 @@ export default function UploadTeacherVideoModal({
 
                     {/* Video File Upload (only for Encouragement type) */}
                     {type === 'Encouragement' && (
-                        <div className="flex flex-col gap-2">
+                        <div className="">
                             <Label>Video File</Label>
                             <VideoFileUpload
                                 file={file}
                                 onFileChange={setFile}
                                 accept={'video/*'}
                                 inputId={'teacher-video-input'}
+                                existingFileUrl={editData?.file_url || singleData?.data?.file_url}
+                                disabled={isViewMode}
                             />
                         </div>
                     )}
 
                     {/* Submit Button */}
                     <div className="flex justify-end pt-2">
-                        <Button
-                            onClick={handleCreateTeacherSection}
-                            disabled={isLoading || !isFormValid}
-                            className='cursor-pointer bg-[#0F2598] hover:bg-[#0F2598]/90 text-white disabled:opacity-50 disabled:cursor-not-allowed'
-                        >
-                            {isLoading ? 'Uploading...' : 'Upload'}
-                        </Button>
+                        {isViewMode ? (
+                            <Button
+                                onClick={() => onOpenChange(false)}
+                                className='cursor-pointer bg-gray-600 hover:bg-gray-700 text-white'
+                            >
+                                Close
+                            </Button>
+                        ) : (
+                            <Button
+                                onClick={handleCreateTeacherSection}
+                                disabled={isLoading || !isFormValid}
+                                className='cursor-pointer bg-[#0F2598] hover:bg-[#0F2598]/90 text-white disabled:opacity-50 disabled:cursor-not-allowed'
+                            >
+                                {isLoading ? (isEditMode ? 'Updating...' : 'Uploading...') : (isEditMode ? 'Update' : 'Upload')}
+                            </Button>
+                        )}
                     </div>
                 </div>
             </DialogContent>

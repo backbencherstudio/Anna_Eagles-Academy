@@ -31,6 +31,9 @@ interface TeacherSectionState {
   currentPage: number
   totalPages: number
   
+  // Single item data
+  selectedItem: TeacherSectionData | null
+  
   // Search and filters
   searchQuery: string
   selectedType: string
@@ -50,6 +53,9 @@ const initialState: TeacherSectionState = {
   totalCount: 0,
   currentPage: 1,
   totalPages: 0,
+  
+  // Single item data
+  selectedItem: null,
   
   // Search and filters
   searchQuery: '',
@@ -114,6 +120,14 @@ const teacherSectionSlice = createSlice({
       state.limit = action.payload
       state.currentPage = 1 // Reset to first page when changing limit
     },
+    
+    // Single item actions
+    setSelectedItem: (state, action: PayloadAction<TeacherSectionData | null>) => {
+      state.selectedItem = action.payload
+    },
+    clearSelectedItem: (state) => {
+      state.selectedItem = null
+    },
   },
 })
 
@@ -126,7 +140,9 @@ export const {
   setSearchQuery,
   setSelectedType,
   setCurrentPage,
-  setLimit
+  setLimit,
+  setSelectedItem,
+  clearSelectedItem
 } = teacherSectionSlice.actions
 
 export type { TeacherSectionData }

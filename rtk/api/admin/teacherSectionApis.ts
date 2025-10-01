@@ -29,10 +29,41 @@ export const teacherSectionApi = createApi({
             providesTags: ['TeacherSection'],
         }),
 
+        // get single 
+        getSingleTeacherSection: builder.query({
+            query: (teacher_section_id: string) => ({
+                url: `/api/admin/teacher-section/${teacher_section_id}`,
+                method: 'GET',
+            }),
+            providesTags: ['TeacherSection'],
+        }),
+
+
+        // update 
+        updateTeacherSection: builder.mutation({
+            query: (teacherSection) => ({
+                url: `/api/admin/teacher-section/${teacherSection.id}`,
+                method: 'PATCH',
+                body: teacherSection,
+            }),
+            invalidatesTags: ['TeacherSection'],
+        }),
+
+        // delete 
+        deleteTeacherSection: builder.mutation({
+            query: (teacher_section_id: string) => ({
+                url: `/api/admin/teacher-section/${teacher_section_id}`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: ['TeacherSection'],
+        }),
     }),
 });
 
 export const {
     useCreateTeacherSectionMutation,
     useGetAllDataSectionsQuery,
+    useGetSingleTeacherSectionQuery,
+    useUpdateTeacherSectionMutation,
+    useDeleteTeacherSectionMutation,
 } = teacherSectionApi;
