@@ -25,6 +25,8 @@ import { cardGeneratorApi } from '@/rtk/api/admin/cardGeneratorApis'
 import { filterStudentListApi } from '@/rtk/api/admin/filterStudentListApis'
 import { scholarshipCodeGenerateApi } from '@/rtk/api/admin/scholarshipCodeGenerateApis'
 import scholarshipCodeGenerateReducer from '@/rtk/slices/admin/scholarshipCodeGenerateSlice'
+import { giftCardGenerateApi } from '@/rtk/api/admin/giftCardGenerateApis'
+import giftCardGenerateReducer from '@/rtk/slices/admin/giftCardGenerateSlice'
 import uploadProgressReducer from '@/rtk/slices/uploadProgressSlice'
 
 export const store = configureStore({
@@ -56,6 +58,8 @@ export const store = configureStore({
     [filterStudentListApi.reducerPath]: filterStudentListApi.reducer,
     [scholarshipCodeGenerateApi.reducerPath]: scholarshipCodeGenerateApi.reducer,
     scholarshipCodeGenerate: scholarshipCodeGenerateReducer,
+    [giftCardGenerateApi.reducerPath]: giftCardGenerateApi.reducer,
+    giftCardGenerate: giftCardGenerateReducer,
   },
 
 
@@ -101,6 +105,7 @@ export const store = configureStore({
       cardGeneratorApi.middleware,
       filterStudentListApi.middleware,
       scholarshipCodeGenerateApi.middleware,
+      giftCardGenerateApi.middleware,
     ),
 })
 

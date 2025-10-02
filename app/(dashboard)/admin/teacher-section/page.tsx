@@ -106,7 +106,7 @@ export default function TeacherSectionPage() {
   const [isOpeningModal, setIsOpeningModal] = React.useState(false)
   const [editModalOpen, setEditModalOpen] = React.useState(false)
   const [viewModalOpen, setViewModalOpen] = React.useState(false)
-  
+
   // API mutations
   const [deleteTeacherSection] = useDeleteTeacherSectionMutation()
 
@@ -227,7 +227,7 @@ export default function TeacherSectionPage() {
    */
   const handleConfirmDelete = async () => {
     if (!dialog.row) return
-    
+
     try {
       await deleteTeacherSection(dialog.row.id).unwrap()
       toast.success('Teacher section deleted successfully')
@@ -241,24 +241,17 @@ export default function TeacherSectionPage() {
   return (
     <div>
       {/* Header */}
-      <div className='flex items-center flex-col xl:flex-row gap-4 justify-between mb-5'>
-        <div className='flex flex-col gap-1'>
-          <h2 className='text-xl font-semibold text-[#1D1F2C]'>Teacher Section</h2>
-          <p className='text-sm text-[#777980]'>Manage teacher videos, announcements, and student communications.</p>
-        </div>
+      <div className='flex flex-col gap-1 mb-4'>
+        <h2 className='text-xl font-semibold text-[#1D1F2C]'>Teacher Section</h2>
+        <p className='text-sm text-[#777980]'>Manage teacher videos, announcements, and student communications.</p>
+      </div>
 
-        <div className="flex flex-col lg:flex-row items-center gap-3">
+      <div className='bg-white rounded-xl p-4'>
+
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-3">
           {/* Search and Filter */}
           <div className='flex flex-col md:flex-row items-center gap-3'>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Search by title or description..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="md:w-[280px] w-full pl-10"
-              />
-            </div>
+
             <Select value={selectedType || "all"} onValueChange={(value) => dispatch(setSelectedType(value === "all" ? "" : value))}>
               <SelectTrigger className="md:w-[200px] w-full">
                 <SelectValue placeholder="All Types" />
@@ -270,6 +263,16 @@ export default function TeacherSectionPage() {
                 <SelectItem value="ANNOUNCEMENT">Announcement</SelectItem>
               </SelectContent>
             </Select>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Search by title or description..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="md:w-[280px] w-full pl-10"
+              />
+            </div>
+
           </div>
           <Button
             variant="outline"
@@ -291,10 +294,7 @@ export default function TeacherSectionPage() {
           </Button>
         </div>
 
-      </div>
-
-      <div className='bg-white rounded-xl p-4'>
-        <div className="">
+        <div className="mt-4">
           <div className="">
             <ReusableTable
               headers={headers}

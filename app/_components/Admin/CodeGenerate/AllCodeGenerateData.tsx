@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Copy, Check, Search, ArrowRightIcon } from 'lucide-react'
+import { Copy, Check, Search, ArrowRightIcon, Code } from 'lucide-react'
 import ReusableTable from '@/components/Resuable/ReusableTable'
 import { useGetAllDataScholarshipCodeQuery } from '@/rtk/api/admin/scholarshipCodeGenerateApis'
 import { RootState } from '@/rtk'
@@ -231,7 +231,7 @@ export default function AllCodeGenerateData() {
       {/* Search and Stats */}
       <Card>
         <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row items-center justify-end gap-4 mb-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
             <div className="flex items-center gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -250,8 +250,9 @@ export default function AllCodeGenerateData() {
               onClick={() => setIsModalOpen(true)}
               className="bg-[#0F2598] hover:bg-[#0F2598]/90 cursor-pointer"
             >
+              <Code className="w-4 h-4" />
               Code Generate
-              <ArrowRightIcon className="w-4 h-4 ml-2" />
+
             </Button>
 
             {/* Modal */}

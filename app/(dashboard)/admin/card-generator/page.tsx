@@ -3,8 +3,8 @@ import { Tabs, TabsContent, TabsList } from '@/components/ui/tabs'
 import { TabsTrigger } from '@/components/ui/tabs'
 import { useRouter, useSearchParams } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
-  import CardGenerator from '@/app/_components/Admin/CardGenerator'
-  import CardHistory from '@/app/_components/Admin/CardHistory'
+import CardGenerator from '@/app/_components/Admin/CardGenerate/CardGenerator'
+import CardHistory from '@/app/_components/Admin/CardHistory'
 
 export default function CardGeneratorPage() {
   const [activeTab, setActiveTab] = useState('createCard')
