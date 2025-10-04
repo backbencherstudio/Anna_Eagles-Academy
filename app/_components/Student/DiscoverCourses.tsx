@@ -69,7 +69,14 @@ export default function DiscoverCourses() {
     useEffect(() => {
         fetch("/data/CourseData.json")
             .then((res) => res.json())
-            .then((data) => setCourse(data.course));
+            .then((data) => {
+                if (data && data.course) {
+                    setCourse(data.course);
+                }
+            })
+            .catch((error) => {
+                console.error("Error fetching course data:", error);
+            });
     }, []);
 
 

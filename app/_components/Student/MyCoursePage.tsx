@@ -10,8 +10,16 @@ import { useVideoProgress } from '@/hooks/useVideoProgress';
 
 // Helper to fetch local JSON (works in Next.js for public/data)
 async function fetchCourseData() {
-    const res = await fetch('/data/CourseData.json');
-    return res.json();
+    try {
+        const res = await fetch('/data/CourseData.json');
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+    } catch (error) {
+        console.error("Error fetching course data:", error);
+        return null;
+    }
 }
 
 function secondsToTime(secs: number) {

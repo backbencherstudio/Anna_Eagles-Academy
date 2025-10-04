@@ -43,18 +43,20 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
     useEffect(() => {
         fetch('/data/CourseData.json')
             .then((res) => {
-                // console.log('Fetch response:', res);
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
                 return res.json();
             })
             .then((data) => {
                 // Set the course regardless of ID match for now
                 // This ensures the page loads even if there's a mismatch
-                if (data.course) {
+                if (data && data.course) {
                     setCourse(data.course);
                 }
             })
             .catch((error) => {
-                // console.error('Error fetching course data:', error);
+                console.error("Error fetching course data:", error);
             });
     }, [id]);
 

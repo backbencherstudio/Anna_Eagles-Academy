@@ -21,13 +21,23 @@ export default function CoursesModules() {
   const { isVideoCompleted } = useVideoProgress();
 
   async function fetchCourseData() {
-    const res = await fetch("/data/CourseData.json");
-    return res.json();
+    try {
+      const res = await fetch("/data/CourseData.json");
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      return res.json();
+    } catch (error) {
+      console.error("Error fetching course data:", error);
+      return null;
+    }
   }
 
   useEffect(() => {
     fetchCourseData().then((data) => {
-      setCourse(data.course);
+      if (data && data.course) {
+        setCourse(data.course);
+      }
 
       // Check for URL parameters to set initial video
       const videoId = searchParams.get('video');
