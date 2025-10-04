@@ -29,10 +29,16 @@ import { giftCardGenerateApi } from '@/rtk/api/admin/giftCardGenerateApis'
 import giftCardGenerateReducer from '@/rtk/slices/admin/giftCardGenerateSlice'
 import uploadProgressReducer from '@/rtk/slices/uploadProgressSlice'
 
+import studentsQuestionReducer from '@/rtk/slices/admin/studentsQuestionSlice'
+import { studentsQuestionApi } from './api/admin/studentsQuestionApis'
+
+
 export const store = configureStore({
   reducer: {
     audio: audioReducer,
     auth: authReducer,
+
+    // admin
     courseManagement: courseManagementReducer,
     managementCourse: managementCourseReducer,
     assignmentManagement: assignmentManagementReducer,
@@ -60,6 +66,8 @@ export const store = configureStore({
     scholarshipCodeGenerate: scholarshipCodeGenerateReducer,
     [giftCardGenerateApi.reducerPath]: giftCardGenerateApi.reducer,
     giftCardGenerate: giftCardGenerateReducer,
+    studentsQuestion: studentsQuestionReducer,
+    [studentsQuestionApi.reducerPath]: studentsQuestionApi.reducer,
   },
 
 
@@ -106,6 +114,7 @@ export const store = configureStore({
       filterStudentListApi.middleware,
       scholarshipCodeGenerateApi.middleware,
       giftCardGenerateApi.middleware,
+      studentsQuestionApi.middleware,
     ),
 })
 
