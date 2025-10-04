@@ -21,9 +21,9 @@ import {
     setSenderName,
     setCardTitle,
     setMessage,
-    setLoading,
-    setError,
-    setSuccess,
+    setGiftCardLoading,
+    setGiftCardError,
+    setGiftCardSuccess,
 } from '@/rtk/slices/admin/giftCardGenerateSlice'
 
 // Components
@@ -88,8 +88,8 @@ export default function CardGenerator() {
     // Form submission
     const handleSendCard = async () => {
         try {
-            dispatch(setLoading(true))
-            dispatch(setError(null))
+            dispatch(setGiftCardLoading(true))
+            dispatch(setGiftCardError(null))
 
             if (!selectedStudent?.id) {
                 throw new Error('No student selected')
@@ -108,7 +108,7 @@ export default function CardGenerator() {
             formData.append('image', file)
 
             const res = await generateGiftCard(formData).unwrap()
-            dispatch(setSuccess(true))
+            dispatch(setGiftCardSuccess(true))
             if (typeof window !== 'undefined') {
                 const msg = (res && (res.message || res.msg)) || 'Gift card generated and sent successfully!'
                 toast.success(msg)
@@ -130,12 +130,12 @@ export default function CardGenerator() {
         } catch (error: any) {
             console.error('Error sending card:', error)
             const apiMsg = error?.data?.message || error?.error || error?.message || 'Failed to send card. Please try again.'
-            dispatch(setError(apiMsg))
+            dispatch(setGiftCardError(apiMsg))
             if (typeof window !== 'undefined') {
                 toast.error(apiMsg)
             }
         } finally {
-            dispatch(setLoading(false))
+            dispatch(setGiftCardLoading(false))
         }
     }
 

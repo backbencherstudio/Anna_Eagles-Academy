@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { Eye, Trash2 } from 'lucide-react'
 import { IoLogoWhatsapp } from 'react-icons/io'
 import ReusableTable from '@/components/Resuable/ReusableTable'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { useRouter } from 'next/navigation'
 import ConfirmDialog from '@/components/Resuable/ConfirmDialog'
 import toast from 'react-hot-toast'
@@ -102,9 +102,9 @@ export default function StudentQuestionTable() {
                         ? 'bg-[#FF5757] text-white'
                         : 'bg-gray-200 text-gray-700'
                 }`}>
-                {item.status === 'approve' ? 'Approved' : 
-                 item.status === 'reject' ? 'Rejected' : 
-                 item.status}
+                {item.status === 'approve' ? 'Approved' :
+                    item.status === 'reject' ? 'Rejected' :
+                        item.status}
             </span>
         )
     }))

@@ -17,7 +17,17 @@ interface GiftCardGenerateState {
     isLoading: boolean
     error: string | null
     isSuccess: boolean
+    
+    // Pagination and search for card history (consolidated from cardGeneratorSlice)
+    search: string
+    page: number
+    limit: number
 }
+
+export const GIFT_CARD_CONSTANTS = {
+    DEFAULT_PAGE: 1,
+    DEFAULT_LIMIT: 10,
+} as const
 
 const initialState: GiftCardGenerateState = {
     selectedStudent: null,
@@ -29,7 +39,12 @@ const initialState: GiftCardGenerateState = {
     selectedImage: 2, // Default to style 2
     isLoading: false,
     error: null,
-    isSuccess: false
+    isSuccess: false,
+    
+    // Pagination defaults (consolidated from cardGeneratorSlice)
+    search: '',
+    page: GIFT_CARD_CONSTANTS.DEFAULT_PAGE,
+    limit: GIFT_CARD_CONSTANTS.DEFAULT_LIMIT,
 }
 
 const giftCardGenerateSlice = createSlice({
@@ -80,6 +95,24 @@ const giftCardGenerateSlice = createSlice({
         },
         clearSuccess: (state) => {
             state.isSuccess = false
+        },
+        
+        // Pagination and search actions (consolidated from cardGeneratorSlice)
+        setSearch: (state, action: PayloadAction<string>) => {
+            state.search = action.payload
+        },
+        setPage: (state, action: PayloadAction<number>) => {
+            state.page = action.payload
+        },
+        setLimit: (state, action: PayloadAction<number>) => {
+            state.limit = action.payload
+        },
+        setPagination: (state, action: PayloadAction<{ page?: number; limit?: number }>) => {
+            if (typeof action.payload.page === 'number') state.page = action.payload.page
+            if (typeof action.payload.limit === 'number') state.limit = action.payload.limit
+        },
+        resetGiftCardState: () => {
+            return initialState
         }
     }
 })
@@ -92,11 +125,17 @@ export const {
     setCardTitle,
     setMessage,
     setSelectedImage,
-    setLoading,
-    setError,
-    setSuccess,
+    setLoading: setGiftCardLoading,
+    setError: setGiftCardError,
+    setSuccess: setGiftCardSuccess,
     resetForm,
-    clearSuccess
+    clearSuccess,
+    // Pagination and search actions (consolidated from cardGeneratorSlice)
+    setSearch,
+    setPage,
+    setLimit,
+    setPagination,
+    resetGiftCardState
 } = giftCardGenerateSlice.actions
 
 export default giftCardGenerateSlice.reducer

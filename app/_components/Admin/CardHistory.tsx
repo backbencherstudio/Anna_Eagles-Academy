@@ -4,9 +4,9 @@ import React, { useMemo } from 'react'
 import { Download, Search } from 'lucide-react'
 import ReusableTable from '@/components/Resuable/ReusableTable'
 import { Input } from '@/components/ui/input'
-import { useGetAllCardsQuery } from '@/rtk/api/admin/cardGeneratorApis'
+import { useGetAllGiftCardsQuery } from '@/rtk/api/admin/giftCardGenerateApis'
 import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
-import { setPage, setLimit, setSearch } from '@/rtk/slices/admin/cardGeneratorSlice'
+import { setPage, setLimit, setSearch } from '@/rtk/slices/admin/giftCardGenerateSlice'
 import { useDebounce } from '@/hooks/useDebounce'
 
 // Table headers for card history
@@ -20,10 +20,10 @@ const tableHeaders = [
 
 export default function CardHistory() {
     const dispatch = useAppDispatch()
-    const { page, limit, search } = useAppSelector((s) => s.cardGenerator)
+    const { page, limit, search } = useAppSelector((s) => s.giftCardGenerate)
     const debouncedSearch = useDebounce(search, 300)
 
-    const { data, isFetching } = useGetAllCardsQuery({ page, limit, search: debouncedSearch })
+    const { data, isFetching } = useGetAllGiftCardsQuery({ page, limit, search: debouncedSearch })
 
     const rows = useMemo(() => {
         const cardGenerators = data?.data?.cardGenerators ?? []

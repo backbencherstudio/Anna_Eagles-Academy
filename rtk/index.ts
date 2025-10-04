@@ -20,8 +20,6 @@ import teacherSectionReducer from '@/rtk/slices/admin/teacherSectionSlice'
 import { teacherSectionApi } from './api/admin/teacherSectionApis'
 import studentFeedbackReducer from '@/rtk/slices/admin/studentFeedbackslice'
 import { studentFeedbackApi } from '@/rtk/api/admin/studentFeedbackApis'
-import cardGeneratorReducer from '@/rtk/slices/admin/cardGeneratorSlice'
-import { cardGeneratorApi } from '@/rtk/api/admin/cardGeneratorApis'
 import { filterStudentListApi } from '@/rtk/api/admin/filterStudentListApis'
 import { scholarshipCodeGenerateApi } from '@/rtk/api/admin/scholarshipCodeGenerateApis'
 import scholarshipCodeGenerateReducer from '@/rtk/slices/admin/scholarshipCodeGenerateSlice'
@@ -48,7 +46,6 @@ export const store = configureStore({
     studentFileDownload: studentFileDownloadReducer,
     teacherSection: teacherSectionReducer,
     studentFeedback: studentFeedbackReducer,
-    cardGenerator: cardGeneratorReducer,
     uploadProgress: uploadProgressReducer,
     [authApi.reducerPath]: authApi.reducer,
     [managementCourseApi.reducerPath]: managementCourseApi.reducer,
@@ -60,7 +57,6 @@ export const store = configureStore({
     [studentFileDownloadApi.reducerPath]: studentFileDownloadApi.reducer,
     [teacherSectionApi.reducerPath]: teacherSectionApi.reducer,
     [studentFeedbackApi.reducerPath]: studentFeedbackApi.reducer,
-    [cardGeneratorApi.reducerPath]: cardGeneratorApi.reducer,
     [filterStudentListApi.reducerPath]: filterStudentListApi.reducer,
     [scholarshipCodeGenerateApi.reducerPath]: scholarshipCodeGenerateApi.reducer,
     scholarshipCodeGenerate: scholarshipCodeGenerateReducer,
@@ -110,7 +106,6 @@ export const store = configureStore({
       studentFileDownloadApi.middleware,
       teacherSectionApi.middleware,
       studentFeedbackApi.middleware,
-      cardGeneratorApi.middleware,
       filterStudentListApi.middleware,
       scholarshipCodeGenerateApi.middleware,
       giftCardGenerateApi.middleware,
