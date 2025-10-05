@@ -43,7 +43,7 @@ export default function SeriesFilterReuseable({
     () => seriesList.find((s) => s.id === selectedSeriesId),
     [seriesList, selectedSeriesId]
   )
-  const courseList = selectedSeries?.courses ?? []
+  const courseList = React.useMemo(() => selectedSeries?.courses ?? [], [selectedSeries?.courses])
 
   React.useEffect(() => {
     // When series changes, reset course if it doesn't belong to the new series

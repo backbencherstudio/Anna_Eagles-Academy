@@ -70,6 +70,13 @@ export default function Modules_Sidebar({
     };
   }, [loadAllVideoProgress]);
 
+  // Format time utility function
+  const formatTime = useCallback((seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  }, []);
+
   // Get progress for a specific video
   const getVideoProgressInfo = useCallback((videoId: string) => {
     const progress = videoProgress[videoId];
@@ -85,7 +92,7 @@ export default function Modules_Sidebar({
       totalTime,
       isCompleted: percentage >= 95
     };
-  }, [videoProgress]);
+  }, [videoProgress, formatTime]);
 
   // Check if a video is unlocked (previous video is completed)
   const isVideoUnlocked = useCallback((moduleIndex: number, videoIndex: number) => {
@@ -172,13 +179,6 @@ export default function Modules_Sidebar({
 
     return () => clearInterval(interval);
   }, [throttledLoadProgress]);
-
-  // Format time utility function
-  const formatTime = useCallback((seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  }, []);
 
   return (
     <div className={`bg-white overflow-y-auto max-h-[80vh] rounded-2xl shadow transition-all duration-500 ease-in-out ${isTheaterMode ? 'w-full p-6' : 'w-full lg:w-96 p-6'}`}>

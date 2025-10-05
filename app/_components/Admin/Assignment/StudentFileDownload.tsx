@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import ReusableTable from '@/components/Resuable/ReusableTable'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
@@ -32,7 +32,7 @@ export default function StudentFileDownload() {
 
     const { data, isFetching } = useGetAllStudentFileDownloadsQuery({ section_type, search, page, limit, series_id, course_id })
 
-    const items = data?.data?.students ?? data?.students ?? []
+    const items = useMemo(() => data?.data?.students ?? data?.students ?? [], [data?.data?.students, data?.students])
     const totalItems = (data?.data?.pagination?.total ?? data?.pagination?.total ?? items.length) as number
     const totalPages = (data?.data?.pagination?.totalPages ?? data?.pagination?.totalPages ?? Math.ceil((totalItems || 0) / (limit || 1))) as number
 
@@ -44,7 +44,7 @@ export default function StudentFileDownload() {
     }, [debouncedSearch, search, dispatch])
 
 
-    const handleViewDetails = (item: any) => {
+    const handleViewDetails = useCallback((item: any) => {
         if (loadingStates[item.id]) return
 
         setLoadingStates(prev => ({ ...prev, [item.id]: true }))
@@ -52,7 +52,7 @@ export default function StudentFileDownload() {
         setTimeout(() => {
             router.push(`/admin/student-file-download/${item.id}`)
         }, 100)
-    }
+    }, [loadingStates, router])
 
     const formatDateTime = (value: string) => {
         if (!value) return ''

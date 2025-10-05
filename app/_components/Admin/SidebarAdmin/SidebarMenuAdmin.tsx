@@ -23,7 +23,7 @@ import StudentFileIcon from '@/components/Icons/CustomIcon/DectiveIcon/StudentFi
 import UserManagementIcon from '@/components/Icons/CustomIcon/DectiveIcon/UserManagementIcon'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { FiSettings } from 'react-icons/fi'
 import { MdKeyboardArrowDown } from 'react-icons/md'
 
@@ -309,7 +309,7 @@ function NavLink({ item, isCollapsed, onMobileMenuClose, isDropdownOpen, onToggl
 
 
 export default function SideBarMenuAdmin({ role, isCollapsed, onMobileMenuClose }: SideBarMenuProps) {
-    const menuSections = MENU_CONFIG[role] || []
+    const menuSections = useMemo(() => MENU_CONFIG[role] || [], [role])
     const [openDropdowns, setOpenDropdowns] = useState<{ [key: string]: boolean }>({})
     const pathname = usePathname()
 

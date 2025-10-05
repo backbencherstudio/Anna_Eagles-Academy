@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { FileText, Eye, X, Maximize2, Minimize2 } from 'lucide-react'
@@ -73,9 +73,9 @@ export default function LectureSlides() {
         setIsFullscreen(false)
     }
 
-    const toggleFullscreen = () => {
+    const toggleFullscreen = useCallback(() => {
         setIsFullscreen(!isFullscreen)
-    }
+    }, [isFullscreen])
 
     const handleIframeError = () => {
         setPreviewError(true)
@@ -101,7 +101,7 @@ export default function LectureSlides() {
             document.addEventListener('keydown', handleKeyDown)
             return () => document.removeEventListener('keydown', handleKeyDown)
         }
-    }, [previewSlide, isFullscreen])
+    }, [previewSlide, isFullscreen, toggleFullscreen])
 
     return (
         <div className="space-y-6 bg-white rounded-xl p-4">

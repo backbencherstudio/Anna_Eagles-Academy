@@ -6,7 +6,7 @@ import { MdArrowForwardIos } from 'react-icons/md';
 import { FiLogOut } from 'react-icons/fi';
 import LoadingOverlay from '@/components/Resuable/LoadingOverlay';
 import Logo from '@/components/Icons/Logo';
-import { useAppDispatch } from '@/rtk/hooks';
+import { useAppDispatch, useAppSelector } from '@/rtk/hooks';
 import { useLogoutMutation } from '@/rtk/api/authApi';
 
 import SideBarMenuAdmin from './SidebarMenuAdmin';
@@ -22,12 +22,9 @@ export default function SidebarAdmin({ isMobileMenuOpen, onMobileMenuClose }: Si
     const dispatch = useAppDispatch();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [logout, { isLoading }] = useLogoutMutation();
-    const data = {
-        name: 'John Doe',
-        role: 'admin'
-    }
+    const user = useAppSelector((state) => state.auth.user);
 
-    if (!data?.role) {
+    if (!user?.role) {
         return null;
     }
 
@@ -108,7 +105,7 @@ export default function SidebarAdmin({ isMobileMenuOpen, onMobileMenuClose }: Si
 
                 {/* Main Navigation - Scrollable */}
                 <div className="flex-1 overflow-y-auto">
-                    <SideBarMenuAdmin role={data?.role as 'admin'} isCollapsed={isCollapsed} onMobileMenuClose={onMobileMenuClose} />
+                    <SideBarMenuAdmin role={user?.role as 'admin'} isCollapsed={isCollapsed} onMobileMenuClose={onMobileMenuClose} />
                 </div>
 
                 {/* Bottom Navigation - Logout - Fixed */}

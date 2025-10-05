@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { Loader2, Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import CourseCard from '@/app/_components/Admin/CourseManagement/CourseCard'
@@ -42,14 +42,14 @@ export default function CourseManagement() {
         limit: pagination.limit
     })
 
-    const courses = coursesData?.data?.series || []
+    const courses = useMemo(() => coursesData?.data?.series || [], [coursesData?.data?.series])
     const coursesPagination = coursesData?.data?.pagination || pagination
 
     const debouncedSearchQuery = useDebounce(localSearchInput, 500)
 
     useEffect(() => {
         setLocalSearchInput(searchQuery)
-    }, [])
+    }, [searchQuery])
 
     useEffect(() => {
         if (debouncedSearchQuery !== searchQuery) {

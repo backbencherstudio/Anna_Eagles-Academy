@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useMemo, useState } from 'react'
+import Image from 'next/image'
 import WriteReviewModal from './WriteReviewModal'
 import ButtonSpring from '@/components/Resuable/ButtonSpring'
 
@@ -142,7 +143,13 @@ export default function StudentFeedback() {
                         {/* Thumbnail */}
                         <div className="w-full h-28 rounded-xl overflow-hidden bg-gray-200 relative">
                             {item.thumbnail ? (
-                                <img src={item.thumbnail} alt={item.title} className="w-full h-full object-cover" />
+                                <Image 
+                                    src={item.thumbnail} 
+                                    alt={item.title} 
+                                    className="w-full h-full object-cover" 
+                                    width={400}
+                                    height={112}
+                                />
                             ) : null}
                             <div className="absolute inset-0 flex items-center justify-center">
                                 <div className="h-10 w-10 rounded-full bg-white/90 flex items-center justify-center shadow">
@@ -154,7 +161,13 @@ export default function StudentFeedback() {
                         {/* Meta */}
                         <div className="mt-3 flex items-center gap-2">
                             <div className="h-7 w-7 rounded-full overflow-hidden bg-gray-300">
-                                <img src={item.userAvatar || '/images/logo/withoutbg.png'} alt={item.userName} className="h-full w-full object-cover" />
+                                <Image 
+                                    src={item.userAvatar || '/images/logo/withoutbg.png'} 
+                                    alt={item.userName} 
+                                    className="h-full w-full object-cover" 
+                                    width={28}
+                                    height={28}
+                                />
                             </div>
                             <span className="text-sm font-semibold text-[#1D1F2C]">{item.userName}</span>
                         </div>

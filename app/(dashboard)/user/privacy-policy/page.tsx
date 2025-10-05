@@ -15,13 +15,13 @@ export default function PrivacyPolicy() {
         if (urlTab !== activeTab) {
             setActiveTab(urlTab)
         }
-    }, [searchParams])
+    }, [searchParams, activeTab])
 
     React.useEffect(() => {
         const sp = new URLSearchParams(searchParams.toString())
         sp.set('tab', activeTab)
         router.replace(`${pathname}?${sp.toString()}`, { scroll: false })
-    }, [activeTab, pathname])
+    }, [activeTab, pathname, router, searchParams])
 
     return (
         <div className="mx-auto w-full  p-4 rounded-lg space-y-6 py-6">
