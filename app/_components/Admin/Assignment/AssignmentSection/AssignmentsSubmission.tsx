@@ -28,17 +28,17 @@ export default function AssignmentsSubmission({ assignments }: AssignmentsSubmis
 
                         {/* Assignment title */}
                         <h3 className="font-semibold text-gray-900 text-xs sm:text-sm mb-2 line-clamp-2">
-                            {assignment.title}
+                            {assignment?.title}
                         </h3>
 
                         {/* Course info */}
                         <p className="text-sm text-gray-600">
-                            {assignment.course.title}
+                            {assignment?.course?.title || 'No course assigned'}
                         </p>
 
                         {/* Submission info */}
                         <p className="text-xs text-gray-500 mt-1">
-                            {assignment.submission_count || 0}/{assignment.total_students || 0} Submissions
+                            {assignment?.submission_count || 0}/{assignment?.total_students || 0} Submissions
                         </p>
                     </CardContent>
                 </Card>
