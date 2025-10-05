@@ -1,3 +1,4 @@
+'use client'
 import React from 'react';
 import { FaRegUser } from "react-icons/fa";
 import { FiLogOut } from "react-icons/fi";

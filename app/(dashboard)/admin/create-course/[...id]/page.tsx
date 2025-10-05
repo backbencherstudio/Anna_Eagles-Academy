@@ -95,7 +95,7 @@ export default function CreateNewCourse({ params }: PageProps) {
 
     // ==================== URL SYNC ====================
     useEffect(() => {
-        if (step !== stepFromUrl) setStep(stepFromUrl)
+        setStep(stepFromUrl)
     }, [stepFromUrl])
 
     useEffect(() => {

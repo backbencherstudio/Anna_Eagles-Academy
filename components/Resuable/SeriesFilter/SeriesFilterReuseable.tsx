@@ -38,7 +38,7 @@ export default function SeriesFilterReuseable({
   const [selectedSeriesId, setSelectedSeriesId] = React.useState<string | undefined>(defaultSeriesId)
   const [selectedCourseId, setSelectedCourseId] = React.useState<string | undefined>(defaultCourseId)
 
-  const seriesList: SeriesWithCourses[] = data?.data ?? []
+  const seriesList: SeriesWithCourses[] = React.useMemo(() => data?.data ?? [], [data?.data])
   const selectedSeries = React.useMemo(
     () => seriesList.find((s) => s.id === selectedSeriesId),
     [seriesList, selectedSeriesId]
@@ -54,7 +54,7 @@ export default function SeriesFilterReuseable({
     if (selectedCourseId && !courseList.some((c) => c.id === selectedCourseId)) {
       setSelectedCourseId(undefined)
     }
-  }, [selectedSeriesId])
+  }, [selectedSeriesId, courseList, selectedCourseId, selectedSeries])
 
   const handleSeriesChange = (value?: string) => {
     const next = value && value.length > 0 ? value : undefined

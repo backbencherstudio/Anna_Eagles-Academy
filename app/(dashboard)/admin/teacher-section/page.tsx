@@ -198,7 +198,7 @@ export default function TeacherSectionPage() {
       )
     }
     return (item as any)[header.key]
-  }, [setDialog])
+  }, [setDialog, dispatch])
 
   // Sync modal with URL (?videoModalOpen=true)
   React.useEffect(() => {

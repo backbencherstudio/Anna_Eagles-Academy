@@ -797,7 +797,7 @@ export default function TextAreaCustom({
       window.removeEventListener('scroll', checkDropdownPosition)
       window.removeEventListener('resize', checkDropdownPosition)
     }
-  }, [])
+  }, [resetFormattingStates])
 
   // Prevent dropdown from closing when clicking inside
   const handleDropdownClick = (e: React.MouseEvent) => {
@@ -871,7 +871,7 @@ export default function TextAreaCustom({
       editor.removeEventListener('click', handleClick)
       editor.removeEventListener('keydown', handleKeyDown)
     }
-  }, [])
+  }, [handleRedo, handleUndo])
 
   // Add styles for links when editor is focused
   useEffect(() => {

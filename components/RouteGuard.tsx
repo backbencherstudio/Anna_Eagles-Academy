@@ -78,10 +78,10 @@ export default function RouteGuard({
       }
 
       if (isAuthenticated && user && allowedRoles.length > 0) {
-        const hasRequiredRole = allowedRoles.includes(user.role);
+        const hasRequiredRole = allowedRoles.includes(user?.role);
 
         if (!hasRequiredRole) {
-          if (user.role === 'admin') {
+          if (user?.role === 'admin') {
             router.push('/admin/dashboard');
           } else {
             router.push('/user/dashboard');
@@ -134,7 +134,7 @@ export default function RouteGuard({
     );
   }
 
-  if (!requireAuth || (isAuthenticated && user && allowedRoles.includes(user.role))) {
+  if (!requireAuth || (isAuthenticated && user && allowedRoles.includes(user?.role))) {
     return <>{children}</>;
   }
 

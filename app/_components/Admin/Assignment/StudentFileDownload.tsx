@@ -118,7 +118,7 @@ export default function StudentFileDownload() {
                 )
             }
         })
-    }, [items, loadingStates])
+    }, [items, loadingStates, handleViewDetails])
 
     return (
         <div className="bg-white rounded-lg p-6 border border-gray-100">

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Download } from 'lucide-react'
 import TinyMCEeditor from '@/components/Resuable/TinyMCEeditor'
+import Image from 'next/image'
 const Img1 = '/images/gift_image/image1.png'
 const Img2 = '/images/gift_image/image2.png'
 const Img3 = '/images/gift_image/image3.png'
@@ -257,10 +258,11 @@ export default function CardGenerator() {
                     >
                         <div className="absolute inset-0" style={{ transform: `scale(${bgScale})`, transformOrigin: `${bgPosX}% ${bgPosY}%` }}>
                             <div className="absolute inset-0">
-                                <img
+                                <Image
                                     src={backgroundSrc}
                                     alt="Card background"
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                                    fill
+                                    style={{ objectFit: 'cover' }}
                                     onLoad={() => setExportImageLoaded(true)}
                                 />
                             </div>
@@ -317,10 +319,11 @@ export default function CardGenerator() {
                         {/* Maintain a consistent 3:2 aspect ratio in preview to match export (1200x800) */}
                         <div className="relative w-full aspect-[3/2]" style={{ width: '100%', height: 'auto' }}>
                             <div className="absolute inset-0" style={{ transform: `scale(${bgScale})`, transformOrigin: `${bgPosX}% ${bgPosY}%` }}>
-                                <img
+                                <Image
                                     src={backgroundSrc}
                                     alt="Card background"
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                                    fill
+                                    style={{ objectFit: 'cover' }}
                                 />
                             </div>
                         </div>

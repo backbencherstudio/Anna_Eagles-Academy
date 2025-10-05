@@ -223,7 +223,7 @@ export default function MainNotification({ isOpen = true, onClose, isDropdown = 
             notification.role === user?.role || !notification.role
         );
         setNotifications(updatedFilteredNotifications);
-    }, [user?.role]);
+    }, [user?.role, allNotifications, setNotifications]);
 
     // Close notification dropdown when clicking outside (only for dropdown mode)
     useEffect(() => {
