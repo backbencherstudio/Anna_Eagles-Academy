@@ -9,10 +9,10 @@ interface NotificationItem {
 }
 
 export const useNotificationCount = () => {
-    const user = {
-        role: 'user'
-    }
     const [notificationCount, setNotificationCount] = useState(0);
+    
+    // Mock user role - in a real app, this would come from auth context/state
+    const userRole = 'user';
 
     // All notifications with role-based filtering
     const allNotifications: NotificationItem[] = [
@@ -31,7 +31,7 @@ export const useNotificationCount = () => {
     // Calculate notification count based on user role
     const calculateNotificationCount = () => {
         const roleBasedNotifications = allNotifications.filter(notification =>
-            notification.role === user?.role || !notification.role
+            notification.role === userRole || !notification.role
         );
         return roleBasedNotifications.length;
     };
@@ -39,7 +39,7 @@ export const useNotificationCount = () => {
     // Update notification count when user role changes
     useEffect(() => {
         setNotificationCount(calculateNotificationCount());
-    }, [user?.role]);
+    }, [userRole]);
 
     return notificationCount;
 };

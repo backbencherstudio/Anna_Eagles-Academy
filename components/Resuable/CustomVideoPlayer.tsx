@@ -215,7 +215,7 @@ export default function CustomVideoPlayer({
         return () => {
             if (controlsTimeout) clearTimeout(controlsTimeout);
         };
-    }, [mouseInControls, playing, isTheaterMode]);
+    }, [mouseInControls, playing, isTheaterMode, controlsTimeout]);
 
 
     useEffect(() => {
@@ -529,7 +529,7 @@ export default function CustomVideoPlayer({
             video.removeEventListener('error', handleError);
             video.removeEventListener('abort', handleAbort);
         };
-    }, [getNetworkStateMessage, onNetworkStateChange, playing, currentTime]);
+    }, [getNetworkStateMessage, onNetworkStateChange, playing, currentTime, autoPlay, isMuted]);
 
 
 

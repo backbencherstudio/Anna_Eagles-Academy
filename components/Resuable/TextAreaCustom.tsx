@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react'
+import React, { useRef, useEffect, useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { Bold, Italic, Underline, Link, List, AlignLeft, AlignCenter, AlignRight, AlignJustify, ChevronDown, Undo, Redo, Type, ListChecks, Highlighter } from 'lucide-react'
 
@@ -152,7 +152,7 @@ export default function TextAreaCustom({
     handleEditorChange()
   }
 
-  const handleUndo = () => {
+  const handleUndo = useCallback(() => {
     editorRef.current?.focus()
     document.execCommand('undo', false)
     handleEditorChange()
@@ -160,9 +160,9 @@ export default function TextAreaCustom({
     setTimeout(() => {
       checkFormattingState()
     }, 10)
-  }
+  }, [])
 
-  const handleRedo = () => {
+  const handleRedo = useCallback(() => {
     editorRef.current?.focus()
     document.execCommand('redo', false)
     handleEditorChange()
@@ -170,7 +170,7 @@ export default function TextAreaCustom({
     setTimeout(() => {
       checkFormattingState()
     }, 10)
-  }
+  }, [])
 
   const handleEditorChange = () => {
     if (editorRef.current) {
@@ -185,7 +185,7 @@ export default function TextAreaCustom({
     }
   }
 
-  const resetFormattingStates = () => {
+  const resetFormattingStates = useCallback(() => {
     // Reset all formatting states when clicking outside or losing focus
     const selection = window.getSelection()
     
@@ -227,7 +227,7 @@ export default function TextAreaCustom({
 
     // If we have a valid selection within editor, check actual formatting
     checkFormattingState()
-  }
+  }, [])
 
   const checkFormattingState = () => {
     if (editorRef.current) {
@@ -931,7 +931,7 @@ export default function TextAreaCustom({
         style.remove()
       }
     }
-  }, [])
+  }, [resetFormattingStates])
 
   return (
     <div className={`space-y-2 ${className}`}>

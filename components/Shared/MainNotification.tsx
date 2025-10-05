@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 
@@ -40,7 +40,7 @@ export default function MainNotification({ isOpen = true, onClose, isDropdown = 
     const [showAll, setShowAll] = useState(false);
 
     // All notifications with role-based filtering
-    const allNotifications: NotificationItem[] = [
+    const allNotifications: NotificationItem[] = useMemo(() => [
         // Student notifications
         {
             id: '1',
@@ -198,7 +198,7 @@ export default function MainNotification({ isOpen = true, onClose, isDropdown = 
             icon: <TrendingUp className="w-5 h-5 text-[#725dff]" />,
             role: 'admin'
         }
-    ];
+    ], []);
 
     // Filter notifications based on user role
     const filteredNotifications = allNotifications.filter(notification =>
