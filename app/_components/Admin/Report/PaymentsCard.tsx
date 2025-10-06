@@ -8,7 +8,7 @@ import FullyPaidTable from './Payments/FullyPaidTable'
 import SponsoredTable from './Payments/SponsoredTable'
 import FreeEnrolledTable from './Payments/FreeEnrolledTable'
 import { useGetPaymentOverviewQuery } from '@/rtk/api/admin/reportApis'
-import { useAppSelector } from '@/rtk/hooks'
+ import { useAppSelector } from '@/rtk/hooks'
 
 // Tab configuration data
 const tabData = [

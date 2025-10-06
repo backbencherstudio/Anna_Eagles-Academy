@@ -8,7 +8,7 @@ import { authApi } from '@/rtk/api/authApi'
 import { managementCourseApi } from './api/admin/managementCourseApis'
 import { manageMaterialsApi } from './api/admin/manageMaterialsApis'
 import { courseFilterApi } from './api/admin/courseFilterApis'
-import { reportApi, seriesProgressApi, paymentOverviewApi } from '@/rtk/api/admin/reportApis'
+import { reportApi, seriesProgressApi, paymentOverviewApi, enrollmentDataApi   } from '@/rtk/api/admin/reportApis'
 import reportReducer from '@/rtk/slices/admin/reportSlice'
 import { quizApi } from './api/admin/quizApis'
 import { assignmentApi } from './api/admin/assignmentApis'
@@ -74,6 +74,7 @@ export const store = configureStore({
     [reportApi.reducerPath]: reportApi.reducer,
     [seriesProgressApi.reducerPath]: seriesProgressApi.reducer,
     [paymentOverviewApi.reducerPath]: paymentOverviewApi.reducer,
+    [enrollmentDataApi.reducerPath]: enrollmentDataApi.reducer,
   },
 
 
@@ -124,6 +125,7 @@ export const store = configureStore({
       reportApi.middleware,
       seriesProgressApi.middleware,
       paymentOverviewApi.middleware,
+      enrollmentDataApi.middleware,
     ),
 })
 

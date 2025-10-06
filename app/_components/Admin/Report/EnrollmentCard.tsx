@@ -3,13 +3,18 @@
 import React from 'react'
 import ReusableTable from '@/components/Resuable/ReusableTable'
 import { IoLogoWhatsapp } from 'react-icons/io'
+import { useGetEnrollmentDataQuery } from '@/rtk/api/admin/reportApis'
+import { useAppSelector } from '@/rtk/hooks'
+import Image from 'next/image'
 
 type EnrollmentRow = {
-  id: number
+  id: string
   studentName: string
   birthday: string
   email: string
   number: string
+  phoneNumber?: string
+  whatsappNumber?: string
   hasWhatsapp?: boolean
   address: string
   course: string
@@ -17,6 +22,7 @@ type EnrollmentRow = {
   registrationDate: string
   bootcampDates: string
   enrollment: string
+  avatarUrl?: string
 }
 
 const headers = [
@@ -32,68 +38,15 @@ const headers = [
   { key: 'enrollment', label: 'Enrollment', sortable: true },
 ]
 
-// Demo data declared at top (replace with API when available)
-const rows: EnrollmentRow[] = [
-  {
-    id: 1,
-    studentName: 'Savannah Nguyen',
-    birthday: 'Feb 9, 2015',
-    email: 'kenzi.lawson@example.com',
-    number: '+44 7946 123456',
-    hasWhatsapp: true,
-    address: '3891 Ranchview Dr. Richardson, California 62639',
-    course: 'Foundations of Faith',
-    type: 'Bootcamp',
-    registrationDate: '2024-07-15',
-    bootcampDates: 'Start: 2024-09-01, End: 2024-12-01',
-    enrollment: 'Free Enrolled',
-  },
-  {
-    id: 2,
-    studentName: 'Robert Fox',
-    birthday: 'May 6, 2012',
-    email: 'sara.cruz@example.com',
-    number: '+880 1712 345678',
-    hasWhatsapp: false,
-    address: '2715 Ash Dr. San Jose, South Dakota 83475',
-    course: 'The Life and Teachings of Jesus',
-    type: 'Regular',
-    registrationDate: '2024-07-20',
-    bootcampDates: 'N/A',
-    enrollment: 'Fully Paid',
-  },
-  {
-    id: 3,
-    studentName: 'Cameron Williamson',
-    birthday: 'September 9, 2013',
-    email: 'georgia.young@example.com',
-    number: '+86 1712 345678',
-    hasWhatsapp: true,
-    address: '4140 Parker Rd. Allentown, New Mexico 31134',
-    course: 'Leadership & Service',
-    type: 'Regular',
-    registrationDate: '2024-08-01',
-    bootcampDates: 'N/A',
-    enrollment: 'Sponsored',
-  },
-  {
-    id: 4,
-    studentName: 'Wade Warren',
-    birthday: 'November 28, 2015',
-    email: 'nathan.roberts@example.com',
-    number: '+91 1712 345678',
-    hasWhatsapp: false,
-    address: '8502 Preston Rd. Inglewood, Maine 98380',
-    course: 'Meditation & Spiritual Practices',
-    type: 'Regular',
-    registrationDate: '2024-08-08',
-    bootcampDates: 'Start: 2024-09-01, End: 2024-12-01',
-    enrollment: 'Free Enrolled',
-  },
-]
-
+// Fetch + Slice wiring
 export default function EnrollmentCard() {
-  const [isLoading, setIsLoading] = React.useState(true)
+  const [page, setPage] = React.useState(1)
+  const [limit, setLimit] = React.useState(5)
+  const params = { page, limit }
+  const { isFetching } = useGetEnrollmentDataQuery(params)
+  const enrollmentData = useAppSelector((s) => s.report.enrollmentData)
+
+  const [isLoading, setIsLoading] = React.useState(!enrollmentData)
 
   const buildWhatsappLink = (raw: string) => {
     const digits = raw.replace(/[^\d]/g, '')
@@ -101,39 +54,109 @@ export default function EnrollmentCard() {
   }
 
   React.useEffect(() => {
-    const t = setTimeout(() => setIsLoading(false), 500)
+    const t = setTimeout(() => setIsLoading(false), 300)
     return () => clearTimeout(t)
-  }, [])
+  }, [enrollmentData])
+
+  const rows: EnrollmentRow[] = (enrollmentData?.items ?? []).map((item: any) => ({
+    id: item?.id ?? String(Math.random()),
+    studentName: item?.user?.name ?? 'N/A',
+    birthday: item?.user?.date_of_birth ?? 'N/A',
+    email: item?.user?.email ?? 'N/A',
+    number: item?.user?.phone_number || item?.user?.phone || item?.user?.number || 'N/A',
+    phoneNumber: item?.user?.phone_number || item?.user?.phone || item?.user?.number || undefined,
+    whatsappNumber: item?.user?.whatsapp_number || undefined,
+    hasWhatsapp: !!(item?.user?.whatsapp_number),
+    address: item?.user?.address || 'N/A',
+    course: item?.series?.title ?? 'N/A',
+    type: item?.series?.course_type || item?.type || item?.enroll_type || 'N/A',
+    registrationDate: (item?.registered_at || item?.created_at || item?.updated_at)
+      ? new Date(item?.registered_at || item?.created_at || item?.updated_at).toISOString().slice(0, 10)
+      : 'N/A',
+    bootcampDates:
+      (item?.series?.course_type || '').toLowerCase() === 'bootcamp' && item?.series?.start_date && item?.series?.end_date
+        ? `Start: ${new Date(item.series.start_date).toISOString().slice(0, 10)}\nEnd: ${new Date(item.series.end_date).toISOString().slice(0, 10)}`
+        : 'N/A',
+      enrollment: item?.enroll_type || 'N/A',
+    avatarUrl: item?.user?.avatar_url || undefined,
+  }))
 
   const transformedStudentData = rows.map(item => ({
     ...item,
-    number: item.hasWhatsapp ? (
-      <a
-        href={buildWhatsappLink(item.number)}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center gap-2 text-green-600 hover:underline hover:text-green-700 transition-colors duration-200"
-        title="Click to open WhatsApp"
-      >
-        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-100 hover:bg-green-200 transition-colors duration-200">
-          <IoLogoWhatsapp className="text-green-600 text-sm" />
-        </span>
-        {item.number}
-      </a>
-    ) : (
-      <span className="text-gray-900">{item.number}</span>
+    bootcampDates: (
+      <span className="whitespace-pre-line">{item.bootcampDates}</span>
     ),
+    studentName: (
+      <div className="flex items-center gap-3">
+        {item.avatarUrl ? (
+          <Image
+            width={40}
+            height={40}
+            src={item.avatarUrl}
+            alt={item.studentName}
+            className="w-10 h-10 rounded-full object-cover"
+          />
+        ) : (
+          <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 text-sm font-medium">
+            {item.studentName?.charAt(0)?.toUpperCase() || 'U'}
+          </div>
+        )}
+        <div className="flex flex-col">
+          <span className="font-medium capitalize">{item.studentName}</span>
+          <span className="text-xs text-gray-500">{item.email}</span>
+        </div>
+      </div>
+    ),
+    number: (() => {
+      const pieces: React.ReactNode[] = []
+      if (item.whatsappNumber) {
+        pieces.push(
+          <a
+            key="wa"
+            href={buildWhatsappLink(item.whatsappNumber)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-green-600 hover:underline hover:text-green-700 transition-colors duration-200"
+            title="Click to open WhatsApp"
+          >
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-100 hover:bg-green-200 transition-colors duration-200">
+              <IoLogoWhatsapp className="text-green-600 text-sm" />
+            </span>
+            {item.whatsappNumber}
+          </a>
+        )
+      }
+      if (item.phoneNumber) {
+        pieces.push(
+          <span key="ph" className="text-gray-900">{item.phoneNumber}</span>
+        )
+      }
+      if (pieces.length === 0) {
+        return <span className="text-gray-500">N/A</span>
+      }
+      return (
+        <div className="flex flex-col gap-1">
+          {pieces.map((p, idx) => (
+            <div key={idx}>{p}</div>
+          ))}
+        </div>
+      )
+    })(),
     enrollment: (
       <span className={`px-3 py-1 rounded-full text-xs font-medium ${item.enrollment.includes('Fully') ? 'text-green-700 bg-green-50' :
-          item.enrollment.includes('Free') ? 'text-amber-700 bg-amber-50' :
-            'text-blue-700 bg-blue-50'
+        item.enrollment.includes('Free') ? 'text-amber-700 bg-amber-50' :
+          'text-blue-700 bg-blue-50'
         }`}>
         {item.enrollment}
       </span>
     ),
     type: (
-      <span className={`px-3 py-1 rounded-full text-xs font-medium ${item.type === 'Bootcamp' ? 'text-purple-700 bg-purple-50' : 'text-gray-700 bg-gray-100'
-        }`}>
+      <span
+        className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${(item.type || '').toLowerCase() === 'bootcamp'
+            ? 'text-[#AD0AFD] bg-[#EFCEFF]'
+            : 'text-gray-700 bg-gray-100'
+          }`}
+      >
         {item.type}
       </span>
     )
@@ -147,10 +170,16 @@ export default function EnrollmentCard() {
       <ReusableTable
         headers={headers}
         data={transformedStudentData}
-        itemsPerPage={5}
         itemsPerPageOptions={[5, 8, 10, 15]}
         showPagination
-        isLoading={isLoading}
+        serverControlled={true}
+        currentPage={enrollmentData?.pagination?.page ?? page}
+        totalPages={enrollmentData?.pagination?.totalPages ?? 0}
+        totalItems={enrollmentData?.pagination?.total ?? 0}
+        itemsPerPage={enrollmentData?.pagination?.limit ?? limit}
+        onPageChange={setPage}
+        onItemsPerPageChange={setLimit}
+        isLoading={isLoading || isFetching}
       />
     </div>
   )

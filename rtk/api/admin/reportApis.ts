@@ -63,3 +63,26 @@ export const paymentOverviewApi = createApi({
 });
 
 export const { useGetPaymentOverviewQuery } = paymentOverviewApi;
+
+
+// enrollment data api
+export const enrollmentDataApi = createApi({
+    reducerPath: 'enrollmentDataApi',
+    baseQuery: createAuthBaseQuery(),
+    tagTypes: ['EnrollmentData'],
+    endpoints: (builder) => ({
+
+        
+        // get enrollment data
+        getEnrollmentData: builder.query({
+            query: (params?: Record<string, any>) => ({ 
+                url: '/api/admin/report/enrollments',
+                method: 'GET',
+                params,
+            }),
+            providesTags: ['EnrollmentData'],
+        }),
+    }),
+});
+
+export const { useGetEnrollmentDataQuery } = enrollmentDataApi;

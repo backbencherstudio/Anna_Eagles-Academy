@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { reportApi, paymentOverviewApi } from '@/rtk/api/admin/reportApis'
+import { reportApi, paymentOverviewApi, enrollmentDataApi } from '@/rtk/api/admin/reportApis'
 
 type WebsiteUsage = {
   daily_users: number
@@ -23,11 +23,16 @@ type ReportState = {
     sponsored: { items: any[]; pagination: any }
     free_enrolled: { items: any[]; pagination: any }
   } | null
+  enrollmentData: {
+    items: any[]
+    pagination: any
+  } | null
 }
 
 const initialState: ReportState = {
   websiteUsage: null,
   paymentOverview: null,
+  enrollmentData: null,
 }
 
 const reportSlice = createSlice({
@@ -52,6 +57,27 @@ const reportSlice = createSlice({
         }>
       ) => {
         state.paymentOverview = action.payload?.data ?? null
+      }
+    )
+    builder.addMatcher(
+      enrollmentDataApi.endpoints.getEnrollmentData.matchFulfilled,
+      (
+        state,
+        action: PayloadAction<{
+          success: boolean
+          message: string
+          data: any
+        }>
+      ) => {
+        const apiData = action.payload?.data
+        if (apiData) {
+          state.enrollmentData = {
+            items: apiData.enrollments ?? [],
+            pagination: apiData.pagination ?? null,
+          }
+        } else {
+          state.enrollmentData = null
+        }
       }
     )
   },
