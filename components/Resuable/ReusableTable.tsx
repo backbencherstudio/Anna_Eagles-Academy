@@ -26,10 +26,11 @@ interface TableHeader {
 }
 
 interface TableAction {
-    label: string
+    label: string | ((item: any) => string)
     icon: React.ReactNode
     onClick: (item: any) => void
     variant?: "default" | "destructive"
+    isLoading?: (item: any) => boolean
 }
 
 interface ReusableTableProps {
@@ -273,9 +274,10 @@ export default function ReusableTable({
                                             key={index}
                                             onClick={() => action.onClick(item)}
                                             className={action.variant === "destructive" ? "text-red-600 cursor-pointer" : "cursor-pointer"}
+                                            disabled={action.isLoading?.(item)}
                                         >
                                             {action.icon}
-                                            {action.label}
+                                            {typeof action.label === 'function' ? action.label(item) : action.label}
                                         </DropdownMenuItem>
                                     ))}
                                 </DropdownMenuContent>
@@ -304,9 +306,10 @@ export default function ReusableTable({
                                     key={index}
                                     onClick={() => action.onClick(item)}
                                     className={action.variant === "destructive" ? "text-red-600 cursor-pointer" : "cursor-pointer"}
+                                    disabled={action.isLoading?.(item)}
                                 >
                                     {action.icon}
-                                    {action.label}
+                                    {typeof action.label === 'function' ? action.label(item) : action.label}
                                 </DropdownMenuItem>
                             ))}
                         </DropdownMenuContent>

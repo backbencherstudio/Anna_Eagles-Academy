@@ -29,6 +29,8 @@ import uploadProgressReducer from '@/rtk/slices/uploadProgressSlice'
 
 import studentsQuestionReducer from '@/rtk/slices/admin/studentsQuestionSlice'
 import { studentsQuestionApi } from './api/admin/studentsQuestionApis'
+import studentManagementReducer from '@/rtk/slices/admin/studentManagementSlice'
+import { studentManagementApi } from './api/admin/studentManagementApis'
 
 
 export const store = configureStore({
@@ -64,6 +66,8 @@ export const store = configureStore({
     giftCardGenerate: giftCardGenerateReducer,
     studentsQuestion: studentsQuestionReducer,
     [studentsQuestionApi.reducerPath]: studentsQuestionApi.reducer,
+    studentManagement: studentManagementReducer,
+    [studentManagementApi.reducerPath]: studentManagementApi.reducer,
   },
 
 
@@ -110,6 +114,7 @@ export const store = configureStore({
       scholarshipCodeGenerateApi.middleware,
       giftCardGenerateApi.middleware,
       studentsQuestionApi.middleware,
+      studentManagementApi.middleware,
     ),
 })
 

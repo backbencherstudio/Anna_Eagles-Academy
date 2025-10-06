@@ -1,60 +1,134 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Search } from 'lucide-react'
 import TextAreaCustom from '@/components/Resuable/TextAreaCustom'
+import { useGetAllStudentListQuery } from '@/rtk/api/admin/filterStudentListApis'
+import { useEmailNotificationMutation } from '@/rtk/api/admin/studentManagementApis'
+import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
+import { setSearch } from '@/rtk/slices/admin/studentManagementSlice'
+import toast from 'react-hot-toast'
 
 interface Student {
-    id: number
-    fullName: string
+    id: string
+    name: string
     email: string
-    avatar: string
-    completionStatus: number
-    submittedAssignments: number
-    enrollmentStatus: string
 }
 
-export default function EmailNotification() {
-    const [students, setStudents] = useState<Student[]>([])
-    const [selectedRecipient, setSelectedRecipient] = useState<string>('')
-    const [message, setMessage] = useState<string>('')
-    const [searchQuery, setSearchQuery] = useState('')
+interface EmailNotificationProps {
+    studentId?: string
+}
 
+export default function EmailNotification({ studentId }: EmailNotificationProps) {
+    const [selectedRecipient, setSelectedRecipient] = useState('')
+    const [message, setMessage] = useState('')
+    const [isSending, setIsSending] = useState(false)
+
+    const dispatch = useAppDispatch()
+    const { search } = useAppSelector((state) => state.studentManagement)
+    const { data, isFetching, error } = useGetAllStudentListQuery(undefined)
+    const [sendEmailNotification] = useEmailNotificationMutation()
+    const students = data || []
+
+    // Pre-select student if studentId is provided
     useEffect(() => {
-        // Fetch student data from the JSON file
-        const fetchStudents = async () => {
-            try {
-                const response = await fetch('/data/UserManagement.json')
-                const data = await response.json()
-                setStudents(data)
-                // console.log('Students data loaded:', data)
-            } catch (error) {
-                console.error('Error fetching students:', error)
+        if (studentId && students.length > 0) {
+            const student = students.find((s: Student) => s.id === studentId)
+            if (student) {
+                setSelectedRecipient(student.email)
             }
         }
+    }, [studentId, students])
 
-        fetchStudents()
-    }, [])
+    const handleSend = async () => {
+        if (!message.trim()) {
+            toast.error('Please enter a message')
+            return
+        }
 
-    const handleSend = () => {
-        // console.log('=== EMAIL NOTIFICATION DATA ===')
-        // console.log('Recipient:', selectedRecipient)
-        // console.log('Message (HTML):', message)
-        // console.log('Full Editor Data:', {
-        //     recipient: selectedRecipient,
-        //     messageHTML: message
-        // })
-        // Add your email sending logic here
+        if (selectedRecipient === 'everyone') {
+            // Send to all students
+            setIsSending(true)
+            try {
+                let successCount = 0
+                let errorCount = 0
+                
+                for (const student of students) {
+                    try {
+                        const response = await sendEmailNotification({
+                            student_id: student.id,
+                            message: message
+                        }).unwrap()
+                        
+                        if (response.success) {
+                            successCount++
+                        } else {
+                            errorCount++
+                        }
+                    } catch (error) {
+                        errorCount++
+                    }
+                }
+                
+                if (successCount > 0) {
+                    toast.success(`Email notifications sent to ${successCount} students successfully!`)
+                }
+                if (errorCount > 0) {
+                    toast.error(`Failed to send ${errorCount} email notifications`)
+                }
+                
+                setMessage('')
+                setSelectedRecipient('')
+            } catch (error) {
+                console.error('Error sending email notifications:', error)
+                toast.error('Failed to send email notifications')
+            } finally {
+                setIsSending(false)
+            }
+        } else if (selectedRecipient) {
+            // Send to specific student
+            const student = students.find((s: Student) => s.email === selectedRecipient)
+            if (student) {
+                setIsSending(true)
+                try {
+                    const response = await sendEmailNotification({
+                        student_id: student.id,
+                        message: message
+                    }).unwrap()
+                    
+                    if (response.success) {
+                        toast.success(response.message || `Email notification sent to ${student.name} successfully!`)
+                    } else {
+                        toast.error('Failed to send email notification')
+                    }
+                    
+                    setMessage('')
+                    setSelectedRecipient('')
+                } catch (error) {
+                    console.error('Error sending email notification:', error)
+                    toast.error('Failed to send email notification')
+                } finally {
+                    setIsSending(false)
+                }
+            }
+        } else {
+            toast.error('Please select a recipient')
+        }
     }
 
-    // Filter students based on search query
-    const filteredStudents = students.filter(student =>
-        student.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        student.email.toLowerCase().includes(searchQuery.toLowerCase())
+    // Filter students based on search query from Redux state
+    const filteredStudents = students.filter((student: Student) =>
+        student.name.toLowerCase().includes(search.toLowerCase()) ||
+        student.email.toLowerCase().includes(search.toLowerCase())
     )
+
+    // Handle search input change
+    const handleSearchChange = (value: string) => {
+        dispatch(setSearch(value))
+    }
 
     return (
         <div className='bg-white rounded-xl p-5'>
@@ -63,8 +137,8 @@ export default function EmailNotification() {
                 <div className="space-y-2">
                     <Label htmlFor="recipient">To</Label>
                     <Select value={selectedRecipient} onValueChange={setSelectedRecipient}>
-                        <SelectTrigger className="w-full" >
-                            <SelectValue placeholder="Everyone" />
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder={isFetching ? "Loading students..." : "Everyone"} />
                         </SelectTrigger>
                         <SelectContent className="max-h-80">
                             {/* Search Input */}
@@ -73,19 +147,27 @@ export default function EmailNotification() {
                                 <input
                                     type="text"
                                     placeholder="Search students..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    value={search}
+                                    onChange={(e) => handleSearchChange(e.target.value)}
                                     className="flex-1 bg-transparent border-none outline-none text-sm placeholder:text-gray-400"
                                     onClick={(e) => e.stopPropagation()}
                                 />
                             </div>
 
                             <SelectItem value="everyone" className="py-1">Everyone</SelectItem>
-                            {filteredStudents.map((student) => (
-                                <SelectItem key={student.id} value={student.email} className="py-1">
-                                    {student.fullName} ({student.email})
-                                </SelectItem>
-                            ))}
+                            {isFetching ? (
+                                <div className="px-3 py-2 text-sm text-gray-500">Loading students...</div>
+                            ) : error ? (
+                                <div className="px-3 py-2 text-sm text-red-500">Error loading students</div>
+                            ) : filteredStudents.length === 0 ? (
+                                <div className="px-3 py-2 text-sm text-gray-500">No students found</div>
+                            ) : (
+                                filteredStudents.map((student: Student) => (
+                                    <SelectItem key={student.id} value={student.email} className="py-1">
+                                        {student.name} ({student.email})
+                                    </SelectItem>
+                                ))
+                            )}
                         </SelectContent>
                     </Select>
                 </div>
@@ -103,9 +185,10 @@ export default function EmailNotification() {
                 <div className="flex justify-end">
                     <Button
                         onClick={handleSend}
-                        className="bg-[#0F2598] hover:bg-[#0F2598]/80 cursor-pointer text-white px-8 py-2 rounded-md"
+                        disabled={isSending}
+                        className="bg-[#0F2598] hover:bg-[#0F2598]/80 text-white px-8 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Send
+                        {isSending ? 'Sending...' : 'Send'}
                     </Button>
                 </div>
             </div>
