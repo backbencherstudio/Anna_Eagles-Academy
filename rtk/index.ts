@@ -8,6 +8,8 @@ import { authApi } from '@/rtk/api/authApi'
 import { managementCourseApi } from './api/admin/managementCourseApis'
 import { manageMaterialsApi } from './api/admin/manageMaterialsApis'
 import { courseFilterApi } from './api/admin/courseFilterApis'
+import { reportApi, seriesProgressApi, paymentOverviewApi } from '@/rtk/api/admin/reportApis'
+import reportReducer from '@/rtk/slices/admin/reportSlice'
 import { quizApi } from './api/admin/quizApis'
 import { assignmentApi } from './api/admin/assignmentApis'
 import assignmentEvaluationReducer from '@/rtk/slices/admin/assignmentEvaluationSlice'
@@ -25,7 +27,7 @@ import { scholarshipCodeGenerateApi } from '@/rtk/api/admin/scholarshipCodeGener
 import scholarshipCodeGenerateReducer from '@/rtk/slices/admin/scholarshipCodeGenerateSlice'
 import { giftCardGenerateApi } from '@/rtk/api/admin/giftCardGenerateApis'
 import giftCardGenerateReducer from '@/rtk/slices/admin/giftCardGenerateSlice'
-import uploadProgressReducer from '@/rtk/slices/uploadProgressSlice'
+import uploadProgressReducer from '@/rtk/slices/admin/uploadProgressSlice'
 
 import studentsQuestionReducer from '@/rtk/slices/admin/studentsQuestionSlice'
 import { studentsQuestionApi } from './api/admin/studentsQuestionApis'
@@ -49,6 +51,7 @@ export const store = configureStore({
     teacherSection: teacherSectionReducer,
     studentFeedback: studentFeedbackReducer,
     uploadProgress: uploadProgressReducer,
+    report: reportReducer,
     [authApi.reducerPath]: authApi.reducer,
     [managementCourseApi.reducerPath]: managementCourseApi.reducer,
     [manageMaterialsApi.reducerPath]: manageMaterialsApi.reducer,
@@ -68,6 +71,9 @@ export const store = configureStore({
     [studentsQuestionApi.reducerPath]: studentsQuestionApi.reducer,
     studentManagement: studentManagementReducer,
     [studentManagementApi.reducerPath]: studentManagementApi.reducer,
+    [reportApi.reducerPath]: reportApi.reducer,
+    [seriesProgressApi.reducerPath]: seriesProgressApi.reducer,
+    [paymentOverviewApi.reducerPath]: paymentOverviewApi.reducer,
   },
 
 
@@ -115,6 +121,9 @@ export const store = configureStore({
       giftCardGenerateApi.middleware,
       studentsQuestionApi.middleware,
       studentManagementApi.middleware,
+      reportApi.middleware,
+      seriesProgressApi.middleware,
+      paymentOverviewApi.middleware,
     ),
 })
 

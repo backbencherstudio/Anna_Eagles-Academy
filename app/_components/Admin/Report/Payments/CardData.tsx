@@ -1,32 +1,39 @@
 'use client'
 import ChartBarIcon from '@/components/Icons/ChartBarIcon'
 import { Card, CardContent } from '@/components/ui/card'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import CardShimmerEffect from '../ShimmerEffect/CardShimmerEffect'
 import StudentIcon from '@/components/Icons/payments/StudentIcon'
 import PaidIcon from '@/components/Icons/payments/PaidIcon'
 import SponsoredIcon from '@/components/Icons/payments/SponsoredIcon'
 import FreeInrolledIcon from '@/components/Icons/payments/FreeInrolledIcon'
+import { useAppSelector } from '@/rtk/hooks'
 
-// User statistics data
-const userStats = {
-    dailyUsers: 280,
-    weeklyUsers: 1680,
-    monthlyUsers: 6720,
-    totalVisits: 3487
-}
+// Map totals to local metric ids
+const mapTotals = (totals: {
+    total_students: number
+    fully_paid: number
+    sponsored: number
+    free_enrolled: number
+} | null) => ({
+    totalStudents: totals?.total_students ?? 0,
+    fullyPaid: totals?.fully_paid ?? 0,
+    sponsored: totals?.sponsored ?? 0,
+    freeEnrolled: totals?.free_enrolled ?? 0,
+})
 
 // Metrics configuration
 const metrics = [
-    { id: 'dailyUsers', title: 'Total Students', icon: <StudentIcon /> },
-    { id: 'weeklyUsers', title: 'Fully Paid',  icon: <PaidIcon /> },
-    { id: 'monthlyUsers', title: 'Sponsored',  icon: <SponsoredIcon /> },
-    { id: 'totalVisits', title: 'Free Enrolled', icon: <FreeInrolledIcon /> }
+    { id: 'totalStudents', title: 'Total Students', icon: <StudentIcon /> },
+    { id: 'fullyPaid', title: 'Fully Paid',  icon: <PaidIcon /> },
+    { id: 'sponsored', title: 'Sponsored',  icon: <SponsoredIcon /> },
+    { id: 'freeEnrolled', title: 'Free Enrolled', icon: <FreeInrolledIcon /> }
 ]
 
 export default function CardData() {
-
     const [loading, setLoading] = useState(true)
+    const paymentOverview = useAppSelector((s) => s.report.paymentOverview)
+    const totals = useMemo(() => mapTotals(paymentOverview?.totals ?? null), [paymentOverview])
 
     useEffect(() => {
         const timer = setTimeout(() => setLoading(false), 200)
@@ -64,7 +71,7 @@ export default function CardData() {
                         </div>
                         <div className="mb-3 pt-5">
                             <div className="text-2xl font-bold text-[#161618]">
-                                {userStats[metric.id as keyof typeof userStats].toLocaleString('en-US')}
+                                {totals[metric.id as keyof typeof totals].toLocaleString('en-US')}
                             </div>
                         </div>
                     </CardContent>

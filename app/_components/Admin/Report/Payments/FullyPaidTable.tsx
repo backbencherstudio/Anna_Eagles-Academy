@@ -1,12 +1,13 @@
 import React from 'react'
 import ReusableTable from '@/components/Resuable/ReusableTable'
+import { useAppSelector } from '@/rtk/hooks'
 
 type FullyPaidRow = {
-	id: number
-	studentName: string
-	courseName: string
-	paymentDate: string
-	amount: string
+    id: string
+    studentName: string
+    courseName: string
+    paymentDate: string
+    amount: string
 }
 
 const headers = [
@@ -16,39 +17,58 @@ const headers = [
 	{ key: 'amount', label: 'Amount', sortable: true },
 ]
 
-// Example data (replace with API data when available)
-const rows: FullyPaidRow[] = [
-	{ id: 1, studentName: 'John Doe', courseName: 'Foundations of Faith', paymentDate: '2024-07-15', amount: '$2,999' },
-	{ id: 2, studentName: 'Alex Chen', courseName: 'The Life and Teachings of Jesus', paymentDate: '2024-07-20', amount: '$2,499' },
-	{ id: 3, studentName: 'Lisa Garcia', courseName: 'Christian Leadership & Servanthood', paymentDate: '2024-08-01', amount: '$2,499' },
-	{ id: 4, studentName: 'Chris Taylor', courseName: 'Understanding the Bible: Old & New Testament', paymentDate: '2024-08-05', amount: '$2,499' },
-	{ id: 5, studentName: 'Priya Singh', courseName: 'Biblical Theology Overview', paymentDate: '2024-08-12', amount: '$1,999' },
-	{ id: 6, studentName: 'Ahmed Ali', courseName: 'Early Church History', paymentDate: '2024-08-18', amount: '$1,499' },
-	{ id: 7, studentName: 'Maria Rossi', courseName: 'Gospels Deep Dive', paymentDate: '2024-08-22', amount: '$2,299' },
-	{ id: 8, studentName: 'Ken Watanabe', courseName: 'Letters of Paul', paymentDate: '2024-08-25', amount: '$2,199' },
-]
-
-export default function FullyPaidTable() {
-	const [isLoading, setIsLoading] = React.useState(true)
+export default function FullyPaidTable({
+    currentPage = 1,
+    totalPages = 0,
+    totalItems = 0,
+    itemsPerPage = 5,
+    onPageChange,
+    onItemsPerPageChange,
+    isParentFetching,
+}: {
+    currentPage?: number
+    totalPages?: number
+    totalItems?: number
+    itemsPerPage?: number
+    onPageChange?: (p: number) => void
+    onItemsPerPageChange?: (l: number) => void
+    isParentFetching?: boolean
+}) {
+    const paymentOverview = useAppSelector((s) => s.report.paymentOverview)
+    const [isLoading, setIsLoading] = React.useState(!paymentOverview)
 
 	React.useEffect(() => {
-		const t = setTimeout(() => setIsLoading(false), 500)
+        const t = setTimeout(() => setIsLoading(false), 300)
 		return () => clearTimeout(t)
-	}, [])
+    }, [paymentOverview])
+
+    const rows: FullyPaidRow[] = (paymentOverview?.fully_paid?.items ?? []).map((it: any) => ({
+        id: it.id,
+        studentName: it.user?.name ?? '—',
+        courseName: it.series?.title ?? '—',
+        paymentDate: new Date(it.updated_at).toISOString().slice(0, 10),
+        amount: `${it.paid_amount}`,
+    }))
 
 	return (
 		<div className="w-full">
-			<ReusableTable
+            <ReusableTable
 				headers={headers}
-				data={rows}
-				itemsPerPage={5}
-				itemsPerPageOptions={[5, 10, 15, 20]}
-				showPagination
-				isLoading={isLoading}
+                data={rows}
+                itemsPerPageOptions={[5, 10, 15, 20]}
+                showPagination
+                serverControlled={true}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                itemsPerPage={itemsPerPage}
+                onPageChange={onPageChange}
+                onItemsPerPageChange={onItemsPerPageChange}
+                isLoading={isLoading || !!isParentFetching}
 				skeletonRows={5}
 				customCellRenderer={(item: FullyPaidRow, header) => {
 					if (header.key === 'amount') {
-						return <span className="text-green-600 font-medium">{item.amount}</span>
+                        return <span className="text-green-600 font-medium">{item.amount}</span>
 					}
 					return (item as any)[header.key]
 				}}

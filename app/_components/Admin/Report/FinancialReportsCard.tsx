@@ -1,18 +1,22 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import ChartBarIcon from '@/components/Icons/ChartBarIcon'
 import TrafficTrendsChart from './TrafficTrendsChart'
 import ChartShimmerEffect from './ShimmerEffect/ChartShimmerEffect'
 import CardShimmerEffect from './ShimmerEffect/CardShimmerEffect'
+import { useGetWebsiteTrafficQuery } from '@/rtk/api/admin/reportApis'
+import { useAppSelector } from '@/rtk/hooks'
 
-// User statistics data
-const userStats = {
-    dailyUsers: 280,
-    weeklyUsers: 1680,
-    monthlyUsers: 6720,
-    totalVisits: 3487
+// Helper to map API keys to UI metric ids
+const mapUsageToMetrics = (usage: { daily_users: number; weekly_users: number; monthly_users: number; total_visitors: number } | null) => {
+    return {
+        dailyUsers: usage?.daily_users ?? 0,
+        weeklyUsers: usage?.weekly_users ?? 0,
+        monthlyUsers: usage?.monthly_users ?? 0,
+        totalVisits: usage?.total_visitors ?? 0,
+    }
 }
 
 // Metrics configuration
@@ -24,15 +28,12 @@ const metrics = [
 ]
 
 export default function FinancialReportsCard() {
-    const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        const timer = setTimeout(() => setLoading(false), 200)
-        return () => clearTimeout(timer)
-    }, [])
+    const { isFetching } = useGetWebsiteTrafficQuery(undefined)
+    const websiteUsage = useAppSelector((s) => s.report.websiteUsage)
+    const userStats = useMemo(() => mapUsageToMetrics(websiteUsage), [websiteUsage])
 
 
-    if (loading) {
+    if (isFetching && !websiteUsage) {
         return (
             <div className="space-y-6">
                 {/* Cards loading */}
@@ -82,7 +83,7 @@ export default function FinancialReportsCard() {
             </div>
 
             {/* reports chart */}
-            <TrafficTrendsChart loading={loading} />
+            <TrafficTrendsChart loading={isFetching && !websiteUsage} />
         </div>
     )
 }

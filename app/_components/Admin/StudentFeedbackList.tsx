@@ -239,11 +239,6 @@ export default function StudentFeedbackList() {
                 />
             </div>
 
-            {(!feedbacks || feedbacks.length === 0) && !isFetching && (
-                <div className="text-center py-12">
-                    <p className="text-gray-500 text-lg">No feedback found</p>
-                </div>
-            )}
 
             <ConfirmDialog
                 open={deleteDialogOpen}

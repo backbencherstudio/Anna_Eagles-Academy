@@ -1,14 +1,15 @@
- import React from 'react'
+import React from 'react'
  import ReusableTable from '@/components/Resuable/ReusableTable'
+import { useAppSelector } from '@/rtk/hooks'
  
- type SponsoredRow = {
- 	id: number
- 	studentName: string
- 	courseName: string
- 	paymentDate: string
- 	sponsorName: string
- 	sponsorUrl?: string
- }
+type SponsoredRow = {
+    id: string
+    studentName: string
+    courseName: string
+    paymentDate: string
+    sponsorName: string
+    sponsorUrl?: string
+}
  
  const headers = [
  	{ key: 'studentName', label: 'Student Name', sortable: true },
@@ -17,37 +18,61 @@
  	{ key: 'sponsorName', label: 'Sponsor Name', sortable: true },
  ]
  
- // Example data (replace with API data when available)
- const rows: SponsoredRow[] = [
- 	{ id: 1, studentName: 'Jane Smith', courseName: 'Foundations of Faith', paymentDate: '2024-07-15', sponsorName: 'TechCor Inc.', sponsorUrl: 'https://example.com' },
- 	{ id: 2, studentName: 'Emily Brown', courseName: 'The Life and Teachings of Jesus', paymentDate: '2024-07-20', sponsorName: 'DataSoft LLC', sponsorUrl: 'https://example.com' },
- 	{ id: 3, studentName: 'Tom Anderson', courseName: 'Christian Leadership & Servanthood', paymentDate: '2024-08-01', sponsorName: 'Marketing Pro Agency', sponsorUrl: 'https://example.com' },
- 	{ id: 4, studentName: 'Isha Patel', courseName: 'Biblical Theology Overview', paymentDate: '2024-08-08', sponsorName: 'BrightFuture Org', sponsorUrl: 'https://example.com' },
- ]
- 
- export default function SponsoredTable() {
- 	const [isLoading, setIsLoading] = React.useState(true)
+export default function SponsoredTable({
+    currentPage = 1,
+    totalPages = 0,
+    totalItems = 0,
+    itemsPerPage = 5,
+    onPageChange,
+    onItemsPerPageChange,
+    isParentFetching,
+}: {
+    currentPage?: number
+    totalPages?: number
+    totalItems?: number
+    itemsPerPage?: number
+    onPageChange?: (p: number) => void
+    onItemsPerPageChange?: (l: number) => void
+    isParentFetching?: boolean
+}) {
+    const paymentOverview = useAppSelector((s) => s.report.paymentOverview)
+    const [isLoading, setIsLoading] = React.useState(!paymentOverview)
 
  	React.useEffect(() => {
- 		const t = setTimeout(() => setIsLoading(false), 500)
+        const t = setTimeout(() => setIsLoading(false), 300)
  		return () => clearTimeout(t)
- 	}, [])
+    }, [paymentOverview])
+
+    const rows: SponsoredRow[] = (paymentOverview?.sponsored?.items ?? []).map((it: any) => ({
+        id: it.id,
+        studentName: it.user?.name ?? '—',
+        courseName: it.series?.title ?? '—',
+        paymentDate: new Date(it.updated_at).toISOString().slice(0, 10),
+        sponsorName: it.sponsor_name ?? '—',
+        sponsorUrl: it.sponsor_url,
+    }))
 
  	return (
  		<div className="w-full">
- 			<ReusableTable
+            <ReusableTable
  				headers={headers}
- 				data={rows}
- 				itemsPerPage={5}
- 				itemsPerPageOptions={[5, 10, 15, 20]}
- 				showPagination
- 				isLoading={isLoading}
+                data={rows}
+                itemsPerPageOptions={[5, 10, 15, 20]}
+                showPagination
+                serverControlled={true}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                itemsPerPage={itemsPerPage}
+                onPageChange={onPageChange}
+                onItemsPerPageChange={onItemsPerPageChange}
+                isLoading={isLoading || !!isParentFetching}
  				skeletonRows={5}
  				customCellRenderer={(item: SponsoredRow, header) => {
  					if (header.key === 'sponsorName') {
  						return (
  							<a
- 								href={item.sponsorUrl || '#'}
+                                href={item.sponsorUrl || '#'}
  								target="_blank"
  								rel="noopener noreferrer"
  								className="text-blue-600 bg-blue-50 px-3 py-1 rounded-full hover:underline"

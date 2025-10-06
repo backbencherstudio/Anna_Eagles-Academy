@@ -1,16 +1,17 @@
 "use client"
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
 import PieChartSkeleton from '../ShimmerEffect/PieChartSkeleton'
+import { useAppSelector } from '@/rtk/hooks'
 
-const data = [
-    { name: 'Full Paid', value: 65, color: '#10B981', percentage: '65%' },
-    { name: 'Sponsored', value: 20, color: '#3B82F6', percentage: '20%' },
-    { name: 'Free Enrolled', value: 15, color: '#FE964A', percentage: '15%' }
-]
+const COLORS: Record<string, string> = {
+    'Full Paid': '#10B981',
+    'Sponsored': '#3B82F6',
+    'Free Enrolled': '#FE964A',
+}
 
 // Custom legend to control order explicitly and ensure responsiveness
-const CustomLegend: React.FC<any> = () => {
+const CustomLegend: React.FC<{ data: any[] }> = ({ data }) => {
     return (
         <div
             className='flex flex-wrap justify-center items-center gap-3 md:gap-6 pt-4'
@@ -42,13 +43,23 @@ const CustomTooltip = ({ active, payload }: any) => {
 
 export default function OverViewChart() {
     const [isLoading, setIsLoading] = useState(true)
+    const paymentOverview = useAppSelector((s) => s.report.paymentOverview)
+    const data = useMemo(() => {
+        const src = paymentOverview?.overview ?? []
+        return src.map((d) => ({
+            name: d.label,
+            value: d.count,
+            color: COLORS[d.label] ?? '#999999',
+            percentage: `${d.percentage}%`,
+        }))
+    }, [paymentOverview])
 
     useEffect(() => {
         const timer = setTimeout(() => setIsLoading(false), 200)
         return () => clearTimeout(timer)
     }, [])
 
-    if (isLoading) {
+    if (isLoading && data.length === 0) {
         return <PieChartSkeleton height={320} outerSize={220} innerInset={28} showHeader={false} />
     }
 
@@ -67,8 +78,8 @@ export default function OverViewChart() {
                         dataKey="value"
                         strokeWidth={2}
                         stroke="#ffffff"
-                        startAngle={-90}
-                        endAngle={270}
+                        startAngle={90}
+                        endAngle={-270}
                         paddingAngle={2}
                     >
                         {data.map((entry, index) => (
@@ -79,7 +90,7 @@ export default function OverViewChart() {
                     <Legend
                         verticalAlign="bottom"
                         height={80}
-                        content={<CustomLegend />}
+                        content={<CustomLegend data={data} />}
                     />
                 </PieChart>
             </ResponsiveContainer>

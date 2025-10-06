@@ -1,8 +1,9 @@
 import React from 'react'
 import ReusableTable from '@/components/Resuable/ReusableTable'
+import { useAppSelector } from '@/rtk/hooks'
 
 type FreeEnrolledRow = {
-  id: number
+  id: string
   studentName: string
   courseName: string
   enrollmentDate: string
@@ -14,32 +15,53 @@ const headers = [
   { key: 'enrollmentDate', label: 'Enrollment Date', sortable: true },
 ]
 
-// Example data (replace with API data when available)
-const rows: FreeEnrolledRow[] = [
-  { id: 1, studentName: 'Jane Smith', courseName: 'Foundations of Faith', enrollmentDate: '2024-07-15' },
-  { id: 2, studentName: 'Emily Brown', courseName: 'The Life and Teachings of Jesus', enrollmentDate: '2024-07-20' },
-  { id: 3, studentName: 'Tom Anderson', courseName: 'Christian Leadership & Servanthood', enrollmentDate: '2024-08-01' },
-  { id: 4, studentName: 'Samuel Park', courseName: 'Old Testament Survey', enrollmentDate: '2024-08-06' },
-  { id: 5, studentName: 'Aisha Khan', courseName: 'Biblical Theology Overview', enrollmentDate: '2024-08-11' },
-]
-
-export default function FreeEnrolledTable() {
-  const [isLoading, setIsLoading] = React.useState(true)
+export default function FreeEnrolledTable({
+  currentPage = 1,
+  totalPages = 0,
+  totalItems = 0,
+  itemsPerPage = 5,
+  onPageChange,
+  onItemsPerPageChange,
+  isParentFetching,
+}: {
+  currentPage?: number
+  totalPages?: number
+  totalItems?: number
+  itemsPerPage?: number
+  onPageChange?: (p: number) => void
+  onItemsPerPageChange?: (l: number) => void
+  isParentFetching?: boolean
+}) {
+  const paymentOverview = useAppSelector((s) => s.report.paymentOverview)
+  const [isLoading, setIsLoading] = React.useState(!paymentOverview)
 
   React.useEffect(() => {
-    const t = setTimeout(() => setIsLoading(false), 500)
+    const t = setTimeout(() => setIsLoading(false), 300)
     return () => clearTimeout(t)
-  }, [])
+  }, [paymentOverview])
+
+  const rows: FreeEnrolledRow[] = (paymentOverview?.free_enrolled?.items ?? []).map((it: any) => ({
+    id: it.id,
+    studentName: it.user?.name ?? '—',
+    courseName: it.series?.title ?? '—',
+    enrollmentDate: new Date(it.updated_at).toISOString().slice(0, 10),
+  }))
 
   return (
     <div className="w-full">
       <ReusableTable
         headers={headers}
         data={rows}
-        itemsPerPage={5}
         itemsPerPageOptions={[5, 10, 15, 20]}
         showPagination
-        isLoading={isLoading}
+        serverControlled={true}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        itemsPerPage={itemsPerPage}
+        onPageChange={onPageChange}
+        onItemsPerPageChange={onItemsPerPageChange}
+        isLoading={isLoading || !!isParentFetching}
         skeletonRows={5}
       />
     </div>

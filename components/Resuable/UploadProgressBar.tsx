@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import type { RootState } from '@/rtk'
-import { hideUpload } from '@/rtk/slices/uploadProgressSlice'
+import { hideUpload } from '@/rtk/slices/admin/uploadProgressSlice'
 
 export default function UploadProgressBar() {
   const dispatch = useDispatch()

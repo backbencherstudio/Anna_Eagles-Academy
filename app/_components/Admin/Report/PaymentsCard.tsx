@@ -7,6 +7,8 @@ import OverViewChart from './Payments/OverViewChart'
 import FullyPaidTable from './Payments/FullyPaidTable'
 import SponsoredTable from './Payments/SponsoredTable'
 import FreeEnrolledTable from './Payments/FreeEnrolledTable'
+import { useGetPaymentOverviewQuery } from '@/rtk/api/admin/reportApis'
+import { useAppSelector } from '@/rtk/hooks'
 
 // Tab configuration data
 const tabData = [
@@ -37,6 +39,26 @@ const tabData = [
 ]
 
 export default function PaymentsCard() {
+  // pagination states per section
+  const [fullyPaidPage, setFullyPaidPage] = useState(1)
+  const [fullyPaidLimit, setFullyPaidLimit] = useState(5)
+  const [sponsoredPage, setSponsoredPage] = useState(1)
+  const [sponsoredLimit, setSponsoredLimit] = useState(5)
+  const [freePage, setFreePage] = useState(1)
+  const [freeLimit, setFreeLimit] = useState(5)
+
+  const params = {
+    fully_paid_page: fullyPaidPage,
+    fully_paid_limit: fullyPaidLimit,
+    sponsored_page: sponsoredPage,
+    sponsored_limit: sponsoredLimit,
+    free_enrolled_page: freePage,
+    free_enrolled_limit: freeLimit,
+  }
+
+  // trigger fetch with pagination params
+  const { isFetching } = useGetPaymentOverviewQuery(params)
+  const paymentOverview = useAppSelector((s) => s.report.paymentOverview)
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
@@ -91,7 +113,36 @@ export default function PaymentsCard() {
                 value={tab.value} 
                 className="mt-6"
               >
-                <Component />
+                <Component 
+                  // pass pagination controls to tables only
+                  {...(tab.value === 'fully-paid' ? {
+                    currentPage: fullyPaidPage,
+                    totalPages: paymentOverview?.fully_paid?.pagination?.totalPages ?? 0,
+                    totalItems: paymentOverview?.fully_paid?.pagination?.total ?? 0,
+                    itemsPerPage: fullyPaidLimit,
+                    onPageChange: setFullyPaidPage,
+                    onItemsPerPageChange: setFullyPaidLimit,
+                    isParentFetching: isFetching,
+                  } : {})}
+                  {...(tab.value === 'sponsored' ? {
+                    currentPage: sponsoredPage,
+                    totalPages: paymentOverview?.sponsored?.pagination?.totalPages ?? 0,
+                    totalItems: paymentOverview?.sponsored?.pagination?.total ?? 0,
+                    itemsPerPage: sponsoredLimit,
+                    onPageChange: setSponsoredPage,
+                    onItemsPerPageChange: setSponsoredLimit,
+                    isParentFetching: isFetching,
+                  } : {})}
+                  {...(tab.value === 'free-enrolled' ? {
+                    currentPage: freePage,
+                    totalPages: paymentOverview?.free_enrolled?.pagination?.totalPages ?? 0,
+                    totalItems: paymentOverview?.free_enrolled?.pagination?.total ?? 0,
+                    itemsPerPage: freeLimit,
+                    onPageChange: setFreePage,
+                    onItemsPerPageChange: setFreeLimit,
+                    isParentFetching: isFetching,
+                  } : {})}
+                />
               </TabsContent>
             )
           })}

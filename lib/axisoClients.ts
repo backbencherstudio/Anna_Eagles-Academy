@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { startUpload, setUploadProgress, finishUpload, errorUpload } from '@/rtk/slices/uploadProgressSlice';
+import { startUpload, setUploadProgress, finishUpload, errorUpload } from '@/rtk/slices/admin/uploadProgressSlice';
 
 const axiosClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_ENDPOINT,
