@@ -50,38 +50,21 @@ export default function EmailNotification({ studentId }: EmailNotificationProps)
         }
 
         if (selectedRecipient === 'everyone') {
-            // Send to all students
+
             setIsSending(true)
             try {
-                let successCount = 0
-                let errorCount = 0
-                
-                for (const student of students) {
-                    try {
-                        const response = await sendEmailNotification({
-                            student_id: student.id,
-                            message: message
-                        }).unwrap()
-                        
-                        if (response.success) {
-                            successCount++
-                        } else {
-                            errorCount++
-                        }
-                    } catch (error) {
-                        errorCount++
-                    }
+                const response = await sendEmailNotification({
+                    student_id: '',
+                    message: message
+                }).unwrap()
+
+                if (response.success) {
+                    toast.success(response.message || 'Email notifications sent to everyone successfully!')
+                    setMessage('')
+                    setSelectedRecipient('')
+                } else {
+                    toast.error('Failed to send email notifications')
                 }
-                
-                if (successCount > 0) {
-                    toast.success(`Email notifications sent to ${successCount} students successfully!`)
-                }
-                if (errorCount > 0) {
-                    toast.error(`Failed to send ${errorCount} email notifications`)
-                }
-                
-                setMessage('')
-                setSelectedRecipient('')
             } catch (error) {
                 console.error('Error sending email notifications:', error)
                 toast.error('Failed to send email notifications')
@@ -98,13 +81,13 @@ export default function EmailNotification({ studentId }: EmailNotificationProps)
                         student_id: student.id,
                         message: message
                     }).unwrap()
-                    
+
                     if (response.success) {
                         toast.success(response.message || `Email notification sent to ${student.name} successfully!`)
                     } else {
                         toast.error('Failed to send email notification')
                     }
-                    
+
                     setMessage('')
                     setSelectedRecipient('')
                 } catch (error) {
