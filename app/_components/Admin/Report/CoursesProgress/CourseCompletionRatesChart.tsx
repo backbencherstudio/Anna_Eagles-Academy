@@ -2,25 +2,10 @@
 import React, { useEffect, useState } from 'react'
 import ChartSkeleton from './ChartSkeleton'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts'
+import { useSelector } from 'react-redux'
+import { RootState } from '@/rtk'
 
-type CourseRate = {
-    course: string
-    rate: number
-}
-
-const DATA: CourseRate[] = [
-    { course: 'Foundations of Faith', rate: 30 },
-    { course: 'The Life and Teachings of Jesus', rate: 103 },
-    { course: 'Christian Leadership', rate: 12 },
-    { course: 'Unshakable Faith', rate: 78 },
-    { course: 'Women in Scripture', rate: 42 },
-    { course: 'Theology & Tradition', rate: 76 },
-    { course: 'Church Growth', rate: 31 },
-    { course: 'Ethics & Discipleship', rate: 18 },
-    { course: 'Practical Evangelism', rate: 66 },
-    { course: 'Acts: Early Church', rate: 20 },
-    { course: 'The Kingdom of God', rate: 102 },
-]
+type CourseRate = { course: string; rate: number }
 
 function splitIntoTwoLines(text: string, maxPerLine: number = 16): [string, string] {
     const words = text.split(' ')
@@ -66,6 +51,7 @@ function HeaderStats({ overall }: { overall: number }) {
 export default function CourseCompletionRatesChart() {
     const [isSmallScreen, setIsSmallScreen] = useState(false)
     const [loading, setLoading] = useState(true)
+    const seriesRates = useSelector((state: RootState) => state.report.seriesProgress.series_completion_rates)
 
     useEffect(() => {
         const update = () => setIsSmallScreen(window.innerWidth < 1024) // below lg
@@ -79,7 +65,23 @@ export default function CourseCompletionRatesChart() {
         return () => clearTimeout(t)
     }, [])
 
-    const overall = 64
+    const overall = seriesRates?.overall_completion_rate ?? 0
+    const DATA: CourseRate[] = (() => {
+        if (!seriesRates) return []
+        const first = seriesRates.series?.[0]
+        if (first && Array.isArray((first as any).courses)) {
+            // Specific series selected: show courses and their completion rates
+            return (first as any).courses.map((c: any) => ({
+                course: c.course_title,
+                rate: c.course_completion_rate,
+            }))
+        }
+        // All Series selected: show each series and its completion_rate
+        return seriesRates.series?.map((s: any) => ({
+            course: s.title,
+            rate: s.completion_rate,
+        })) ?? []
+    })()
     if (loading) return <ChartSkeleton height={320} />
     return (
         <div className="rounded-xl border border-gray-200 bg-white p-4 lg:overflow-x-hidden">

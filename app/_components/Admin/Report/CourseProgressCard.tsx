@@ -4,8 +4,17 @@ import CompletionStatusPieChart from '@/app/_components/Admin/Report/CoursesProg
 import CourseCompletionRatesChart from '@/app/_components/Admin/Report/CoursesProgress/CourseCompletionRatesChart'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import CourseDetailsTable from '@/app/_components/Admin/Report/CoursesProgress/CourseDetailsTable'
+import { useGetSeriesWithCoursesQuery } from '@/rtk/api/admin/courseFilterApis'
+import { useEffect, useState } from 'react'
+import { useGetSeriesProgressQuery } from '@/rtk/api/admin/reportApis'
 
 export default function CourseProgressCard() {
+  const { data, isLoading, isError } = useGetSeriesWithCoursesQuery()
+  const [selectedSeriesId, setSelectedSeriesId] = useState<string | undefined>(undefined)
+  const { refetch } = useGetSeriesProgressQuery(
+    selectedSeriesId && selectedSeriesId !== 'all' ? { series_id: selectedSeriesId } : {},
+    { skip: false }
+  )
   return (
     <div>
 
@@ -15,16 +24,29 @@ export default function CourseProgressCard() {
           <p className='text-[#777980] text-sm'>Track student completion rates and progress</p>
         </div>
 
-        {/* drop down for course selection */}
+        {/* drop down for series selection */}
         <div>
-          <Select>
+          <Select onValueChange={(val) => { setSelectedSeriesId(val); setTimeout(() => { refetch() }, 0) }}>
             <SelectTrigger className='min-w-[180px] rounded-full border-gray-300 bg-white px-4 py-5 text-sm '>
-              <SelectValue placeholder="All Courses" />
+              <SelectValue placeholder="All Series" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem className='cursor-pointer' value="1">Foundations of Faith</SelectItem>
-              <SelectItem className='cursor-pointer' value="2">The Life and Teachings of Jesus</SelectItem>
-              <SelectItem className='cursor-pointer' value="3">Christian Leadership & Servanthood</SelectItem>
+              {isLoading && (
+                <SelectItem className='cursor-default' value="loading" disabled>
+                  Loading...
+                </SelectItem>
+              )}
+              {isError && (
+                <SelectItem className='cursor-default' value="error" disabled>
+                  Failed to load series
+                </SelectItem>
+              )}
+              <SelectItem className='cursor-pointer' value="all">All Series</SelectItem>
+              {data?.data?.map((series) => (
+                <SelectItem key={series.id} className='cursor-pointer' value={series.id}>
+                  {series.title}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

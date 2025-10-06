@@ -1,75 +1,20 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import ReusableTable from '@/components/Resuable/ReusableTable'
 import InProgressIcon from '@/components/Icons/InProgressIcon'
 import { IoMdCheckmark } from 'react-icons/io'
+import { useSelector } from 'react-redux'
+import { RootState } from '@/rtk'
 
-// Sample course data based on the image
-const sampleCourseData = [
-    {
-        id: 1,
-        courseName: "Foundations of Faith",
-        startDate: "01 Mar 2023",
-        completionDate: "15 Apr 2023",
-        enrolled: 45,
-        completed: 32,
-        inProgress: 28,
-        completionRate: 60
-    },
-    {
-        id: 2,
-        courseName: "The Life and Teachings of Jesus",
-        startDate: "01 Mar 2023",
-        completionDate: "15 Apr 2023",
-        enrolled: 38,
-        completed: 28,
-        inProgress: 12,
-        completionRate: 20
-    },
-    {
-        id: 3,
-        courseName: "Christian Leadership & Servanthood",
-        startDate: "01 Mar 2023",
-        completionDate: "15 Apr 2023",
-        enrolled: 21,
-        completed: 13,
-        inProgress: 54,
-        completionRate: 50
-    },
-    {
-        id: 4,
-        courseName: "Understanding the Bible: Old & New Testament",
-        startDate: "01 Mar 2023",
-        completionDate: "15 Apr 2023",
-        enrolled: 41,
-        completed: 85,
-        inProgress: 21,
-        completionRate: 90
-    },
-    {
-        id: 5,
-        courseName: "The Holy Spirit and Daily Guidance",
-        startDate: "01 Mar 2023",
-        completionDate: "15 Apr 2023",
-        enrolled: 41,
-        completed: 85,
-        inProgress: 21,
-        completionRate: 90
-    },
-    {
-        id: 6,
-        courseName: "Discipleship & Evangelism Essentials",
-        startDate: "01 Mar 2023",
-        completionDate: "15 Apr 2023",
-        enrolled: 41,
-        completed: 85,
-        inProgress: 21,
-        completionRate: 90
-    }
-]
+function formatDate(iso: string | null | undefined) {
+    if (!iso) return '-'
+    const d = new Date(iso)
+    if (isNaN(d.getTime())) return '-'
+    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: '2-digit' })
+}
 
 // Table headers configuration
 const tableHeaders = [
-    { key: 'courseName', label: 'COURSE NAME', sortable: true },
+    { key: 'seriesName', label: 'Series Name', sortable: true },
     { key: 'startDate', label: 'START DATE', sortable: true },
     { key: 'completionDate', label: 'COMPLETION DATE', sortable: true },
     { key: 'enrolled', label: 'ENROLLED', sortable: true },
@@ -80,6 +25,23 @@ const tableHeaders = [
 
 export default function CourseDetailsTable() {
     const [selectedItems, setSelectedItems] = useState<any[]>([])
+    const seriesDetails = useSelector((state: RootState) => (state.report.seriesProgress as any)?.series_details as any[] | undefined)
+
+    const rows = useMemo(() => {
+        if (Array.isArray(seriesDetails)) {
+            return seriesDetails.map((s: any, idx: number) => ({
+                id: s.series_id ?? idx,
+                seriesName: s.series_name ?? '-',
+                startDate: formatDate(s.start_date),
+                completionDate: formatDate(s.completion_date),
+                enrolled: s.enrolled ?? 0,
+                completed: s.completed ?? 0,
+                inProgress: s.in_progress ?? 0,
+                completionRate: s.completion_rate ?? 0,
+            }))
+        }
+        return []
+    }, [seriesDetails])
 
     // Custom cell renderer for specific columns
     const customCellRenderer = (item: any, header: any) => {
@@ -124,7 +86,7 @@ export default function CourseDetailsTable() {
 
             <ReusableTable
                 headers={tableHeaders}
-                data={sampleCourseData}
+                data={rows}
                 itemsPerPage={5}
                 itemsPerPageOptions={[5, 10, 15, 20]}
                 showPagination={true}

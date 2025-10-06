@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from 'react'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import ChartSkeleton from './ChartSkeleton'
+import { useSelector } from 'react-redux'
+import { RootState } from '@/rtk'
 
 type CompletionSlice = {
     name: string
@@ -9,9 +11,9 @@ type CompletionSlice = {
     color: string
 }
 
-const COMPLETION_DATA: CompletionSlice[] = [
-    { name: 'Completed', value: 73, color: '#16A34A' },
-    { name: 'In Progress', value: 27, color: '#FACC15' },
+const DEFAULT_COMPLETION_DATA: CompletionSlice[] = [
+    { name: 'Completed', value: 0, color: '#16A34A' },
+    { name: 'In Progress', value: 0, color: '#FACC15' },
 ]
 
 function DonutCenterLabel({ completed }: { completed: number }) {
@@ -44,12 +46,19 @@ function CompletionLegend({ data }: { data: CompletionSlice[] }) {
 
 export default function CompletionStatusPieChart() {
     const [loading, setLoading] = useState(true)
+    const completion = useSelector((state: RootState) => state.report.seriesProgress.completion_status_distribution)
     useEffect(() => {
         const t = setTimeout(() => setLoading(false), 200)
         return () => clearTimeout(t)
     }, [])
     if (loading) return <ChartSkeleton height={256} variant="pie" />
-    const completedSlice = COMPLETION_DATA.find((d) => d.name === 'Completed')
+    const data: CompletionSlice[] = completion
+        ? [
+            { name: 'Completed', value: completion.completed?.percentage ?? 0, color: '#16A34A' },
+            { name: 'In Progress', value: completion.in_progress?.percentage ?? 0, color: '#FACC15' },
+        ]
+        : DEFAULT_COMPLETION_DATA
+    const completedSlice = data.find((d) => d.name === 'Completed')
     return (
         <div className="rounded-xl border border-gray-200 bg-white p-5">
             <h3 className="mb-4 text-sm font-medium text-[#1D1F2C]">Completion Status Distribution</h3>
@@ -57,7 +66,7 @@ export default function CompletionStatusPieChart() {
                 <ResponsiveContainer>
                     <PieChart>
                         <Pie
-                            data={COMPLETION_DATA}
+                            data={data}
                             dataKey="value"
                             nameKey="name"
                             cx="50%"
@@ -67,7 +76,7 @@ export default function CompletionStatusPieChart() {
                             stroke="#fff"
                             strokeWidth={2}
                         >
-                            {COMPLETION_DATA.map((entry) => (
+                            {data.map((entry) => (
                                 <Cell key={entry.name} fill={entry.color} />
                             ))}
                         </Pie>
@@ -82,7 +91,7 @@ export default function CompletionStatusPieChart() {
                 </ResponsiveContainer>
                 <DonutCenterLabel completed={completedSlice?.value ?? 0} />
             </div>
-            <CompletionLegend data={COMPLETION_DATA} />
+            <CompletionLegend data={data} />
         </div>
     )
 }

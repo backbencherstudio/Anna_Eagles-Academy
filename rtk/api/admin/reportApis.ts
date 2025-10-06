@@ -29,11 +29,12 @@ export const seriesProgressApi = createApi({
     baseQuery: createAuthBaseQuery(),
     tagTypes: ['SeriesProgress'],
     endpoints: (builder) => ({
-        // get series progress
+        // get series progress BODY TE SERIES_ID PASS KORTE HOB  /api/admin/report/payment-overview?series_id=cmfwdjfc00002ws3wb8lwcq9a
         getSeriesProgress: builder.query({
-            query: () => ({
+            query: (params?: Record<string, any>) => ({
                 url: '/api/admin/report/series-progress',
                 method: 'GET',
+                params,
             }),
             providesTags: ['SeriesProgress'],
         }),
@@ -49,9 +50,9 @@ export const paymentOverviewApi = createApi({
     baseQuery: createAuthBaseQuery(),
     tagTypes: ['PaymentOverview'],
     endpoints: (builder) => ({
-        // get payment overview
+        // get payment 
         getPaymentOverview: builder.query({
-            query: (params?: Record<string, any>) => ({
+            query: (params?: Record<string, any>) => ({ 
                 url: '/api/admin/report/payment-overview',
                 method: 'GET',
                 params,
