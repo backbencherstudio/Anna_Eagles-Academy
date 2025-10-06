@@ -1,18 +1,20 @@
 'use client'
 
 import { useState } from "react"
-import { format } from "date-fns"
-import { Calendar as CalendarIcon, Clock, X, Users, User } from "lucide-react"
+import { X, Users, User } from "lucide-react"
+import DateRangePicker from "@/components/ui/DateRangePicker"
+import type { DateRange } from "react-day-picker"
 import { useForm, Controller } from "react-hook-form"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
+import StudentSelect from "./StudentSelect"
+import TimeSelect from "./TimeSelect"
+import { useAddEventMutation } from '@/rtk/api/admin/enventsApis'
+import toast from 'react-hot-toast'
+import ButtonSpring from '@/components/Resuable/ButtonSpring'
 
 interface AddEventModalProps {
     isOpen: boolean
@@ -35,13 +37,18 @@ const individualSchema = {
             message: "Event name must be less than 100 characters"
         }
     },
-    date: {
-        required: "Please select a date",
-        validate: (value: Date | undefined) => {
-            if (!value) return "Please select a date"
+    dateRange: {
+        required: "Please select date range",
+        validate: (value: DateRange | undefined) => {
+            if (!value?.from || !value?.to) return "Please select start and end date"
             const today = new Date()
             today.setHours(0, 0, 0, 0)
-            if (value < today) return "Date cannot be in the past"
+            const from = new Date(value.from)
+            const to = new Date(value.to)
+            from.setHours(0, 0, 0, 0)
+            to.setHours(0, 0, 0, 0)
+            if (from < today) return "Start date cannot be in the past"
+            if (to < from) return "End date must be after start date"
             return true
         }
     },
@@ -78,13 +85,18 @@ const combinedSchema = {
             message: "Event name must be less than 100 characters"
         }
     },
-    date: {
-        required: "Please select a date",
-        validate: (value: Date | undefined) => {
-            if (!value) return "Please select a date"
+    dateRange: {
+        required: "Please select date range",
+        validate: (value: DateRange | undefined) => {
+            if (!value?.from || !value?.to) return "Please select start and end date"
             const today = new Date()
             today.setHours(0, 0, 0, 0)
-            if (value < today) return "Date cannot be in the past"
+            const from = new Date(value.from)
+            const to = new Date(value.to)
+            from.setHours(0, 0, 0, 0)
+            to.setHours(0, 0, 0, 0)
+            if (from < today) return "Start date cannot be in the past"
+            if (to < from) return "End date must be after start date"
             return true
         }
     },
@@ -109,15 +121,29 @@ const combinedSchema = {
     }
 }
 
+// Merge a date with a time string like "10:30 AM" to ISO string
+const toIsoWithTime = (date: Date, timeString: string) => {
+    const [time, period] = timeString.split(' ')
+    const [hhStr, mmStr] = time.split(':')
+    let hour = parseInt(hhStr, 10)
+    const minute = parseInt(mmStr, 10)
+    if (period === 'PM' && hour !== 12) hour += 12
+    if (period === 'AM' && hour === 12) hour = 0
+    const d = new Date(date)
+    d.setHours(hour, minute, 0, 0)
+    return d.toISOString()
+}
+
 export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
     const [eventType, setEventType] = useState<'individual' | 'combined'>('individual')
-
+    const [addEvent, { isLoading: isCreating } ] = useAddEventMutation()
+    
     // Individual form
     const individualForm = useForm({
         defaultValues: {
             student: '',
             eventName: '',
-            date: undefined as Date | undefined,
+            dateRange: undefined as DateRange | undefined,
             startTime: '',
             endTime: '',
             classLink: '',
@@ -129,7 +155,7 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
     const combinedForm = useForm({
         defaultValues: {
             eventName: '',
-            date: undefined as Date | undefined,
+            dateRange: undefined as DateRange | undefined,
             startTime: '',
             endTime: '',
             classLink: '',
@@ -199,22 +225,6 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
         })
     }
 
-    const handleSubmit = () => {
-        if (eventType === 'individual') {
-            individualForm.handleSubmit((data) => {
-                console.log('Individual Event submitted:', data)
-                individualForm.reset()
-                onClose()
-            })()
-        } else {
-            combinedForm.handleSubmit((data) => {
-                console.log('Combined Event submitted:', data)
-                combinedForm.reset()
-                onClose()
-            })()
-        }
-    }
-
     // Reset forms when modal closes
     const handleModalClose = () => {
         individualForm.reset()
@@ -245,7 +255,7 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
                         variant={eventType === 'individual' ? 'default' : 'outline'}
                         onClick={() => setEventType('individual')}
                         className={`rounded-full cursor-pointer px-6 py-2 flex items-center gap-2 ${eventType === 'individual'
-                                ? 'bg-[#F1C27D] text-white hover:bg-[#F1C27D]/80'
+                                ? 'bg-[#0F2598] text-white hover:bg-[#0F2598]/80'
                                 : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
                             }`}
                     >
@@ -256,7 +266,7 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
                         variant={eventType === 'combined' ? 'default' : 'outline'}
                         onClick={() => setEventType('combined')}
                         className={`rounded-full cursor-pointer px-6 py-2 flex items-center gap-2 ${eventType === 'combined'
-                                ? 'bg-[#F1C27D] text-white hover:bg-[#F1C27D]/80'
+                                ? 'bg-[#0F2598] text-white hover:bg-[#0F2598]/80'
                                 : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
                             }`}
                     >
@@ -269,10 +279,29 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
                 {eventType === 'individual' && (
                     <form
                         id="individual-form"
-                        onSubmit={individualForm.handleSubmit((data) => {
-                            console.log('Individual Event submitted:', data)
-                            individualForm.reset()
-                            onClose()
+                        onSubmit={individualForm.handleSubmit(async (values) => {
+                            const { student, eventName, dateRange, startTime, endTime, classLink, description } = values as any
+                            if (!dateRange?.from || !dateRange?.to) return
+
+                            const payload: any = {
+                                title: eventName,
+                                description,
+                                start_at: toIsoWithTime(dateRange.from as Date, startTime),
+                                end_at: toIsoWithTime(dateRange.to as Date, endTime),
+                                class_link: classLink,
+                                type: 'CLASS',
+                                user_id: student,
+                            }
+
+                            try {
+                                await addEvent(payload).unwrap()
+                                toast.success('Event created successfully')
+                                individualForm.reset()
+                                onClose()
+                            } catch (e: any) {
+                                const msg = e?.data?.message || e?.message || 'Failed to create event'
+                                toast.error(msg)
+                            }
                         })}
                         className="space-y-4"
                     >
@@ -287,16 +316,7 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
                                 rules={individualSchema.student}
                                 render={({ field, fieldState }) => (
                                     <>
-                                        <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger className={`w-full ${fieldState.error ? 'border-red-500' : ''}`}>
-                                                <SelectValue placeholder="Select a student" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="alex-adams">Alex Adams</SelectItem>
-                                                <SelectItem value="sarah-johnson">Sarah Johnson</SelectItem>
-                                                <SelectItem value="mike-wilson">Mike Wilson</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                        <StudentSelect value={field.value} onChange={field.onChange} error={fieldState.error?.message} />
                                         {fieldState.error && (
                                             <p className="text-xs text-red-500 mt-1">{fieldState.error.message}</p>
                                         )}
@@ -331,40 +351,23 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
                                 />
                             </div>
 
-                            {/* Select Date */}
+                            {/* Select Start/End Date */}
                             <div className="space-y-2">
-                                <Label htmlFor="date" className="text-sm font-medium text-gray-700">
-                                    Select Date
+                                <Label htmlFor="dateRange" className="text-sm font-medium text-gray-700">
+                                    Select Date Range
                                 </Label>
                                 <Controller
-                                    name="date"
+                                    name="dateRange"
                                     control={individualForm.control}
-                                    rules={individualSchema.date}
+                                    rules={individualSchema.dateRange}
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Button
-                                                        variant="outline"
-                                                        className={cn(
-                                                            "w-full cursor-pointer justify-start text-left font-normal",
-                                                            !field.value && "text-muted-foreground",
-                                                            fieldState.error ? 'border-red-500' : ''
-                                                        )}
-                                                    >
-                                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                                        {field.value ? format(field.value, "PPP") : "Pick a date"}
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-auto p-0" align="start">
-                                                    <Calendar
-                                                        mode="single"
-                                                        selected={field.value}
-                                                        onSelect={field.onChange}
-                                                        initialFocus
-                                                    />
-                                                </PopoverContent>
-                                            </Popover>
+                                            <DateRangePicker
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                placeholder="Select start date to end date"
+                                                showAs="range"
+                                            />
                                             {fieldState.error && (
                                                 <p className="text-xs text-red-500 mt-1">{fieldState.error.message}</p>
                                             )}
@@ -387,39 +390,20 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
                                     rules={individualSchema.startTime}
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <Select
-                                                
-                                                onValueChange={(value) => {
+                                            <TimeSelect
+                                                value={field.value}
+                                                onChange={(value) => {
                                                     field.onChange(value)
-                                                    // Auto-suggest end time if not set
                                                     const endTime = individualForm.getValues('endTime')
                                                     if (!endTime) {
                                                         const suggestedEnd = getSuggestedEndTime(value)
                                                         individualForm.setValue('endTime', suggestedEnd)
                                                     }
                                                 }}
-                                                value={field.value}
-                                            >
-                                                <SelectTrigger className={`w-full cursor-pointer ${fieldState.error ? 'border-red-500' : ''}`}>
-                                                    <div className="flex items-center">
-                                                        <Clock className="mr-2 h-4 w-4 text-gray-400" />
-                                                        <SelectValue placeholder="Select start time" />
-                                                    </div>
-                                                </SelectTrigger>
-                                                <SelectContent className="max-h-[200px]">
-                                                    <div className="grid grid-cols-2 gap-1 p-2">
-                                                        {timeOptions.map((time) => (
-                                                            <SelectItem
-                                                                key={time}
-                                                                value={time}
-                                                                className="text-sm"
-                                                            >
-                                                                {time}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </div>
-                                                </SelectContent>
-                                            </Select>
+                                                options={timeOptions}
+                                                placeholder="Select start time"
+                                                error={fieldState.error?.message}
+                                            />
                                             {fieldState.error && (
                                                 <p className="text-xs text-red-500 mt-1">{fieldState.error.message}</p>
                                             )}
@@ -443,31 +427,13 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
 
                                         return (
                                             <>
-                                                <Select
-                                                    onValueChange={field.onChange}
+                                                <TimeSelect
                                                     value={field.value}
-                                                >
-                                                    <SelectTrigger className={`cursor-pointer w-full ${fieldState.error || isInvalidTimeRange ? 'border-red-500' : ''
-                                                        }`}>
-                                                        <div className="flex items-center">
-                                                            <Clock className="mr-2 h-4 w-4 text-gray-400" />
-                                                            <SelectValue placeholder="Select end time" />
-                                                        </div>
-                                                    </SelectTrigger>
-                                                    <SelectContent className="max-h-[200px]">
-                                                        <div className="grid grid-cols-2 gap-1 p-2">
-                                                            {timeOptions.map((time) => (
-                                                                <SelectItem
-                                                                    key={time}
-                                                                    value={time}
-                                                                    className="text-sm"
-                                                                >
-                                                                    {time}
-                                                                </SelectItem>
-                                                            ))}
-                                                        </div>
-                                                    </SelectContent>
-                                                </Select>
+                                                    onChange={field.onChange}
+                                                    options={timeOptions}
+                                                    placeholder="Select end time"
+                                                    error={(fieldState.error || isInvalidTimeRange) ? 'Invalid' : undefined}
+                                                />
                                                 {(fieldState.error || isInvalidTimeRange) && (
                                                     <p className="text-xs text-red-500 mt-1">
                                                         {fieldState.error?.message || "End time must be after start time"}
@@ -534,10 +500,29 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
                 {eventType === 'combined' && (
                     <form
                         id="combined-form"
-                        onSubmit={combinedForm.handleSubmit((data) => {
-                            console.log('Combined Event submitted:', data)
-                            combinedForm.reset()
-                            onClose()
+                        onSubmit={combinedForm.handleSubmit( async (values) => {
+                            const { eventName, dateRange, startTime, endTime, classLink, description } = values as any
+                            if (!dateRange?.from || !dateRange?.to) return
+
+                            const payload: any = {
+                                title: eventName,
+                                description,
+                                start_at: toIsoWithTime(dateRange.from as Date, startTime),
+                                end_at: toIsoWithTime(dateRange.to as Date, endTime),
+                                class_link: classLink,
+                                type: 'CLASS',
+                                // no user_id for combined
+                            }
+
+                            try {
+                                await addEvent(payload).unwrap()
+                                toast.success('Event created successfully')
+                                combinedForm.reset()
+                                onClose()
+                            } catch (e: any) {
+                                const msg = e?.data?.message || e?.message || 'Failed to create event'
+                                toast.error(msg)
+                            }
                         })}
                         className="space-y-4"
                     >
@@ -567,40 +552,23 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
                                 />
                             </div>
 
-                            {/* Select Date */}
+                            {/* Select Start/End Date */}
                             <div className="space-y-2">
-                                <Label htmlFor="date" className="text-sm font-medium text-gray-700">
-                                    Select Date
+                                <Label htmlFor="dateRange" className="text-sm font-medium text-gray-700">
+                                    Select Date Range
                                 </Label>
                                 <Controller
-                                    name="date"
+                                    name="dateRange"
                                     control={combinedForm.control}
-                                    rules={combinedSchema.date}
+                                    rules={combinedSchema.dateRange}
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Button
-                                                        variant="outline"
-                                                        className={cn(
-                                                            "w-full cursor-pointer justify-start text-left font-normal",
-                                                            !field.value && "text-muted-foreground",
-                                                            fieldState.error ? 'border-red-500' : ''
-                                                        )}
-                                                    >
-                                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                                        {field.value ? format(field.value, "PPP") : "Pick a date"}
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-auto p-0" align="start">
-                                                    <Calendar
-                                                        mode="single"
-                                                        selected={field.value}
-                                                        onSelect={field.onChange}
-                                                        initialFocus
-                                                    />
-                                                </PopoverContent>
-                                            </Popover>
+                                            <DateRangePicker
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                placeholder="Select start date to end date"
+                                                showAs="range"
+                                            />
                                             {fieldState.error && (
                                                 <p className="text-xs text-red-500 mt-1">{fieldState.error.message}</p>
                                             )}
@@ -623,8 +591,9 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
                                     rules={combinedSchema.startTime}
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <Select
-                                                onValueChange={(value) => {
+                                            <TimeSelect
+                                                value={field.value}
+                                                onChange={(value) => {
                                                     field.onChange(value)
                                                     // Auto-suggest end time if not set
                                                     const endTime = combinedForm.getValues('endTime')
@@ -633,28 +602,10 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
                                                         combinedForm.setValue('endTime', suggestedEnd)
                                                     }
                                                 }}
-                                                value={field.value}
-                                            >
-                                                <SelectTrigger className={`cursor-pointer w-full ${fieldState.error ? 'border-red-500' : ''}`}>
-                                                    <div className="flex items-center">
-                                                        <Clock className="mr-2 h-4 w-4 text-gray-400" />
-                                                        <SelectValue placeholder="Select start time" />
-                                                    </div>
-                                                </SelectTrigger>
-                                                <SelectContent className="max-h-[200px]">
-                                                    <div className="grid grid-cols-2 gap-1 p-2">
-                                                        {timeOptions.map((time) => (
-                                                            <SelectItem
-                                                                key={time}
-                                                                value={time}
-                                                                className="text-sm"
-                                                            >
-                                                                {time}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </div>
-                                                </SelectContent>
-                                            </Select>
+                                                options={timeOptions}
+                                                placeholder="Select start time"
+                                                error={fieldState.error?.message}
+                                            />
                                             {fieldState.error && (
                                                 <p className="text-xs text-red-500 mt-1">{fieldState.error.message}</p>
                                             )}
@@ -678,31 +629,13 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
 
                                         return (
                                             <>
-                                                <Select
-                                                    onValueChange={field.onChange}
+                                                <TimeSelect
                                                     value={field.value}
-                                                >
-                                                    <SelectTrigger className={`cursor-pointer w-full ${fieldState.error || isInvalidTimeRange ? 'border-red-500' : ''
-                                                        }`}>
-                                                        <div className="flex items-center">
-                                                            <Clock className="mr-2 h-4 w-4 text-gray-400" />
-                                                            <SelectValue placeholder="Select end time" />
-                                                        </div>
-                                                    </SelectTrigger>
-                                                    <SelectContent className="max-h-[200px]">
-                                                        <div className="grid grid-cols-2 gap-1 p-2">
-                                                            {timeOptions.map((time) => (
-                                                                <SelectItem
-                                                                    key={time}
-                                                                    value={time}
-                                                                    className="text-sm"
-                                                                >
-                                                                    {time}
-                                                                </SelectItem>
-                                                            ))}
-                                                        </div>
-                                                    </SelectContent>
-                                                </Select>
+                                                    onChange={field.onChange}
+                                                    options={timeOptions}
+                                                    placeholder="Select end time"
+                                                    error={(fieldState.error || isInvalidTimeRange) ? 'Invalid' : undefined}
+                                                />
                                                 {(fieldState.error || isInvalidTimeRange) && (
                                                     <p className="text-xs text-red-500 mt-1">
                                                         {fieldState.error?.message || "End time must be after start time"}
@@ -770,9 +703,17 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
                     <Button
                         type="submit"
                         form={eventType === 'individual' ? 'individual-form' : 'combined-form'}
-                        className="w-full bg-[#F1C27D] cursor-pointer text-white hover:bg-[#F1C27D]/80 py-3 text-base font-medium"
+                        className="w-full bg-[#0F2598] hover:bg-[#0F2598]/80 cursor-pointer text-white py-3 text-base font-medium transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
+                        disabled={isCreating}
                     >
-                        Add Event
+                        {isCreating ? (
+                            <span className="inline-flex items-center justify-center gap-2 w-full">
+                                <ButtonSpring size={16} color="#ffffff" />
+                                <span>Creating...</span>
+                            </span>
+                        ) : (
+                            'Add Event'
+                        )}
                     </Button>
                 </div>
             </DialogContent>
