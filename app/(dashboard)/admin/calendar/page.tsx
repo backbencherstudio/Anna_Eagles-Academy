@@ -1,18 +1,29 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import CalanderAdmin from '@/app/_components/Admin/CalanderAdmin'
-import AddEvent from '@/app/_components/Admin/AddEvent'
 import AddEventModal from '@/app/_components/Admin/Calendar/AddEventModal'
 import ButtonSpring from '@/components/Resuable/ButtonSpring'
+import SchedulePage from '@/components/Shared/Calander/SchedulePage'
 
-
+interface ScheduleItem {
+    id: number;
+    task: string;
+    subject: string;
+    date: string;
+    time: string;
+}
 
 export default function Calendar() {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [opening, setOpening] = useState(false)
+    const [selectedDate, setSelectedDate] = useState<Date>(() => {
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        return now;
+    });
 
     const handleOpenModal = () => {
 
@@ -27,13 +38,29 @@ export default function Calendar() {
         setIsModalOpen(false)
     }
 
+    const handleDateChange = (date: Date) => {
+        setSelectedDate(date);
+    }
+
+    const [scheduleData, setScheduleData] = useState<ScheduleItem[]>([]);
+
+    useEffect(() => {
+        fetch('/data/MyScheduleData.json')
+            .then((res) => res.json())
+            .then((data) => setScheduleData(data));
+    }, []);
+
     return (
-        <div className='w-full  flex flex-col gap-10 lg:flex-row '>
-            <div className=' w-full lg:w-7/12'>
-                <CalanderAdmin />
+        <div className='w-full grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch'>
+
+            {/* schedule calander left side */}
+            <div className='lg:col-span-2 flex flex-col'>
+                <CalanderAdmin scheduleData={scheduleData} selectedDate={selectedDate} onDateChange={handleDateChange} />
             </div>
-            <div className=' w-full lg:w-5/12 '>
-                <Button 
+
+            {/* add event and schedule page right side */}
+            <div className='lg:col-span-1 flex flex-col'>
+                <Button
                     className='w-full py-5 cursor-pointer bg-[#0F2598] hover:bg-[#0F2598]/80 disabled:opacity-70 disabled:cursor-not-allowed'
                     onClick={handleOpenModal}
                     disabled={opening}
@@ -52,15 +79,15 @@ export default function Calendar() {
                         </>
                     )}
                 </Button>
-                
+
+                {/* schedule page */}
                 <div className='mt-4'>
-                    <AddEvent />
+                    <SchedulePage title='Overview' scheduleData={scheduleData} showAllCategories={true} selectedDate={selectedDate} onDateChange={handleDateChange} />
                 </div>
-                
                 {/* Modal */}
-                <AddEventModal 
-                    isOpen={isModalOpen} 
-                    onClose={handleCloseModal} 
+                <AddEventModal
+                    isOpen={isModalOpen}
+                    onClose={handleCloseModal}
                 />
             </div>
         </div>

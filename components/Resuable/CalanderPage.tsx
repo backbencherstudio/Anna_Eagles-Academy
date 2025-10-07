@@ -86,7 +86,7 @@ export default function CalanderPage({ scheduleData, initialSelectedDate }: Cala
     return (
         <div className="rounded-2xl">
             <div className='bg-white rounded-2xl p-4 border border-[#ECEFF3]'>
-                <h1 className='text-[#1D1F2C] font-bold text-xl lg:text-2xl pb-4'>Calendar</h1>
+                <h1 className='text-[#1D1F2C] font-bold text-xl  pb-4'>Calendar</h1>
                 {/* Month Header (Month navigation only) */}
                 <div className="mb-3">
                     <div className="flex items-center justify-between bg-muted rounded-xl px-4 py-3">
@@ -129,14 +129,14 @@ export default function CalanderPage({ scheduleData, initialSelectedDate }: Cala
                         <ChevronLeftIcon className="!h-5 !w-5 text-[#4A4C56] " />
                     </Button>
 
-                    <div className="flex w-full justify-start xl:justify-center overflow-x-auto">
+                    <div className="flex w-full justify-center overflow-x-auto">
                         {weekDates.map((date, index) => {
                             const dateIso = formatDateLocal(date);
                             const datePart = dateIso.slice(0, 10);
                             const isSelected = selectedDate.slice(0, 10) === datePart;
 
                             return (
-                                <div key={index} className="flex-none flex flex-col items-center min-w-[72px]">
+                                <div key={index} className="flex-none flex flex-col items-center min-w-[60px] sm:min-w-[72px]">
                                     <button
                                         onClick={() => handleDateSelect(date)}
                                         className={`px-3 py-2 cursor-pointer rounded-xl flex flex-col items-center transition-colors ${isSelected

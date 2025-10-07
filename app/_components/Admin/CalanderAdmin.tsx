@@ -1,6 +1,6 @@
 "use client";
 import ScheduleStudy from '@/components/Resuable/ScheduleStudy'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 
 type ScheduleItem = {
     id: number;
@@ -10,22 +10,14 @@ type ScheduleItem = {
     time?: string;
 };
 
-export default function CalanderAdmin() {
-    const [scheduleData, setScheduleData] = useState<ScheduleItem[]>([]);
-    const [loading, setLoading] = useState(true);
+export default function CalanderAdmin({ scheduleData, selectedDate, onDateChange }: { 
+    scheduleData: ScheduleItem[];
+    selectedDate: Date;
+    onDateChange: (date: Date) => void;
+}) {
+    const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        fetch("/data/MyScheduleData.json")
-            .then((res) => res.json())
-            .then((data: ScheduleItem[]) => {
-                setScheduleData(data);
-                setLoading(false);
-            })
-            .catch((error) => {
-                console.error("Error fetching schedule data:", error);
-                setLoading(false);
-            });
-    }, []);
+
 
     if (loading) {
         return (
@@ -36,6 +28,8 @@ export default function CalanderAdmin() {
     }
 
     return (
-        <ScheduleStudy scheduleData={scheduleData} />
+        <div className="h-full">
+            <ScheduleStudy scheduleData={scheduleData} selectedDate={selectedDate} onDateChange={onDateChange} />
+        </div>
     )
 }

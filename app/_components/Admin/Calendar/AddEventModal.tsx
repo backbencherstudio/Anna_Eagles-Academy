@@ -1,8 +1,11 @@
 'use client'
 
 import { useState } from "react"
-import { X, Users, User } from "lucide-react"
-import DateRangePicker from "@/components/ui/DateRangePicker"
+import { X, Users, User, Calendar as CalendarIcon } from "lucide-react"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { format } from "date-fns"
+import { cn } from "@/lib/utils"
 import type { DateRange } from "react-day-picker"
 import { useForm, Controller } from "react-hook-form"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -10,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import StudentSelect from "./StudentSelect"
 import TimeSelect from "./TimeSelect"
 import { useAddEventMutation } from '@/rtk/api/admin/enventsApis'
@@ -37,18 +41,15 @@ const individualSchema = {
             message: "Event name must be less than 100 characters"
         }
     },
-    dateRange: {
-        required: "Please select date range",
-        validate: (value: DateRange | undefined) => {
-            if (!value?.from || !value?.to) return "Please select start and end date"
+    eventDate: {
+        required: "Please select a date",
+        validate: (value: Date | undefined) => {
+            if (!value) return "Please select a date"
             const today = new Date()
             today.setHours(0, 0, 0, 0)
-            const from = new Date(value.from)
-            const to = new Date(value.to)
-            from.setHours(0, 0, 0, 0)
-            to.setHours(0, 0, 0, 0)
-            if (from < today) return "Start date cannot be in the past"
-            if (to < from) return "End date must be after start date"
+            const selectedDate = new Date(value)
+            selectedDate.setHours(0, 0, 0, 0)
+            if (selectedDate < today) return "Date cannot be in the past"
             return true
         }
     },
@@ -57,6 +58,9 @@ const individualSchema = {
     },
     endTime: {
         required: "Please select end time",
+    },
+    eventType: {
+        required: "Please select an event type",
     },
     classLink: {
         required: "Class link is required",
@@ -85,18 +89,15 @@ const combinedSchema = {
             message: "Event name must be less than 100 characters"
         }
     },
-    dateRange: {
-        required: "Please select date range",
-        validate: (value: DateRange | undefined) => {
-            if (!value?.from || !value?.to) return "Please select start and end date"
+    eventDate: {
+        required: "Please select a date",
+        validate: (value: Date | undefined) => {
+            if (!value) return "Please select a date"
             const today = new Date()
             today.setHours(0, 0, 0, 0)
-            const from = new Date(value.from)
-            const to = new Date(value.to)
-            from.setHours(0, 0, 0, 0)
-            to.setHours(0, 0, 0, 0)
-            if (from < today) return "Start date cannot be in the past"
-            if (to < from) return "End date must be after start date"
+            const selectedDate = new Date(value)
+            selectedDate.setHours(0, 0, 0, 0)
+            if (selectedDate < today) return "Date cannot be in the past"
             return true
         }
     },
@@ -105,6 +106,9 @@ const combinedSchema = {
     },
     endTime: {
         required: "Please select end time",
+    },
+    eventType: {
+        required: "Please select an event type",
     },
     classLink: {
         required: "Class link is required",
@@ -143,11 +147,13 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
         defaultValues: {
             student: '',
             eventName: '',
-            dateRange: undefined as DateRange | undefined,
+            eventDate: undefined as Date | undefined,
             startTime: '',
             endTime: '',
+            eventType: '',
             classLink: '',
-            description: ''
+            description: '',
+            type: ''
         }
     })
 
@@ -155,11 +161,13 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
     const combinedForm = useForm({
         defaultValues: {
             eventName: '',
-            dateRange: undefined as DateRange | undefined,
+            eventDate: undefined as Date | undefined,
             startTime: '',
             endTime: '',
+            eventType: '',
             classLink: '',
-            description: ''
+            description: '',
+            type: ''
         }
     })
 
@@ -280,14 +288,15 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
                     <form
                         id="individual-form"
                         onSubmit={individualForm.handleSubmit(async (values) => {
-                            const { student, eventName, dateRange, startTime, endTime, classLink, description } = values as any
-                            if (!dateRange?.from || !dateRange?.to) return
+                            const { student, eventName, eventDate, startTime, endTime, eventType, classLink, description } = values as any
+                            if (!eventDate) return
 
                             const payload: any = {
                                 title: eventName,
                                 description,
-                                start_at: toIsoWithTime(dateRange.from as Date, startTime),
-                                end_at: toIsoWithTime(dateRange.to as Date, endTime),
+                                start_at: toIsoWithTime(eventDate as Date, startTime),
+                                end_at: toIsoWithTime(eventDate as Date, endTime),
+                                event_type: eventType,
                                 class_link: classLink,
                                 type: 'CLASS',
                                 user_id: student,
@@ -351,23 +360,41 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
                                 />
                             </div>
 
-                            {/* Select Start/End Date */}
+                            {/* Select Event Date */}
                             <div className="space-y-2">
-                                <Label htmlFor="dateRange" className="text-sm font-medium text-gray-700">
-                                    Select Date Range
+                                <Label htmlFor="eventDate" className="text-sm font-medium text-gray-700">
+                                    Select Event Date
                                 </Label>
                                 <Controller
-                                    name="dateRange"
+                                    name="eventDate"
                                     control={individualForm.control}
-                                    rules={individualSchema.dateRange}
+                                    rules={individualSchema.eventDate}
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <DateRangePicker
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                placeholder="Select start date to end date"
-                                                showAs="range"
-                                            />
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant="outline"
+                                                        className={cn(
+                                                            "w-full justify-start text-left font-normal",
+                                                            !field.value && "text-muted-foreground",
+                                                            fieldState.error && "border-red-500"
+                                                        )}
+                                                    >
+                                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                                        {field.value ? format(field.value, "PPP") : "Select date"}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0" align="start">
+                                                    <Calendar
+                                                        mode="single"
+                                                        selected={field.value}
+                                                        onSelect={field.onChange}
+                                                        disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                                        initialFocus
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
                                             {fieldState.error && (
                                                 <p className="text-xs text-red-500 mt-1">{fieldState.error.message}</p>
                                             )}
@@ -446,6 +473,35 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
                             </div>
                         </div>
 
+                        {/* Event Type */}
+                        <div className="space-y-2">
+                            <Label htmlFor="eventType" className="text-sm font-medium text-gray-700">
+                                Event Type
+                            </Label>
+                            <Controller
+                                name="eventType"
+                                control={individualForm.control}
+                                rules={individualSchema.eventType}
+                                render={({ field, fieldState }) => (
+                                    <>
+                                        <Select value={field.value} onValueChange={field.onChange}>
+                                            <SelectTrigger className={`w-full ${fieldState.error ? 'border-red-500' : ''}`}>
+                                                <SelectValue placeholder="Select event type" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="GENERAL">General</SelectItem>
+                                                <SelectItem value="MEETING">Meeting</SelectItem>
+                                                <SelectItem value="LECTURE">Lecture</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        {fieldState.error && (
+                                            <p className="text-xs text-red-500 mt-1">{fieldState.error.message}</p>
+                                        )}
+                                    </>
+                                )}
+                            />
+                        </div>
+
                         {/* Class Link */}
                         <div className="space-y-2">
                             <Label htmlFor="classLink" className="text-sm font-medium text-gray-700">
@@ -501,14 +557,15 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
                     <form
                         id="combined-form"
                         onSubmit={combinedForm.handleSubmit( async (values) => {
-                            const { eventName, dateRange, startTime, endTime, classLink, description } = values as any
-                            if (!dateRange?.from || !dateRange?.to) return
+                            const { eventName, eventDate, startTime, endTime, eventType, classLink, description } = values as any
+                            if (!eventDate) return
 
                             const payload: any = {
                                 title: eventName,
                                 description,
-                                start_at: toIsoWithTime(dateRange.from as Date, startTime),
-                                end_at: toIsoWithTime(dateRange.to as Date, endTime),
+                                start_at: toIsoWithTime(eventDate as Date, startTime),
+                                end_at: toIsoWithTime(eventDate as Date, endTime),
+                                event_type: eventType,
                                 class_link: classLink,
                                 type: 'CLASS',
                                 // no user_id for combined
@@ -552,23 +609,41 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
                                 />
                             </div>
 
-                            {/* Select Start/End Date */}
+                            {/* Select Event Date */}
                             <div className="space-y-2">
-                                <Label htmlFor="dateRange" className="text-sm font-medium text-gray-700">
-                                    Select Date Range
+                                <Label htmlFor="eventDate" className="text-sm font-medium text-gray-700">
+                                    Select Event Date
                                 </Label>
                                 <Controller
-                                    name="dateRange"
+                                    name="eventDate"
                                     control={combinedForm.control}
-                                    rules={combinedSchema.dateRange}
+                                    rules={combinedSchema.eventDate}
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <DateRangePicker
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                placeholder="Select start date to end date"
-                                                showAs="range"
-                                            />
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant="outline"
+                                                        className={cn(
+                                                            "w-full justify-start text-left font-normal",
+                                                            !field.value && "text-muted-foreground",
+                                                            fieldState.error && "border-red-500"
+                                                        )}
+                                                    >
+                                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                                        {field.value ? format(field.value, "PPP") : "Select date"}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0" align="start">
+                                                    <Calendar
+                                                        mode="single"
+                                                        selected={field.value}
+                                                        onSelect={field.onChange}
+                                                        disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                                        initialFocus
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
                                             {fieldState.error && (
                                                 <p className="text-xs text-red-500 mt-1">{fieldState.error.message}</p>
                                             )}
@@ -646,6 +721,35 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
                                     }}
                                 />
                             </div>
+                        </div>
+
+                        {/* Event Type */}
+                        <div className="space-y-2">
+                            <Label htmlFor="eventType" className="text-sm font-medium text-gray-700">
+                                Event Type
+                            </Label>
+                            <Controller
+                                name="eventType"
+                                control={combinedForm.control}
+                                rules={combinedSchema.eventType}
+                                render={({ field, fieldState }) => (
+                                    <>
+                                        <Select value={field.value} onValueChange={field.onChange}>
+                                            <SelectTrigger className={`w-full ${fieldState.error ? 'border-red-500' : ''}`}>
+                                                <SelectValue placeholder="Select event type" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="GENERAL">General</SelectItem>
+                                                <SelectItem value="MEETING">Meeting</SelectItem>
+                                                <SelectItem value="LECTURE">Lecture</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        {fieldState.error && (
+                                            <p className="text-xs text-red-500 mt-1">{fieldState.error.message}</p>
+                                        )}
+                                    </>
+                                )}
+                            />
                         </div>
 
                         {/* Class Link */}

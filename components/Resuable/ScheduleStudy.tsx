@@ -12,6 +12,8 @@ type ScheduleItem = {
 
 interface ScheduleStudyProps {
     scheduleData: ScheduleItem[];
+    selectedDate?: Date;
+    onDateChange?: (date: Date) => void;
 }
 
 const WEEK_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -98,22 +100,32 @@ function getSlotSpan(start: string | null, end: string | null): number {
     return Math.max(1, endIdx - startIdx);
 }
 
-export default function ScheduleStudy({ scheduleData }: ScheduleStudyProps) {
+export default function ScheduleStudy({ scheduleData, selectedDate: externalSelectedDate, onDateChange }: ScheduleStudyProps) {
     const [events, setEvents] = useState<ScheduleItem[]>([]);
     const [baseDate, setBaseDate] = useState<Date>(() => {
         const now = new Date();
         now.setHours(0, 0, 0, 0);
         return now;
     });
-    const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    const [internalSelectedDate, setInternalSelectedDate] = useState<Date>(() => {
         const now = new Date();
         now.setHours(0, 0, 0, 0);
         return now;
     });
 
+    // Use external selected date if provided, otherwise use internal state
+    const selectedDate = externalSelectedDate || internalSelectedDate;
+
     useEffect(() => {
         setEvents(scheduleData);
     }, [scheduleData]);
+
+    // Update internal selected date when external date changes
+    useEffect(() => {
+        if (externalSelectedDate) {
+            setInternalSelectedDate(externalSelectedDate);
+        }
+    }, [externalSelectedDate]);
 
     const weekDates = getWeekDates(baseDate);
     const weekOfMonth = getWeekOfMonth(weekDates[0]);
@@ -156,18 +168,28 @@ export default function ScheduleStudy({ scheduleData }: ScheduleStudyProps) {
         const prev = new Date(baseDate);
         prev.setDate(prev.getDate() - 7);
         setBaseDate(prev);
-        setSelectedDate(getWeekDates(prev)[0]);
+        const newSelectedDate = getWeekDates(prev)[0];
+        if (onDateChange) {
+            onDateChange(newSelectedDate);
+        } else {
+            setInternalSelectedDate(newSelectedDate);
+        }
     }
     function handleNextWeek(): void {
         const next = new Date(baseDate);
         next.setDate(next.getDate() + 7);
         setBaseDate(next);
-        setSelectedDate(getWeekDates(next)[0]);
+        const newSelectedDate = getWeekDates(next)[0];
+        if (onDateChange) {
+            onDateChange(newSelectedDate);
+        } else {
+            setInternalSelectedDate(newSelectedDate);
+        }
     }
 
     return (
         <div
-            className="bg-white rounded-2xl p-6 shadow-sm"
+            className="bg-white rounded-2xl p-6 h-full flex flex-col"
             style={{ borderRadius: 16, background: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,0.04)", padding: 24 }}
         >
             {/* Header */}
@@ -193,9 +215,9 @@ export default function ScheduleStudy({ scheduleData }: ScheduleStudyProps) {
                     </button>
                 </div>
             </div>
-           
-            <div style={{ width: '100%', overflowX: 'auto' }}>
-                <div style={{ minWidth: 760, margin: '0 auto' }}>
+
+            <div className="w-full overflow-x-auto flex-1">
+                <div className="min-w-[600px] sm:min-w-[760px] mx-auto">
                     {/* Days Row */}
                     <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: 8, marginLeft: 2, fontWeight: 500, fontSize: 15 }}>
                         <div style={{ width: 60, color: "#bbb" }}>Time</div>
@@ -207,7 +229,13 @@ export default function ScheduleStudy({ scheduleData }: ScheduleStudyProps) {
                             return (
                                 <div
                                     key={idx}
-                                    onClick={() => setSelectedDate(d)}
+                                    onClick={() => {
+                                        if (onDateChange) {
+                                            onDateChange(d);
+                                        } else {
+                                            setInternalSelectedDate(d);
+                                        }
+                                    }}
                                     style={{
                                         flex: 1,
                                         color: isSelected ? "#F5A623" : "#222",
@@ -246,7 +274,7 @@ export default function ScheduleStudy({ scheduleData }: ScheduleStudyProps) {
                                                 background: "#f7f8fa",
                                                 borderRadius: 14,
                                                 padding: "12px 20px 12px 18px",
-                                                minWidth: 260,
+                                                minWidth: 200,
                                                 minHeight: Math.max(64, 56 * slotEventMap[idx].slotSpan),
                                                 boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
                                                 display: "flex",

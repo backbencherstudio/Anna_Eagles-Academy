@@ -11,9 +11,13 @@ export default function AdminDashboard() {
       <DashboardCard />
       <RevenueGrowthPage />
       <div className='flex flex-col lg:flex-row gap-7'>
+
+        {/* schedule calander left side */}
         <div className='w-full lg:w-7/12'>
           <ScheduleCalander />
         </div>
+
+        {/* assignment overview right side */}
         <div className='w-full lg:w-5/12'>
           <AssignmentOverviewDashaboard />
         </div>

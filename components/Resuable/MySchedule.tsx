@@ -18,6 +18,25 @@ const TIME_SLOTS = [
     '11:00 AM',
     '12:00 PM',
     '01:00 PM',
+    '02:00 PM',
+    '03:00 PM',
+    '04:00 PM',
+    '05:00 PM',
+    // '06:00 PM',
+    // '07:00 PM',
+    // '08:00 PM',
+    // '09:00 PM',
+    // '10:00 PM',
+    // '11:00 PM',
+    // '12:00 AM',
+    // '01:00 AM',
+    // '02:00 AM',
+    // '03:00 AM',
+    // '04:00 AM',
+    // '05:00 AM',
+    // '06:00 AM',
+    // '07:00 AM',
+    // '08:00 AM',
 ];
 
 const parseTime = (timeStr: string) => {
@@ -51,7 +70,7 @@ const MySchedule: React.FC<MyScheduleProps> = ({ scheduleData }) => {
 
     return (
         <div className='h-fit border border-[#ECEFF3] bg-white rounded-2xl p-6 overflow-y-auto font-spline-sans'>
-            <h3 className='text-[#1D1F2C] font-bold text-xl lg:text-2xl pb-4 font-spline-sans'>My Schedule</h3>
+            <h3 className='text-[#1D1F2C] font-bold text-xl lg:text-xl pb-4 font-spline-sans'>My Schedule</h3>
             {TIME_SLOTS.map((slot, idx) => {
                 const slotInfo = slotTaskMap[slot];
 
