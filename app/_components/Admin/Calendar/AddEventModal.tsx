@@ -298,7 +298,7 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
                                 end_at: toIsoWithTime(eventDate as Date, endTime),
                                 event_type: eventType,
                                 class_link: classLink,
-                                type: 'CLASS',
+                                type: eventType,
                                 user_id: student,
                             }
 
@@ -567,7 +567,7 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
                                 end_at: toIsoWithTime(eventDate as Date, endTime),
                                 event_type: eventType,
                                 class_link: classLink,
-                                type: 'CLASS',
+                                type: eventType,
                                 // no user_id for combined
                             }
 

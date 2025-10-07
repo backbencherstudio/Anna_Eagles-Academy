@@ -5,15 +5,20 @@ import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import CalanderAdmin from '@/app/_components/Admin/CalanderAdmin'
 import AddEventModal from '@/app/_components/Admin/Calendar/AddEventModal'
+import EventDetailModal from '@/app/_components/Admin/Calendar/EventDetailModal'
 import ButtonSpring from '@/components/Resuable/ButtonSpring'
 import SchedulePage from '@/components/Shared/Calander/SchedulePage'
+import { useGetAllCalendarSchedulesQuery } from '@/rtk/api/admin/calendarSehedulesApis'
+import { transformCalendarEventToScheduleItem } from '@/lib/calendarUtils'
 
 interface ScheduleItem {
     id: number;
     task: string;
-    subject: string;
+    subject?: string;
     date: string;
-    time: string;
+    time?: string;
+    originalEvent?: any;
+    uniqueId?: string;
 }
 
 export default function Calendar() {
@@ -24,9 +29,16 @@ export default function Calendar() {
         now.setHours(0, 0, 0, 0);
         return now;
     });
+    const [scheduleData, setScheduleData] = useState<ScheduleItem[]>([]);
+    const [selectedEvent, setSelectedEvent] = useState<any>(null);
+    const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+
+    // Fetch calendar schedules from API - fetch all events initially
+    const { data: apiData, isLoading, error } = useGetAllCalendarSchedulesQuery({
+        date: '' // Empty string to fetch all events
+    });
 
     const handleOpenModal = () => {
-
         setOpening(true)
         setTimeout(() => {
             setIsModalOpen(true)
@@ -42,20 +54,73 @@ export default function Calendar() {
         setSelectedDate(date);
     }
 
-    const [scheduleData, setScheduleData] = useState<ScheduleItem[]>([]);
+    const handleEventClick = (event: any) => {
+        setSelectedEvent(event);
+        setIsEventModalOpen(true);
+    }
 
+    const handleCloseEventModal = () => {
+        setIsEventModalOpen(false);
+        setSelectedEvent(null);
+    }
+
+    // Transform API data when it changes
     useEffect(() => {
-        fetch('/data/MyScheduleData.json')
-            .then((res) => res.json())
-            .then((data) => setScheduleData(data));
-    }, []);
+        if (apiData?.data?.events) {
+            const transformedEvents = apiData.data.events.map((event: any, index: number) => 
+                transformCalendarEventToScheduleItem(event, index)
+            );
+            setScheduleData(transformedEvents);
+        }
+    }, [apiData]);
+
+    // Loading state
+    if (isLoading) {
+        return (
+            <div className='w-full grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch'>
+                <div className='lg:col-span-2 flex flex-col'>
+                    <div className="bg-white rounded-2xl p-6 shadow-sm flex items-center justify-center h-full">
+                        <div className="text-gray-500">Loading calendar data...</div>
+                    </div>
+                </div>
+                <div className='lg:col-span-1 flex flex-col'>
+                    <div className="bg-white rounded-2xl p-6 shadow-sm flex items-center justify-center h-full">
+                        <div className="text-gray-500">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div className='w-full grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch'>
+                <div className='lg:col-span-2 flex flex-col'>
+                    <div className="bg-white rounded-2xl p-6 shadow-sm flex items-center justify-center h-full">
+                        <div className="text-red-500">Error loading calendar data</div>
+                    </div>
+                </div>
+                <div className='lg:col-span-1 flex flex-col'>
+                    <div className="bg-white rounded-2xl p-6 shadow-sm flex items-center justify-center h-full">
+                        <div className="text-red-500">Error loading data</div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className='w-full grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch'>
 
             {/* schedule calander left side */}
             <div className='lg:col-span-2 flex flex-col'>
-                <CalanderAdmin scheduleData={scheduleData} selectedDate={selectedDate} onDateChange={handleDateChange} />
+                <CalanderAdmin 
+                    scheduleData={scheduleData} 
+                    selectedDate={selectedDate} 
+                    onDateChange={handleDateChange}
+                    onEventClick={handleEventClick}
+                />
             </div>
 
             {/* add event and schedule page right side */}
@@ -90,6 +155,15 @@ export default function Calendar() {
                     onClose={handleCloseModal}
                 />
             </div>
+
+            {/* Event Detail Modal */}
+            {isEventModalOpen && selectedEvent && (
+                <EventDetailModal
+                    event={selectedEvent}
+                    isOpen={isEventModalOpen}
+                    onClose={handleCloseEventModal}
+                />
+            )}
         </div>
     )
 }

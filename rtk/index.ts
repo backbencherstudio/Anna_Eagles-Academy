@@ -30,6 +30,8 @@ import giftCardGenerateReducer from '@/rtk/slices/admin/giftCardGenerateSlice'
 import uploadProgressReducer from '@/rtk/slices/admin/uploadProgressSlice'
 import eventsReducer from '@/rtk/slices/admin/eventsSlice'
 import { eventsApi } from '@/rtk/api/admin/enventsApis'
+import calendarSchedulesReducer from '@/rtk/slices/admin/calendarSehedulesSlice'
+import { calendarSchedulesApi } from '@/rtk/api/admin/calendarSehedulesApis'
 
 import studentsQuestionReducer from '@/rtk/slices/admin/studentsQuestionSlice'
 import { studentsQuestionApi } from './api/admin/studentsQuestionApis'
@@ -54,6 +56,7 @@ export const store = configureStore({
     studentFeedback: studentFeedbackReducer,
     uploadProgress: uploadProgressReducer,
     events: eventsReducer,
+    calendarSchedules: calendarSchedulesReducer,
     report: reportReducer,
     [authApi.reducerPath]: authApi.reducer,
     [managementCourseApi.reducerPath]: managementCourseApi.reducer,
@@ -70,6 +73,7 @@ export const store = configureStore({
     scholarshipCodeGenerate: scholarshipCodeGenerateReducer,
     [giftCardGenerateApi.reducerPath]: giftCardGenerateApi.reducer,
     [eventsApi.reducerPath]: eventsApi.reducer,
+    [calendarSchedulesApi.reducerPath]: calendarSchedulesApi.reducer,
     giftCardGenerate: giftCardGenerateReducer,
     studentsQuestion: studentsQuestionReducer,
     [studentsQuestionApi.reducerPath]: studentsQuestionApi.reducer,
@@ -131,6 +135,7 @@ export const store = configureStore({
       paymentOverviewApi.middleware,
       enrollmentDataApi.middleware,
       eventsApi.middleware,
+      calendarSchedulesApi.middleware,
     ),
 })
 

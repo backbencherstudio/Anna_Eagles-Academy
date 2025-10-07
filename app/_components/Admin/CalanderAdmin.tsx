@@ -1,6 +1,6 @@
 "use client";
 import ScheduleStudy from '@/components/Resuable/ScheduleStudy'
-import React, { useState } from 'react'
+import React from 'react'
 
 type ScheduleItem = {
     id: number;
@@ -8,28 +8,25 @@ type ScheduleItem = {
     subject?: string;
     date: string;
     time?: string;
+    originalEvent?: any;
+    uniqueId?: string;
 };
 
-export default function CalanderAdmin({ scheduleData, selectedDate, onDateChange }: { 
+export default function CalanderAdmin({ scheduleData, selectedDate, onDateChange, onEventClick }: { 
     scheduleData: ScheduleItem[];
     selectedDate: Date;
     onDateChange: (date: Date) => void;
+    onEventClick?: (event: any) => void;
 }) {
-    const [loading, setLoading] = useState(false);
-
-
-
-    if (loading) {
-        return (
-            <div className="bg-white rounded-2xl p-6 shadow-sm flex items-center justify-center">
-                <div className="text-gray-500">Loading schedule...</div>
-            </div>
-        );
-    }
 
     return (
         <div className="h-full">
-            <ScheduleStudy scheduleData={scheduleData} selectedDate={selectedDate} onDateChange={onDateChange} />
+            <ScheduleStudy 
+                scheduleData={scheduleData} 
+                selectedDate={selectedDate} 
+                onDateChange={onDateChange}
+                onEventClick={onEventClick}
+            />
         </div>
     )
 }

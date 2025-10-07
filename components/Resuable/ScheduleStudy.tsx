@@ -1,6 +1,7 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
+import { Clock, User } from "lucide-react";
 
 type ScheduleItem = {
     id: number;
@@ -8,16 +9,27 @@ type ScheduleItem = {
     subject?: string;
     date: string;
     time?: string;
+    originalEvent?: any;
+    uniqueId?: string;
 };
 
 interface ScheduleStudyProps {
     scheduleData: ScheduleItem[];
     selectedDate?: Date;
     onDateChange?: (date: Date) => void;
+    onEventClick?: (event: any) => void;
 }
 
 const WEEK_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const TIME_SLOTS = [
+    "12:00 AM",
+    "01:00 AM",
+    "02:00 AM",
+    "03:00 AM",
+    "04:00 AM",
+    "05:00 AM",
+    "06:00 AM",
+    "07:00 AM",
     "08:00 AM",
     "09:00 AM",
     "10:00 AM",
@@ -28,11 +40,13 @@ const TIME_SLOTS = [
     "03:00 PM",
     "04:00 PM",
     "05:00 PM",
+    "06:00 PM",
+    "07:00 PM",
+    "08:00 PM",
+    "09:00 PM",
+    "10:00 PM",
+    "11:00 PM",
 ];
-
-
-
-
 function getWeekDates(baseDate: Date): Date[] {
     const monday = new Date(baseDate);
     monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
@@ -58,7 +72,7 @@ function formatTimeRange(time?: string): [string | null, string | null] {
     return [start, end];
 }
 
-// Helper to normalize time to slot format (e.g., '1:00 PM' => '01:00 PM')
+// Normalize time to slot format (e.g., '1:00 PM' => '01:00 PM')
 function formatTimeToSlot(time: string | null): string | null {
     if (!time) return null;
     const [h, m] = time.split(":");
@@ -85,22 +99,44 @@ function getTaskColorMap(scheduleData: { task: string }[]) {
     return taskColorMap;
 }
 
-// Helper to get the slot index for a given time
+// Get the slot index for a given time
 function getSlotIndex(time: string | null): number {
     if (!time) return -1;
-    return TIME_SLOTS.findIndex(slot => slot === formatTimeToSlot(time));
+    const formattedTime = formatTimeToSlot(time);
+    if (!formattedTime) return -1;
+
+    // First try exact match
+    let index = TIME_SLOTS.findIndex(slot => slot === formattedTime);
+    if (index !== -1) return index;
+
+    // If no exact match, FLOOR to the current hour slot (01:30 PM -> 01:00 PM)
+    const [timePart, ampm] = formattedTime.split(' ');
+    const [hour] = timePart.split(':');
+    const flooredTime = `${hour.padStart(2, '0')}:00 ${ampm}`;
+
+    index = TIME_SLOTS.findIndex(slot => slot === flooredTime);
+    return index;
 }
 
-// Helper to get the number of slots an event spans
-function getSlotSpan(start: string | null, end: string | null): number {
-    if (!start || !end) return 1;
-    const startIdx = getSlotIndex(start);
-    const endIdx = getSlotIndex(end);
-    if (startIdx === -1 || endIdx === -1) return 1;
-    return Math.max(1, endIdx - startIdx);
+// Check if an event spans across multiple slots
+function getEventSlotRange(start: string | null, end: string | null): { startSlot: number; endSlot: number; span: number } {
+    if (!start || !end) return { startSlot: -1, endSlot: -1, span: 1 };
+
+    const startSlot = getSlotIndex(start);
+    const endSlot = getSlotIndex(end);
+
+    if (startSlot === -1 || endSlot === -1) {
+        return { startSlot: -1, endSlot: -1, span: 1 };
+    }
+
+    return {
+        startSlot,
+        endSlot,
+        span: Math.max(1, endSlot - startSlot)
+    };
 }
 
-export default function ScheduleStudy({ scheduleData, selectedDate: externalSelectedDate, onDateChange }: ScheduleStudyProps) {
+export default function ScheduleStudy({ scheduleData, selectedDate: externalSelectedDate, onDateChange, onEventClick }: ScheduleStudyProps) {
     const [events, setEvents] = useState<ScheduleItem[]>([]);
     const [baseDate, setBaseDate] = useState<Date>(() => {
         const now = new Date();
@@ -120,49 +156,55 @@ export default function ScheduleStudy({ scheduleData, selectedDate: externalSele
         setEvents(scheduleData);
     }, [scheduleData]);
 
-    // Update internal selected date when external date changes
+    // Update internal selected date and base week when external date changes
     useEffect(() => {
         if (externalSelectedDate) {
-            setInternalSelectedDate(externalSelectedDate);
+            const normalized = new Date(externalSelectedDate);
+            normalized.setHours(0, 0, 0, 0);
+            setInternalSelectedDate(normalized);
+            // Ensure the week grid switches to the week of the newly selected date
+            setBaseDate(normalized);
         }
     }, [externalSelectedDate]);
 
-    const weekDates = getWeekDates(baseDate);
-    const weekOfMonth = getWeekOfMonth(weekDates[0]);
-    const monthYear = formatMonthYear(weekDates[0]);
+    const weekDates = useMemo(() => getWeekDates(baseDate), [baseDate]);
+    const weekOfMonth = useMemo(() => getWeekOfMonth(weekDates[0]), [weekDates]);
+    const monthYear = useMemo(() => formatMonthYear(weekDates[0]), [weekDates]);
 
-    const eventsForSelectedDate: ScheduleItem[] = events
-        .filter((ev) => {
-            const evDate = new Date(ev.date);
-            return (
-                evDate.getFullYear() === selectedDate.getFullYear() &&
-                evDate.getMonth() === selectedDate.getMonth() &&
-                evDate.getDate() === selectedDate.getDate()
-            );
-        })
-        .sort((a, b) => {
-            const [aStart] = formatTimeRange(a.time);
-            const [bStart] = formatTimeRange(b.time);
-            return (aStart || "00:00 AM").localeCompare(bStart || "00:00 AM");
+    const eventsForSelectedDate: ScheduleItem[] = useMemo(() => {
+        const selectedDateStr = selectedDate.toLocaleDateString('en-CA');
+        return events
+            .filter((ev) => ev.date === selectedDateStr)
+            .sort((a, b) => {
+                const [aStart] = formatTimeRange(a.time);
+                const [bStart] = formatTimeRange(b.time);
+                return (aStart || "00:00 AM").localeCompare(bStart || "00:00 AM");
+            });
+    }, [events, selectedDate]);
+
+    // Group events by start time slot; collect unmapped events
+    const { eventsBySlot, unmappedEvents } = useMemo(() => {
+        const bySlot: Record<number, (ScheduleItem & { slotSpan: number })[]> = {};
+        const notMapped: ScheduleItem[] = [];
+        eventsForSelectedDate.forEach(ev => {
+            if (!ev.time) {
+                notMapped.push(ev);
+                return;
+            }
+            const [start, end] = formatTimeRange(ev.time);
+            const slotRange = getEventSlotRange(start, end);
+            if (slotRange.startSlot !== -1) {
+                if (!bySlot[slotRange.startSlot]) bySlot[slotRange.startSlot] = [];
+                bySlot[slotRange.startSlot].push({ ...ev, slotSpan: slotRange.span });
+            } else {
+                notMapped.push(ev);
+            }
         });
+        return { eventsBySlot: bySlot, unmappedEvents: notMapped };
+    }, [eventsForSelectedDate]);
 
-    // Build a map: slot index -> event to render (only at start slot), using only eventsForSelectedDate
-    const slotEventMap: (ScheduleItem & { slotSpan: number })[] = Array(TIME_SLOTS.length).fill(null);
-    eventsForSelectedDate.forEach(ev => {
-        if (!ev.time) return;
-        const [start, end] = formatTimeRange(ev.time);
-        const startIdx = getSlotIndex(start);
-        const slotSpan = getSlotSpan(start, end);
-        if (startIdx !== -1) {
-            slotEventMap[startIdx] = { ...ev, slotSpan };
-        }
-    });
-
-
-    const uniqueTasks = Array.from(
-        new Map(events.map(item => [item.task, item])).values()
-    );
-    const taskColorMap = getTaskColorMap(uniqueTasks);
+    const uniqueTasks = useMemo(() => Array.from(new Map(events.map(item => [item.task, item])).values()), [events]);
+    const taskColorMap = useMemo(() => getTaskColorMap(uniqueTasks), [uniqueTasks]);
 
     function handlePrevWeek(): void {
         const prev = new Date(baseDate);
@@ -189,8 +231,7 @@ export default function ScheduleStudy({ scheduleData, selectedDate: externalSele
 
     return (
         <div
-            className="bg-white rounded-2xl p-6 h-full flex flex-col"
-            style={{ borderRadius: 16, background: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,0.04)", padding: 24 }}
+            className="bg-white rounded-2xl p-6 h-full flex flex-col shadow-sm"
         >
             {/* Header */}
             <div className="schedule-header flex items-center mb-4 flex-col sm:flex-row sm:mb-6 gap-2 sm:gap-0 w-full">
@@ -219,8 +260,8 @@ export default function ScheduleStudy({ scheduleData, selectedDate: externalSele
             <div className="w-full overflow-x-auto flex-1">
                 <div className="min-w-[600px] sm:min-w-[760px] mx-auto">
                     {/* Days Row */}
-                    <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: 8, marginLeft: 2, fontWeight: 500, fontSize: 15 }}>
-                        <div style={{ width: 60, color: "#bbb" }}>Time</div>
+                    <div className="flex items-center gap-0 mb-2 ml-1 font-medium text-[15px]">
+                        <div className="w-[60px] text-[#bbb]">Time</div>
                         {weekDates.map((d, idx) => {
                             const isSelected =
                                 d.getDate() === selectedDate.getDate() &&
@@ -236,88 +277,110 @@ export default function ScheduleStudy({ scheduleData, selectedDate: externalSele
                                             setInternalSelectedDate(d);
                                         }
                                     }}
-                                    style={{
-                                        flex: 1,
-                                        color: isSelected ? "#F5A623" : "#222",
-                                        fontWeight: isSelected ? 700 : 500,
-                                        background: isSelected ? "#FFF7E6" : "none",
-                                        borderRadius: isSelected ? 8 : 0,
-                                        padding: isSelected ? "2px 0" : "2px 0",
-                                        textAlign: "center",
-                                        cursor: "pointer",
-                                        transition: "background 0.2s, color 0.2s",
-                                    }}
+                                    className={`${isSelected ? 'text-[#F5A623] font-bold bg-[#FFF7E6] rounded-lg' : 'text-[#222] font-medium'} flex-1 text-center cursor-pointer transition-colors py-0.5`}
                                 >
-                                    <div style={{ fontSize: 16 }}>{d.getDate()}</div>
-                                    <div style={{ fontSize: 13, color: isSelected ? "#F5A623" : "#888" }}>{WEEK_DAYS[idx]}</div>
+                                    <div className="text-[16px]">{d.getDate()}</div>
+                                    <div className={`${isSelected ? 'text-[#F5A623]' : 'text-[#888]'} text-[13px]`}>{WEEK_DAYS[idx]}</div>
                                 </div>
                             );
                         })}
                     </div>
                     {/* Time slots and events */}
-                    <div
-                        style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 0,
-                            marginTop: 8,
-                        }}
-                    >
+                    <div className="flex flex-col gap-0 mt-2">
                         {TIME_SLOTS.map((slot, idx) => (
-                            <div key={slot} style={{ display: "flex", alignItems: "flex-start", minHeight: 64, borderBottom: "1px solid #F3F4F6" }}>
-                                <div style={{ width: 60, color: "#bbb", fontSize: 14, paddingTop: 18, textAlign: 'center' }}>{slot}</div>
-                                <div style={{ flex: 1, minHeight: 64, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", position: 'relative' }}>
-                                    {slotEventMap[idx] && (
+                            <div key={slot} className="flex items-start min-h-16 border-b border-gray-200">
+                                <div className="w-15 text-gray-400 text-sm pt-4 text-center">{slot}</div>
+                                <div className="flex-1 min-h-16 flex items-start justify-center flex-col relative py-2 gap-2">
+                                    {eventsBySlot[idx]?.map((event, eventIndex) => (
                                         <div
-                                            key={slotEventMap[idx].id}
+                                            key={event.uniqueId || `${event.id}-${eventIndex}`}
+                                            onClick={() => onEventClick?.(event.originalEvent)}
+                                            className={`bg-gray-50 rounded-xl border p-2 min-w-[300px] min-h-[40px] max-h-[80px]  ms-5 flex flex-row items-center gap-3 mb-0 cursor-pointer transition-all duration-200 z-10 w-full max-w-[400px] overflow-hidden ${onEventClick ? 'hover:bg-blue-50 hover:-translate-y-0.5 hover:shadow-md' : 'cursor-default'
+                                                }`}
                                             style={{
-                                                background: "#f7f8fa",
-                                                borderRadius: 14,
-                                                padding: "12px 20px 12px 18px",
-                                                minWidth: 200,
-                                                minHeight: Math.max(64, 56 * slotEventMap[idx].slotSpan),
-                                                boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                                                display: "flex",
-                                                flexDirection: "column",
-                                                gap: 6,
-                                                marginBottom: 8,
-                                                // Removed position: 'absolute', top, left, marginLeft, marginRight
-                                                zIndex: 2,
+                                                borderColor: taskColorMap[event.task] || '#e0e0e0'
                                             }}
                                         >
-                                            <div style={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                gap: 7,
-                                                marginBottom: 2,
-                                            }}>
-                                                {/* Color dot like CategoriesOverview */}
-                                                <span
-                                                    style={{
-                                                        width: 12,
-                                                        height: 12,
-                                                        borderRadius: 3,
-                                                        background: taskColorMap[slotEventMap[idx].task] || '#ccc',
-                                                        display: 'inline-block',
-                                                        marginRight: 6,
-                                                    }}
-                                                />
-                                                <span style={{ fontWeight: 700, fontSize: 14 }}>{slotEventMap[idx].task}</span>
+                                            {/* Color dot */}
+                                            <span
+                                                className="w-3 h-3 rounded-sm inline-block flex-shrink-0"
+                                                style={{
+                                                    backgroundColor: taskColorMap[event.task] || '#ccc',
+                                                }}
+                                            />
+
+                                            {/* Main content */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-0.5">
+                                                    <span className="font-semibold text-xs leading-tight">{event.task}</span>
+                                                    {eventsBySlot[idx].length > 1 && (
+                                                        <span className="text-[9px] text-gray-600 bg-gray-200 px-1 py-0.5 rounded-md">
+                                                            {eventIndex + 1}/{eventsBySlot[idx].length}
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {/* Student name and time in one line */}
+                                                <div className="flex items-center gap-2 text-[10px] text-gray-600">
+                                                    {event.originalEvent?.user && (
+                                                        <span className="font-medium flex items-center gap-1">
+                                                            <User className="w-3 h-3" />
+                                                            {event.originalEvent.user.first_name} {event.originalEvent.user.last_name}
+                                                        </span>
+                                                    )}
+                                                    {event.time && (
+                                                        <span className="font-normal flex items-center gap-1">
+                                                            <Clock className="w-3 h-3" />
+                                                            {event.time}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
-                                            {slotEventMap[idx].subject && (
-                                                <div style={{ fontWeight: 500, fontSize: 13 }}>{slotEventMap[idx].subject}</div>
-                                            )}
-                                            {slotEventMap[idx].time && (
-                                                <div style={{ fontWeight: 400, fontSize: 12, color: "#888" }}>{slotEventMap[idx].time}</div>
-                                            )}
                                         </div>
-                                    )}
+                                    ))}
                                 </div>
                             </div>
                         ))}
                     </div>
                 </div>
             </div>
+
+            {/* Display unmapped events */}
+            {unmappedEvents.length > 0 && (
+                <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <h3 className="text-sm font-semibold text-yellow-800 mb-3">
+                        Events not in time slots ({unmappedEvents.length})
+                    </h3>
+                    <div className="space-y-2">
+                        {unmappedEvents.map((event, index) => (
+                            <div
+                                key={index}
+                                onClick={() => onEventClick?.(event.originalEvent)}
+                                className="flex items-center gap-3 p-3 bg-white rounded-lg border border-yellow-200 cursor-pointer hover:bg-yellow-50 transition-colors"
+                            >
+                                <span
+                                    style={{
+                                        width: 12,
+                                        height: 12,
+                                        borderRadius: 3,
+                                        background: taskColorMap[event.task] || '#ccc',
+                                        display: 'inline-block',
+                                    }}
+                                />
+                                <div className="flex-1">
+                                    <div className="font-medium text-gray-900">{event.task}</div>
+                                    {event.subject && (
+                                        <div className="text-sm text-gray-600">{event.subject}</div>
+                                    )}
+                                    {event.time && (
+                                        <div className="text-xs text-gray-500">{event.time}</div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
