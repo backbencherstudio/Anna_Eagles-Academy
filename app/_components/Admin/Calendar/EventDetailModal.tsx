@@ -1,7 +1,7 @@
 'use client'
 import React from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Calendar as CalendarIcon, Clock, User, BookOpen, FileText, HelpCircle, ClipboardList, ExternalLink } from 'lucide-react'
+import { Calendar as CalendarIcon, Clock, User, BookOpen, FileText, HelpCircle, ClipboardList, ExternalLink, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import toast from 'react-hot-toast'
 import { CalendarEvent } from '@/rtk/slices/admin/calendarSehedulesSlice'
@@ -17,6 +17,8 @@ const TYPE_CONFIG = {
     QUIZ: { label: 'Quiz', icon: HelpCircle },
     ASSIGNMENT: { label: 'Assignment', icon: FileText },
     GENERAL: { label: 'General', icon: ClipboardList },
+    LECTURE: { label: 'Lecture', icon: BookOpen },
+    MEETING: { label: 'Meeting', icon: Users },
 };
 
 const STATUS_LABEL: Record<string, string> = {

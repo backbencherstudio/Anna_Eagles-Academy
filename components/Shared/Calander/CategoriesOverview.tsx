@@ -30,15 +30,20 @@ const CATEGORIES = {
 export default function CategoriesOverview({ scheduleData, title }: CategoriesOverviewProps) {
     // Group data by type, mapping CLASS to lecture
     const groupedData = scheduleData.reduce((groups, item) => {
-        let type = item.type || 'general';
-        
+        let typeKey = (item.type || 'general').toString().trim().toLowerCase();
+
         // Map CLASS type to lecture for display
-        if (type.toLowerCase() === 'class') {
-            type = 'lecture';
+        if (typeKey === 'class') {
+            typeKey = 'lecture';
         }
-        
-        if (!groups[type]) groups[type] = [];
-        groups[type].push(item);
+
+        // Fallback unknown types to general
+        if (!(typeKey in CATEGORIES)) {
+            typeKey = 'general';
+        }
+
+        if (!groups[typeKey]) groups[typeKey] = [];
+        groups[typeKey].push(item);
         return groups;
     }, {} as Record<string, ScheduleItem[]>);
 

@@ -12,7 +12,7 @@ export interface CalendarEvent {
     end_at: string;
     timezone: string | null;
     status: string;
-    type: 'CLASS' | 'QUIZ' | 'ASSIGNMENT' | 'GENERAL';
+    type: 'CLASS' | 'QUIZ' | 'ASSIGNMENT' | 'GENERAL' | 'LECTURE' | 'MEETING';
     metadata: any;
     user_id: string | null;
     assignment_id: string | null;

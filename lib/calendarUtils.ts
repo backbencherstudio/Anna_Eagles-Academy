@@ -50,6 +50,12 @@ export function transformCalendarEventToScheduleItem(
         case 'CLASS':
             frontendType = 'lecture';
             break;
+        case 'LECTURE':
+            frontendType = 'lecture';
+            break;
+        case 'MEETING':
+            frontendType = 'meeting';
+            break;
         case 'QUIZ':
             frontendType = 'quiz';
             break;
@@ -75,4 +81,65 @@ export function transformCalendarEventToScheduleItem(
         originalEvent: event,
         uniqueId: `${event.id}-${event.user_id || 'no-user'}-${event.start_at}`,
     };
+}
+
+// ---- Reusable Date/Time helpers for forms ----
+
+// Merge a selected local calendar date with a 12-hour time like "10:30 AM"
+// Returns a UTC ISO string representing that local datetime
+export function toIsoWithTime(date: Date, timeString: string): string {
+    const [time, period] = timeString.split(' ');
+    const [hhStr, mmStr] = time.split(':');
+    let hour = parseInt(hhStr, 10);
+    const minute = parseInt(mmStr, 10);
+    if (period === 'PM' && hour !== 12) hour += 12;
+    if (period === 'AM' && hour === 12) hour = 0;
+
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+
+    const localDateTime = new Date(year, month, day, hour, minute, 0, 0);
+    return localDateTime.toISOString();
+}
+
+// Validate that end time is after start time (both in 12-hour strings like "10:00 AM")
+export function validateTimeRange(startTime: string, endTime: string): boolean {
+    if (!startTime || !endTime) return true;
+
+    const toMinutes = (timeStr: string) => {
+        const [time, period] = timeStr.split(' ');
+        const [hours, minutes] = time.split(':').map(Number);
+        let hour = hours;
+        if (period === 'PM' && hours !== 12) hour += 12;
+        if (period === 'AM' && hours === 12) hour = 0;
+        return hour * 60 + minutes;
+    };
+
+    const startMinutes = toMinutes(startTime);
+    const endMinutes = toMinutes(endTime);
+    return endMinutes > startMinutes;
+}
+
+// Suggest an end time one hour after a given start time (12-hour string)
+export function getSuggestedEndTime(startTime: string): string {
+    if (!startTime) return '';
+
+    const parse = (timeStr: string) => {
+        const [time, period] = timeStr.split(' ');
+        const [hours, minutes] = time.split(':').map(Number);
+        let hour = hours;
+        if (period === 'PM' && hours !== 12) hour += 12;
+        if (period === 'AM' && hours === 12) hour = 0;
+        return { hour, minute: minutes };
+    };
+
+    const { hour, minute } = parse(startTime);
+    const end = new Date();
+    end.setHours(hour + 1, minute, 0, 0);
+    return end.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+    });
 }

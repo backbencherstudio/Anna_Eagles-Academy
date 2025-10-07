@@ -21,7 +21,7 @@ interface ScheduleItem {
     uniqueId?: string;
 }
 
-export default function Calendar() {
+export default function CalendarPageAdmin() {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [opening, setOpening] = useState(false)
     const [selectedDate, setSelectedDate] = useState<Date>(() => {

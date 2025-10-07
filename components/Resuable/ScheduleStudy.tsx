@@ -83,21 +83,14 @@ function formatTimeToSlot(time: string | null): string | null {
     return `${hour}:${minute} ${ampm}`;
 }
 
-// Helper to generate consistent task-to-color mapping
-const COLOR_PALETTE = [
-    '#FF5C1A', '#FFD59A', '#2ECC40', '#FFD600', '#007bff', '#FF69B4', '#8A2BE2', '#20B2AA', '#FF6347', '#00CED1', '#FFA500', '#6A5ACD', '#32CD32', '#DC143C', '#00BFFF', '#FF4500', '#B8860B', '#228B22', '#DAA520', '#9932CC'
-];
-function getTaskColorMap(scheduleData: { task: string }[]) {
-    const taskColorMap: Record<string, string> = {};
-    let colorIndex = 0;
-    scheduleData.forEach((item) => {
-        if (!taskColorMap[item.task]) {
-            taskColorMap[item.task] = COLOR_PALETTE[colorIndex % COLOR_PALETTE.length];
-            colorIndex++;
-        }
-    });
-    return taskColorMap;
-}
+// Fixed type-to-color map aligned with CategoriesOverview
+const TYPE_COLOR_MAP: Record<string, string> = {
+    general: '#059669',
+    assignment: '#DC2626',
+    quiz: '#D97706',
+    meeting: '#16A34A',
+    lecture: '#7C3AED',
+};
 
 // Get the slot index for a given time
 function getSlotIndex(time: string | null): number {
@@ -203,8 +196,12 @@ export default function ScheduleStudy({ scheduleData, selectedDate: externalSele
         return { eventsBySlot: bySlot, unmappedEvents: notMapped };
     }, [eventsForSelectedDate]);
 
-    const uniqueTasks = useMemo(() => Array.from(new Map(events.map(item => [item.task, item])).values()), [events]);
-    const taskColorMap = useMemo(() => getTaskColorMap(uniqueTasks), [uniqueTasks]);
+    const getEventColor = (ev: ScheduleItem): string => {
+        const typeKey = (ev as any).type?.toLowerCase?.() || (ev.originalEvent?.type?.toLowerCase?.()) || 'general';
+        // Map backend CLASS to lecture, fallback to general
+        const normalizedType = typeKey === 'class' ? 'lecture' : typeKey;
+        return TYPE_COLOR_MAP[normalizedType] || TYPE_COLOR_MAP.general;
+    };
 
     function handlePrevWeek(): void {
         const prev = new Date(baseDate);
@@ -298,14 +295,14 @@ export default function ScheduleStudy({ scheduleData, selectedDate: externalSele
                                             className={`bg-gray-50 rounded-xl border p-2 min-w-[300px] min-h-[40px] max-h-[80px]  ms-5 flex flex-row items-center gap-3 mb-0 cursor-pointer transition-all duration-200 z-10 w-full max-w-[400px] overflow-hidden ${onEventClick ? 'hover:bg-blue-50 hover:-translate-y-0.5 hover:shadow-md' : 'cursor-default'
                                                 }`}
                                             style={{
-                                                borderColor: taskColorMap[event.task] || '#e0e0e0'
+                                                borderColor: getEventColor(event)
                                             }}
                                         >
                                             {/* Color dot */}
                                             <span
                                                 className="w-3 h-3 rounded-sm inline-block flex-shrink-0"
                                                 style={{
-                                                    backgroundColor: taskColorMap[event.task] || '#ccc',
+                                                    backgroundColor: getEventColor(event),
                                                 }}
                                             />
 
@@ -351,7 +348,7 @@ export default function ScheduleStudy({ scheduleData, selectedDate: externalSele
                     <h3 className="text-sm font-semibold text-yellow-800 mb-3">
                         Events not in time slots ({unmappedEvents.length})
                     </h3>
-                    <div className="space-y-2">
+                                    <div className="space-y-2">
                         {unmappedEvents.map((event, index) => (
                             <div
                                 key={index}
@@ -363,7 +360,7 @@ export default function ScheduleStudy({ scheduleData, selectedDate: externalSele
                                         width: 12,
                                         height: 12,
                                         borderRadius: 3,
-                                        background: taskColorMap[event.task] || '#ccc',
+                                                        background: getEventColor(event),
                                         display: 'inline-block',
                                     }}
                                 />

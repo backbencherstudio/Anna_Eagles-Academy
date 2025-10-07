@@ -6,7 +6,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
-import type { DateRange } from "react-day-picker"
+import { toIsoWithTime, validateTimeRange, getSuggestedEndTime } from '@/lib/calendarUtils'
 import { useForm, Controller } from "react-hook-form"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -125,23 +125,11 @@ const combinedSchema = {
     }
 }
 
-// Merge a date with a time string like "10:30 AM" to ISO string
-const toIsoWithTime = (date: Date, timeString: string) => {
-    const [time, period] = timeString.split(' ')
-    const [hhStr, mmStr] = time.split(':')
-    let hour = parseInt(hhStr, 10)
-    const minute = parseInt(mmStr, 10)
-    if (period === 'PM' && hour !== 12) hour += 12
-    if (period === 'AM' && hour === 12) hour = 0
-    const d = new Date(date)
-    d.setHours(hour, minute, 0, 0)
-    return d.toISOString()
-}
 
 export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
     const [eventType, setEventType] = useState<'individual' | 'combined'>('individual')
-    const [addEvent, { isLoading: isCreating } ] = useAddEventMutation()
-    
+    const [addEvent, { isLoading: isCreating }] = useAddEventMutation()
+
     // Individual form
     const individualForm = useForm({
         defaultValues: {
@@ -263,8 +251,8 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
                         variant={eventType === 'individual' ? 'default' : 'outline'}
                         onClick={() => setEventType('individual')}
                         className={`rounded-full cursor-pointer px-6 py-2 flex items-center gap-2 ${eventType === 'individual'
-                                ? 'bg-[#0F2598] text-white hover:bg-[#0F2598]/80'
-                                : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                            ? 'bg-[#0F2598] text-white hover:bg-[#0F2598]/80'
+                            : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
                             }`}
                     >
                         <User className="h-4 w-4" />
@@ -274,8 +262,8 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
                         variant={eventType === 'combined' ? 'default' : 'outline'}
                         onClick={() => setEventType('combined')}
                         className={`rounded-full cursor-pointer px-6 py-2 flex items-center gap-2 ${eventType === 'combined'
-                                ? 'bg-[#0F2598] text-white hover:bg-[#0F2598]/80'
-                                : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                            ? 'bg-[#0F2598] text-white hover:bg-[#0F2598]/80'
+                            : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
                             }`}
                     >
                         <Users className="h-4 w-4" />
@@ -556,7 +544,7 @@ export default function AddEventModal({ isOpen, onClose }: AddEventModalProps) {
                 {eventType === 'combined' && (
                     <form
                         id="combined-form"
-                        onSubmit={combinedForm.handleSubmit( async (values) => {
+                        onSubmit={combinedForm.handleSubmit(async (values) => {
                             const { eventName, eventDate, startTime, endTime, eventType, classLink, description } = values as any
                             if (!eventDate) return
 

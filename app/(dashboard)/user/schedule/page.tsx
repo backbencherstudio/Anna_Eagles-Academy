@@ -11,7 +11,7 @@ type ScheduleItem = {
     time?: string;
 };
 
-export default function Calendar() {
+export default function CalendarStudentPage() {
     const [scheduleData, setScheduleData] = useState<ScheduleItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedDate, setSelectedDate] = useState<Date>(() => {
