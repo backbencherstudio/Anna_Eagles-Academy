@@ -8,11 +8,12 @@ export const reportApi = createApi({
     tagTypes: ['Report'],
     endpoints: (builder) => ({
 
-        // get website traffic
+        // get website traffic params pass period and date
         getWebsiteTraffic: builder.query({
-            query: () => ({
+            query: ({ period }: { period: string }) => ({
                 url: '/api/admin/report/website-traffic',
                 method: 'GET',
+                params: { period },
             }),
             providesTags: ['Report'],
         }),
@@ -52,7 +53,7 @@ export const paymentOverviewApi = createApi({
     endpoints: (builder) => ({
         // get payment 
         getPaymentOverview: builder.query({
-            query: (params?: Record<string, any>) => ({ 
+            query: (params?: Record<string, any>) => ({
                 url: '/api/admin/report/payment-overview',
                 method: 'GET',
                 params,
@@ -73,10 +74,10 @@ export const enrollmentDataApi = createApi({
     tagTypes: ['EnrollmentData'],
     endpoints: (builder) => ({
 
-        
+
         // get enrollment data
         getEnrollmentData: builder.query({
-            query: (params?: Record<string, any>) => ({ 
+            query: (params?: Record<string, any>) => ({
                 url: '/api/admin/report/enrollments',
                 method: 'GET',
                 params,

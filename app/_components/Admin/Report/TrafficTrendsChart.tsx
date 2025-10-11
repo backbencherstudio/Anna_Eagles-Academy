@@ -1,98 +1,118 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react'
 import { Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts'
 import ChartShimmerEffect from './ShimmerEffect/ChartShimmerEffect'
+import { useGetWebsiteTrafficQuery } from '@/rtk/api/admin/reportApis'
+
+// Types for API data
+interface ChartDataPoint {
+    day?: string;
+    month?: string;
+    date?: string;
+    users: number;
+}
 
 
 
-export default function TrafficTrendsChart({ loading }: { loading: boolean }) {
-    const [selectedPeriod, setSelectedPeriod] = useState('Daily')
-    const [isLoading, setIsLoading] = useState(loading)
+export default function TrafficTrendsChart() {
+    const [selectedPeriod, setSelectedPeriod] = useState('week')
+    const [isRefreshing, setIsRefreshing] = useState(false)
 
-    // keep internal loading state in sync with parent prop
-    useEffect(() => {
-        setIsLoading(loading)
-    }, [loading])
+    const { data: trafficData, refetch, isLoading } = useGetWebsiteTrafficQuery({ period: selectedPeriod })
 
-    const chartData = {
-        Daily: [
-            { date: '8/12/2025', baseline: 85, policy: 65 },
-            { date: '8/12/2025', baseline: 90, policy: 70 },
-            { date: '8/12/2025', baseline: 88, policy: 68 },
-            { date: '8/12/2025', baseline: 95, policy: 75 },
-            { date: '8/12/2025', baseline: 98, policy: 78 },
-            { date: '8/12/2025', baseline: 96, policy: 76 },
-            { date: '8/12/2025', baseline: 95, policy: 78 },
-        ],
-        Weekly: [
-            { date: 'Sun', baseline: 85, policy: 65 },
-            { date: 'Mon', baseline: 90, policy: 70 },
-            { date: 'Tue', baseline: 88, policy: 68 },
-            { date: 'Wed', baseline: 95, policy: 75 },
-            { date: 'Thu', baseline: 92, policy: 72 },
-            { date: 'Fri', baseline: 98, policy: 78 },
-            { date: 'Sat', baseline: 85, policy: 65 },
-        ],
-        Monthly: [
-            { date: 'Jan', baseline: 85, policy: 65 },
-            { date: 'Feb', baseline: 90, policy: 70 },
-            { date: 'Mar', baseline: 88, policy: 68 },
-            { date: 'Apr', baseline: 95, policy: 75 },
-            { date: 'May', baseline: 92, policy: 72 },
-            { date: 'Jun', baseline: 98, policy: 78 },
-            { date: 'Jul', baseline: 85, policy: 65 },
-            { date: 'Aug', baseline: 90, policy: 70 },
-            { date: 'Sep', baseline: 88, policy: 68 },
-            { date: 'Oct', baseline: 95, policy: 75 },
-            { date: 'Nov', baseline: 92, policy: 72 },
-            { date: 'Dec', baseline: 98, policy: 78 },
-        ]
-    }
+    // Handle period change
+    const handlePeriodChange = (period: string) => {
+        setSelectedPeriod(period);
+    };
 
-    const currentData = chartData[selectedPeriod as keyof typeof chartData]
+    // Handle reload with animation
+    const handleReload = () => {
+        if (isRefreshing) return;
+
+        setIsRefreshing(true);
+        refetch();
+        setTimeout(() => {
+            setIsRefreshing(false);
+        }, 500);
+    };
+
+    // Transform API data to chart format
+    const transformChartData = () => {
+        if (!trafficData?.data?.website_traffic_trends?.chart_data) return [];
+
+        const currentData = trafficData.data.website_traffic_trends.chart_data.current_period.data || [];
+        const lastData = trafficData.data.website_traffic_trends.chart_data.last_period.data || [];
+        const dataMap = new Map();
+
+        // Process current period data
+        currentData.forEach((item: ChartDataPoint) => {
+            const key = item.day || item.month || item.date || 'Unknown';
+            const displayLabel = item.day || item.month || item.date || 'Unknown';
+
+            dataMap.set(key, {
+                date: displayLabel,
+                thisPeriod: item.users || 0,
+                lastPeriod: 0
+            });
+        });
+
+        // Process last period data
+        lastData.forEach((item: ChartDataPoint) => {
+            const key = item.day || item.month || item.date || 'Unknown';
+            const displayLabel = item.day || item.month || item.date || 'Unknown';
+
+            if (dataMap.has(key)) {
+                dataMap.get(key).lastPeriod = item.users || 0;
+            } else {
+                dataMap.set(key, {
+                    date: displayLabel,
+                    thisPeriod: 0,
+                    lastPeriod: item.users || 0
+                });
+            }
+        });
+
+        return Array.from(dataMap.values());
+    };
+
+    const chartData = transformChartData();
+    const summary = trafficData?.data?.website_traffic_trends?.summary;
+    const currentUsers = summary?.current_period_users || 0;
+    const percentageChange = summary?.growth_percentage || 0;
+    const growthDirection = summary?.growth_direction || 'up';
 
 
     // Custom tooltip component
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
-            const baselineValue = payload.find((p: any) => p.dataKey === 'baseline')?.value || 0
-            const policyValue = payload.find((p: any) => p.dataKey === 'policy')?.value || 0
-
-            // Dynamic title based on selected period
-            const getTooltipTitle = () => {
-                switch (selectedPeriod) {
-                    case 'Daily':
-                        return label || 'Date'
-                    case 'Weekly':
-                        return label || 'Week'
-                    case 'Monthly':
-                        return label || 'Month'
-                    default:
-                        return 'Data Point'
-                }
-            }
+            const thisPeriodValue = payload.find((p: any) => p.dataKey === 'thisPeriod')?.value || 0;
+            const lastPeriodValue = payload.find((p: any) => p.dataKey === 'lastPeriod')?.value || 0;
 
             return (
                 <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 min-w-[200px] z-50">
-                    <div className="text-sm font-semibold text-gray-900 mb-2">{getTooltipTitle()}</div>
+                    <div className="text-sm font-medium text-gray-900 mb-2">Website Traffic</div>
                     <div className="space-y-1">
-                        <div className="text-sm text-green-600">
-                            Baseline Scenario : {baselineValue.toFixed(1)}
+                        <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">{summary?.current_period_label || 'This period'}</span>
+                            <span className="text-sm font-medium text-orange-500">{thisPeriodValue}</span>
                         </div>
-                        <div className="text-sm text-blue-600">
-                            Policy Scenario : {policyValue.toFixed(1)}
+                        <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">
+                                {summary?.previous_period_label || 'Last period'}
+                            </span>
+                            <span className="text-sm font-medium text-blue-500">{lastPeriodValue}</span>
                         </div>
                     </div>
                 </div>
-            )
+            );
         }
-        return null
-    }
+        return null;
+    };
 
 
-    if (isLoading) {
+    if (isLoading || isRefreshing) {
         return <ChartShimmerEffect />
     }
 
@@ -106,31 +126,65 @@ export default function TrafficTrendsChart({ loading }: { loading: boolean }) {
                 <div className="flex items-center gap-2 sm:gap-3">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="flex items-center gap-2 text-sm cursor-pointer w-32">
-                                {selectedPeriod}
+                            <Button variant="outline" className="flex items-center gap-2 text-sm cursor-pointer">
+                                {selectedPeriod === 'week' ? 'Week' : 'Month'}
                                 <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent >
-                            <DropdownMenuItem className='cursor-pointer' onClick={() => setSelectedPeriod('Daily')}>
-                                Daily
+                        <DropdownMenuContent>
+                            <DropdownMenuItem className='cursor-pointer' onClick={() => handlePeriodChange('week')}>
+                                Week
                             </DropdownMenuItem>
-                            <DropdownMenuItem className='cursor-pointer' onClick={() => setSelectedPeriod('Weekly')}>
-                                Weekly
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className='cursor-pointer' onClick={() => setSelectedPeriod('Monthly')}>
-                                Monthly
+                            <DropdownMenuItem className='cursor-pointer' onClick={() => handlePeriodChange('month')}>
+                                Month
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
+
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9 sm:h-10 sm:w-10 cursor-pointer"
+                        onClick={handleReload}
+                        disabled={isRefreshing}
+                    >
+                        <RefreshCw
+                            className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-1000 ease-in-out ${isRefreshing ? 'animate-spin' : ''
+                                }`}
+                        />
+                    </Button>
+                </div>
+            </div>
+
+            {/* Traffic Info and Legend */}
+            <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 px-4 sm:px-5'>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                    <span className="text-2xl sm:text-3xl font-bold text-gray-900">{currentUsers}</span>
+                    <div className={`flex items-center gap-1 ${growthDirection === 'up' ? 'text-green-500' : 'text-red-500'}`}>
+                        {growthDirection === 'up' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                        <span className="text-sm font-medium">{Math.abs(percentageChange)}</span>
+                        <span className='text-sm font-medium text-black'>% from last period</span>
+                    </div>
+                </div>
+
+                {/* Legend */}
+                <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-orange-500 rounded"></div>
+                        <span className="text-xs sm:text-sm text-gray-600">{summary?.current_period_label || 'This period'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                        <span className="text-xs sm:text-sm text-gray-600">{summary?.previous_period_label || 'Last period'}</span>
+                    </div>
                 </div>
             </div>
 
             <div className="w-full overflow-x-auto ">
-                    <div className="min-w-[600px] h-[250px] sm:h-[300px] lg:h-[350px] focus:outline-none" tabIndex={-1}>
-                        <ResponsiveContainer width="100%" height="100%" >
+                <div className="min-w-[600px] h-[250px] sm:h-[300px] lg:h-[350px] focus:outline-none" tabIndex={-1}>
+                    <ResponsiveContainer width="100%" height="100%" >
                         <AreaChart
-                            data={currentData}
+                            data={chartData}
                             margin={{
                                 top: 20,
                                 right: 30,
@@ -140,11 +194,11 @@ export default function TrafficTrendsChart({ loading }: { loading: boolean }) {
                             style={{ outline: 'none' }}
                         >
                             <defs>
-                                <linearGradient id="baselineGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#22c55e" stopOpacity={0.05} />
+                                <linearGradient id="thisPeriodGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#f97316" stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor="#f97316" stopOpacity={0.05} />
                                 </linearGradient>
-                                <linearGradient id="policyGradient" x1="0" y1="0" x2="0" y2="1">
+                                <linearGradient id="lastPeriodGradient" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
                                     <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05} />
                                 </linearGradient>
@@ -178,31 +232,31 @@ export default function TrafficTrendsChart({ loading }: { loading: boolean }) {
                             {/* Gradient filled areas */}
                             <Area
                                 type="monotone"
-                                dataKey="baseline"
+                                dataKey="thisPeriod"
                                 stroke="none"
-                                fill="url(#baselineGradient)"
+                                fill="url(#thisPeriodGradient)"
                                 fillOpacity={0.6}
                             />
                             <Area
                                 type="monotone"
-                                dataKey="policy"
+                                dataKey="lastPeriod"
                                 stroke="none"
-                                fill="url(#policyGradient)"
+                                fill="url(#lastPeriodGradient)"
                                 fillOpacity={0.6}
                             />
 
                             {/* Line overlays */}
                             <Line
                                 type="monotone"
-                                dataKey="baseline"
-                                stroke="#22c55e"
+                                dataKey="thisPeriod"
+                                stroke="#f97316"
                                 strokeWidth={2}
-                                dot={{ fill: '#22c55e', strokeWidth: 2, r: 3 }}
-                                activeDot={{ r: 5, stroke: '#22c55e', strokeWidth: 2, fill: '#22c55e' }}
+                                dot={{ fill: '#f97316', strokeWidth: 2, r: 3 }}
+                                activeDot={{ r: 5, stroke: '#f97316', strokeWidth: 2, fill: '#f97316' }}
                             />
                             <Line
                                 type="monotone"
-                                dataKey="policy"
+                                dataKey="lastPeriod"
                                 stroke="#3b82f6"
                                 strokeWidth={2}
                                 dot={{ fill: '#3b82f6', strokeWidth: 2, r: 3 }}

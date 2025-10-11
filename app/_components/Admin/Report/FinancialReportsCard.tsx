@@ -28,7 +28,7 @@ const metrics = [
 ]
 
 export default function FinancialReportsCard() {
-    const { isFetching } = useGetWebsiteTrafficQuery(undefined)
+    const { isFetching } = useGetWebsiteTrafficQuery({ period: 'week' })
     const websiteUsage = useAppSelector((s) => s.report.websiteUsage)
     const userStats = useMemo(() => mapUsageToMetrics(websiteUsage), [websiteUsage])
 
@@ -83,7 +83,7 @@ export default function FinancialReportsCard() {
             </div>
 
             {/* reports chart */}
-            <TrafficTrendsChart loading={isFetching && !websiteUsage} />
+            <TrafficTrendsChart />
         </div>
     )
 }
