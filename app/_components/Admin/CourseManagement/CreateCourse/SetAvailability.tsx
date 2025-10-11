@@ -7,7 +7,7 @@ import DateRangePicker from '@/components/ui/DateRangePicker'
 import { DateRange } from 'react-day-picker'
 import { useUpdateSingleSeriesMutation, useGetSingleSeriesQuery } from '@/rtk/api/admin/managementCourseApis'
 import { useAppSelector } from '@/rtk/hooks'
-
+import { localDateTimeToUTC, utcToLocalDateTime } from '@/lib/calendarUtils'
 import toast from 'react-hot-toast'
 
 interface SetAvailabilityProps {
@@ -18,6 +18,16 @@ interface SetAvailabilityProps {
     showErrors?: boolean
     disabled?: boolean
     onSuccess?: () => void
+}
+
+// Helper function for timezone conversion
+const convertUTCDateToLocal = (utcIsoString: string) => {
+    try {
+        return utcToLocalDateTime(utcIsoString)
+    } catch (error) {
+        console.error('Error converting UTC to local:', error)
+        return { date: new Date(), time: '09:00' }
+    }
 }
 
 export default function SetAvailability({
@@ -44,14 +54,19 @@ export default function SetAvailability({
     )
 
     // ==================== EFFECTS ====================
-    // Set existing dates when series data is loaded
+    // Set existing dates when series data is loaded - handle date-only fields
     useEffect(() => {
         if (seriesData?.data?.start_date && seriesData?.data?.end_date && !dateRange?.from && !dateRange?.to) {
-            const startDateStr = seriesData.data.start_date.split('T')[0]
-            const endDateStr = seriesData.data.end_date.split('T')[0]
+            // For date-only fields, create dates directly from the date string
+            const startDateStr = seriesData.data.start_date.includes('T') 
+                ? seriesData.data.start_date.split('T')[0] 
+                : seriesData.data.start_date
+            const endDateStr = seriesData.data.end_date.includes('T') 
+                ? seriesData.data.end_date.split('T')[0] 
+                : seriesData.data.end_date
             
             const startDate = new Date(startDateStr + 'T00:00:00')
-            const endDate = new Date(endDateStr + 'T00:00:00') 
+            const endDate = new Date(endDateStr + 'T00:00:00')
             
             onDateRangeChange({ from: startDate, to: endDate })
         }
@@ -74,15 +89,16 @@ export default function SetAvailability({
         try {
             const formData = new FormData()
         
-            const formatDate = (date: Date) => {
+            // For date-only fields, format as YYYY-MM-DD without timezone conversion
+            const formatDateOnly = (date: Date) => {
                 const year = date.getFullYear()
                 const month = String(date.getMonth() + 1).padStart(2, '0')
                 const day = String(date.getDate()).padStart(2, '0')
                 return `${year}-${month}-${day}`
             }
             
-            formData.append('start_date', formatDate(dateRange.from))
-            formData.append('end_date', formatDate(dateRange.to))
+            formData.append('start_date', formatDateOnly(dateRange.from))
+            formData.append('end_date', formatDateOnly(dateRange.to))
 
             const res: any = await updateSeries({ 
                 series_id: activeSeriesId, 

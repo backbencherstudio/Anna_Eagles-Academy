@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Edit, Trash2 } from 'lucide-react'
-import { parseISO, differenceInHours, differenceInDays } from 'date-fns'
 import { useRouter } from 'next/navigation'
 import { useDeleteQuizMutation } from '@/rtk/api/admin/quizApis'
 import ConfirmDialog from '@/components/Resuable/ConfirmDialog'
@@ -15,7 +14,7 @@ interface PublishedQuizItem {
     is_published: boolean
     created_at: string
     total_marks: number
-    remaining_time: number
+    remaining_time: string
 }
 
 interface PublishedQuizProps {
@@ -51,43 +50,9 @@ export default function PublishedQuiz({ publishedQuizzes }: PublishedQuizProps) 
         }
     }
 
-    const formatDueDate = (dueAt: string) => {
-        try {
-            const dueDate = parseISO(dueAt)
-            const now = new Date()
-            
-            // Create UTC dates for accurate comparison
-            const dueDateUTC = new Date(Date.UTC(
-                dueDate.getUTCFullYear(),
-                dueDate.getUTCMonth(),
-                dueDate.getUTCDate(),
-                dueDate.getUTCHours(),
-                dueDate.getUTCMinutes(),
-                dueDate.getUTCSeconds()
-            ))
-            
-            const nowUTC = new Date(Date.UTC(
-                now.getUTCFullYear(),
-                now.getUTCMonth(),
-                now.getUTCDate(),
-                now.getUTCHours(),
-                now.getUTCMinutes(),
-                now.getUTCSeconds()
-            ))
-            
-            const hoursLeft = differenceInHours(dueDateUTC, nowUTC)
-            const daysLeft = differenceInDays(dueDateUTC, nowUTC)
-
-            if (hoursLeft < 0) {
-                return 'Expired'
-            } else if (hoursLeft < 24) {
-                return `Due in ${hoursLeft} hours`
-            } else {
-                return `Due in ${daysLeft} days`
-            }
-        } catch (error) {
-            return 'Invalid date'
-        }
+    const formatDueDate = (remainingTime: string) => {
+        if (!remainingTime) return 'No time remaining'
+        return `Due in ${remainingTime}`
     }
 
     return (
@@ -115,10 +80,15 @@ export default function PublishedQuiz({ publishedQuizzes }: PublishedQuizProps) 
                                             {quiz.title}
                                         </h3>
 
-                                        {/* Due date */}
-                                        <p className="text-sm text-[#4A4C56]">
-                                            {formatDueDate(quiz.due_at)}
-                                        </p>
+                                        {/* Due date and total marks */}
+                                        <div className="space-y-1">
+                                            <p className="text-sm text-[#4A4C56]">
+                                                {formatDueDate(quiz.remaining_time)}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                                Total Marks: {quiz.total_marks}
+                                            </p>
+                                        </div>
                                     </div>
                                     {/* Action icons */}
                                     <div className="flex items-center gap-2">

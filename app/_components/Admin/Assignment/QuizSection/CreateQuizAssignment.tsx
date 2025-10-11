@@ -14,6 +14,7 @@ import { useParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
+import { localDateTimeToUTC, utcToLocalDateTime } from '@/lib/calendarUtils'
 
 
 interface Question {
@@ -34,18 +35,15 @@ interface QuizFormData {
     quizTitle?: string
 }
 
-// Helper functions
-const createUTCDate = (date: Date) => new Date(
-    date.getUTCFullYear(),
-    date.getUTCMonth(),
-    date.getUTCDate(),
-    date.getUTCHours(),
-    date.getUTCMinutes(),
-    date.getUTCSeconds()
-)
-
-const formatTime = (date: Date) =>
-    `${date.getUTCHours().toString().padStart(2, '0')}:${date.getUTCMinutes().toString().padStart(2, '0')}`
+// Helper functions for timezone conversion
+const convertUTCDateToLocal = (utcIsoString: string) => {
+    try {
+        return utcToLocalDateTime(utcIsoString)
+    } catch (error) {
+        console.error('Error converting UTC to local:', error)
+        return { date: new Date(), time: '09:00' }
+    }
+}
 
 export default function CreateQuizAssignment() {
     const router = useRouter()
@@ -118,14 +116,14 @@ export default function CreateQuizAssignment() {
 
             // Set initial dates for QuizCreateDate component
             if (quiz.published_at && quiz.due_at) {
-                const publishedDate = new Date(quiz.published_at)
-                const dueDate = new Date(quiz.due_at)
+                const publishedLocal = convertUTCDateToLocal(quiz.published_at)
+                const dueLocal = convertUTCDateToLocal(quiz.due_at)
 
                 setInitialDates({
-                    startDateDeadline: createUTCDate(publishedDate),
-                    startTimeDeadline: formatTime(publishedDate),
-                    submissionDeadline: createUTCDate(dueDate),
-                    submissionTimeDeadline: formatTime(dueDate)
+                    startDateDeadline: publishedLocal.date,
+                    startTimeDeadline: publishedLocal.time,
+                    submissionDeadline: dueLocal.date,
+                    submissionTimeDeadline: dueLocal.time
                 })
             }
 
@@ -228,23 +226,6 @@ export default function CreateQuizAssignment() {
     const handlePublish = async (dates?: DeadlineFormData) => {
         if (!dates) return
 
-        const combineDateTimeToISO = (date: Date, timeHHMM: string) => {
-            if (!date || !timeHHMM) {
-                throw new Error('Invalid date or time')
-            }
-
-            const [hour, minute] = timeHHMM.split(':').map(Number)
-            if (isNaN(hour) || isNaN(minute)) {
-                throw new Error('Invalid time format')
-            }
-
-            const year = date.getFullYear()
-            const month = date.getMonth()
-            const day = date.getDate()
-
-            return new Date(Date.UTC(year, month, day, hour, minute, 0, 0)).toISOString()
-        }
-
         const { startDateDeadline, startTimeDeadline, submissionDeadline, submissionTimeDeadline } = dates
         const seriesId = getValues('selectedSeries')
         const courseId = getValues('selectedCourses')
@@ -257,11 +238,11 @@ export default function CreateQuizAssignment() {
             return
         }
 
-        // Validate dates
+        // Convert local datetime to UTC ISO strings
         let publishedAt, dueAt
         try {
-            publishedAt = combineDateTimeToISO(startDateDeadline, startTimeDeadline)
-            dueAt = combineDateTimeToISO(submissionDeadline, submissionTimeDeadline)
+            publishedAt = localDateTimeToUTC(startDateDeadline, startTimeDeadline)
+            dueAt = localDateTimeToUTC(submissionDeadline, submissionTimeDeadline)
         } catch (error) {
             toast.error('Please select valid start and submission dates')
             return

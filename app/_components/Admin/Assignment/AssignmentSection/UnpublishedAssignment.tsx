@@ -61,30 +61,35 @@ export default function UnpublishedAssignment({ assignments, onCardClick, onEdit
                                             {assignment.title}
                                         </h3>
 
-                                        {/* Scheduled date */}
-                                        <p className="text-sm text-[#4A4C56]">
-                                            {formatScheduledDate(assignment.published_at)}
-                                        </p>
+                                        {/* Scheduled date and total marks */}
+                                        <div className="space-y-1">
+                                            <p className="text-sm text-[#4A4C56]">
+                                                {formatScheduledDate(assignment.published_at)}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                                Total Marks: {assignment.total_marks}
+                                            </p>
+                                        </div>
                                     </div>
 
-                                {/* Action icons */}
-                                <div className="flex items-center gap-2">
-                                    <Edit 
-                                        className="w-4 h-4 hover:text-[#0F2598] transition-all duration-100 text-[#4A4C56] flex-shrink-0 cursor-pointer" 
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            onEditAssignment?.(assignment)
-                                        }}
-                                    />
-                                    <Trash2 
-                                        className="w-4 h-4 text-red-500 transition-all duration-100 flex-shrink-0 cursor-pointer" 
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            onDeleteAssignment?.(assignment)
-                                        }}
-                                    />
-                                    
-                                </div>
+                                    {/* Action icons */}
+                                    <div className="flex items-center gap-2">
+                                        <Edit
+                                            className="w-4 h-4 hover:text-[#0F2598] transition-all duration-100 text-[#4A4C56] flex-shrink-0 cursor-pointer"
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                onEditAssignment?.(assignment)
+                                            }}
+                                        />
+                                        <Trash2
+                                            className="w-4 h-4 text-red-500 transition-all duration-100 flex-shrink-0 cursor-pointer"
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                onDeleteAssignment?.(assignment)
+                                            }}
+                                        />
+
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>

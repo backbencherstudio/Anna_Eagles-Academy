@@ -49,10 +49,19 @@ export default function CourseCard({ course }: CourseCardProps) {
     const [deleteSeries] = useDeleteSingleSeriesMutation()
     const formatDate = (dateString: string | null) => {
         if (!dateString) return 'N/A'
-        const date = new Date(dateString)
-        // Check if date is valid (not NaN)
-        if (isNaN(date.getTime())) return 'N/A'
-        return date.toISOString().split('T')[0]
+        try {
+            // For date-only fields, extract just the date part to avoid timezone issues
+            // If it's a full ISO string, extract just the date part
+            if (dateString.includes('T')) {
+                return dateString.split('T')[0]
+            }
+            
+            // If it's already just a date string, return as is
+            return dateString
+        } catch (error) {
+            console.error('Error formatting date:', error)
+            return 'N/A'
+        }
     }
 
     const handleImageError = () => {

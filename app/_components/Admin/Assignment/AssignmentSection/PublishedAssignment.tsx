@@ -4,7 +4,6 @@ import React from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Edit, Trash2 } from 'lucide-react'
 import { Assignment } from '@/rtk/slices/admin/assignmentManagementSlice'
-import { parseISO } from 'date-fns'
 
 interface PublishedAssignmentProps {
     assignments: Assignment[]
@@ -14,32 +13,9 @@ interface PublishedAssignmentProps {
 }
 
 export default function PublishedAssignment({ assignments, onCardClick, onEditAssignment, onDeleteAssignment }: PublishedAssignmentProps) {
-    const formatDueDate = (dueAt: string) => {
-        try {
-            const date = parseISO(dueAt)
-            const dueLocal = new Date(
-                date.getUTCFullYear(),
-                date.getUTCMonth(),
-                date.getUTCDate(),
-                date.getUTCHours(),
-                date.getUTCMinutes(),
-                date.getUTCSeconds()
-            )
-            const now = new Date()
-            const diffMs = dueLocal.getTime() - now.getTime()
-            const hoursLeft = Math.floor(diffMs / (1000 * 60 * 60))
-            const daysLeft = Math.ceil(hoursLeft / 24)
-
-            if (hoursLeft < 0) {
-                return 'Expired'
-            } else if (hoursLeft < 24) {
-                return `Due in ${hoursLeft} hours`
-            } else {
-                return `Due in ${daysLeft} days`
-            }
-        } catch (error) {
-            return 'Invalid date'
-        }
+    const formatDueDate = (remainingTime: string) => {
+        if (!remainingTime) return 'No time remaining'
+        return `Due in ${remainingTime}`
     }
 
     return (
@@ -68,10 +44,15 @@ export default function PublishedAssignment({ assignments, onCardClick, onEditAs
                                             {assignment.title}
                                         </h3>
 
-                                        {/* Due date */}
-                                        <p className="text-sm text-[#4A4C56]">
-                                            {formatDueDate(assignment.due_at)}
-                                        </p>
+                                        {/* Due date and total marks */}
+                                        <div className="space-y-1">
+                                            <p className="text-sm text-[#4A4C56]">
+                                                {formatDueDate(assignment.remaining_time)}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                                Total Marks: {assignment.total_marks}
+                                            </p>
+                                        </div>
                                     </div>
                                 {/* Action icons */}
                                 <div className="flex items-center gap-2">

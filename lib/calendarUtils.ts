@@ -143,3 +143,101 @@ export function getSuggestedEndTime(startTime: string): string {
         hour12: true,
     });
 }
+
+// ---- Timezone handling utilities ----
+
+// Convert local date and time (24-hour format like "14:30") to UTC ISO string
+export function localDateTimeToUTC(date: Date, timeString: string): string {
+    if (!date || !timeString) {
+        throw new Error('Invalid date or time');
+    }
+
+    const [hourStr, minuteStr] = timeString.split(':');
+    const hour = parseInt(hourStr, 10);
+    const minute = parseInt(minuteStr, 10);
+
+    if (isNaN(hour) || isNaN(minute) || hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+        throw new Error('Invalid time format. Expected HH:MM format');
+    }
+
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+
+    // Create local datetime
+    const localDateTime = new Date(year, month, day, hour, minute, 0, 0);
+    
+    // Convert to UTC ISO string
+    return localDateTime.toISOString();
+}
+
+// Convert UTC ISO string back to local date and time
+export function utcToLocalDateTime(utcIsoString: string): { date: Date; time: string } {
+    if (!utcIsoString) {
+        throw new Error('Invalid UTC ISO string');
+    }
+
+    const utcDate = new Date(utcIsoString);
+    
+    if (isNaN(utcDate.getTime())) {
+        throw new Error('Invalid date format');
+    }
+
+    // Get local date
+    const localDate = new Date(utcDate.getFullYear(), utcDate.getMonth(), utcDate.getDate());
+    
+    // Get local time in HH:MM format
+    const localTime = utcDate.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    });
+
+    return {
+        date: localDate,
+        time: localTime
+    };
+}
+
+// Get user's timezone offset in minutes
+export function getTimezoneOffset(): number {
+    return new Date().getTimezoneOffset();
+}
+
+// Get user's timezone identifier (e.g., "Asia/Dhaka", "America/New_York")
+export function getUserTimezone(): string {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
+
+// Format UTC date to local date string for display
+export function formatUTCDateToLocal(utcIsoString: string, options?: Intl.DateTimeFormatOptions): string {
+    if (!utcIsoString) return '';
+    
+    const utcDate = new Date(utcIsoString);
+    const defaultOptions: Intl.DateTimeFormatOptions = {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: getUserTimezone()
+    };
+    
+    return utcDate.toLocaleString('en-US', { ...defaultOptions, ...options });
+}
+
+// Validate that a local datetime is not in the past
+export function isLocalDateTimeInPast(date: Date, timeString: string): boolean {
+    if (!date || !timeString) return false;
+    
+    try {
+        const utcString = localDateTimeToUTC(date, timeString);
+        const utcDate = new Date(utcString);
+        const now = new Date();
+        
+        return utcDate < now;
+    } catch {
+        return false;
+    }
+}

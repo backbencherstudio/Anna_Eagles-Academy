@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar'
 import { CalendarIcon } from 'lucide-react'
 import { format } from 'date-fns'
+import { localDateTimeToUTC, utcToLocalDateTime, isLocalDateTimeInPast, getUserTimezone } from '@/lib/calendarUtils'
 
 interface QuizCreateDateProps {
     onPublish?: (values: DeadlineFormData) => void
@@ -34,6 +35,16 @@ function isBeforeToday(date: Date): boolean {
     const today = normalizeDate(new Date())
     const target = normalizeDate(date)
     return target < today
+}
+
+function isToday(date: Date): boolean {
+    const today = normalizeDate(new Date())
+    const target = normalizeDate(date)
+    return target.getTime() === today.getTime()
+}
+
+function isLocalDateTimeInPastWithTime(date: Date, timeString: string): boolean {
+    return isLocalDateTimeInPast(date, timeString)
 }
 
 function isBefore(first: Date, second: Date): boolean {
@@ -103,6 +114,16 @@ export default function QuizCreateDate({
 
     return (
         <div className={`mb-5 ${className}`}>
+            {/* Timezone indicator */}
+            <div className="mb-3 text-xs text-gray-500">
+                <span className="font-medium">Timezone:</span> {getUserTimezone()} | 
+                <span className="font-medium ml-2">Current time:</span> {new Date().toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    hour12: true,
+                    timeZone: getUserTimezone()
+                })}
+            </div>
             <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
                     {/* Start Date Deadline */}
@@ -116,9 +137,6 @@ export default function QuizCreateDate({
                                     required: "Start date & time is required",
                                     validate: (value) => {
                                         if (!value) return "Start date & time is required"
-                                        if (isBeforeToday(value)) {
-                                            return "Start date & time cannot be in the past"
-                                        }
                                         return true
                                     }
                                 }}
@@ -141,6 +159,7 @@ export default function QuizCreateDate({
                                                 selected={field.value}
                                                 onSelect={(date: Date | undefined) => field.onChange(date || new Date())}
                                                 disabled={(date) => {
+                                                    // Only disable dates that are actually in the past
                                                     return isBeforeToday(date)
                                                 }}
                                                 initialFocus
@@ -153,7 +172,15 @@ export default function QuizCreateDate({
                                 name="startTimeDeadline"
                                 control={control}
                                 rules={{
-                                    required: "Start time is required"
+                                    required: "Start time is required",
+                                    validate: (value) => {
+                                        if (!value) return "Start time is required"
+                                        const startDate = getValues('startDateDeadline')
+                                        if (startDate && isLocalDateTimeInPastWithTime(startDate, value)) {
+                                            return "Start date & time cannot be in the past"
+                                        }
+                                        return true
+                                    }
                                 }}
                                 render={({ field }) => (
                                     <Input
@@ -184,7 +211,8 @@ export default function QuizCreateDate({
                                     required: "Submission date & time is required",
                                     validate: (value) => {
                                         if (!value) return "Submission date & time is required"
-                                        if (isBeforeToday(value)) {
+                                        const submissionTime = getValues('submissionTimeDeadline')
+                                        if (submissionTime && isLocalDateTimeInPastWithTime(value, submissionTime)) {
                                             return "Submission date & time cannot be in the past"
                                         }
 
@@ -218,7 +246,10 @@ export default function QuizCreateDate({
                                                 selected={field.value}
                                                 onSelect={(date: Date | undefined) => field.onChange(date || new Date())}
                                                 disabled={(date) => {
+                                                    // Disable past dates
                                                     if (isBeforeToday(date)) return true
+                                                    
+                                                    // Disable dates before start date
                                                     const startDate = getValues('startDateDeadline')
                                                     if (startDate) {
                                                         return isBefore(date, startDate)
@@ -239,9 +270,14 @@ export default function QuizCreateDate({
                                     validate: (value) => {
                                         if (!value) return "Submission time is required"
                                         
+                                        // Check if submission datetime is in the past
+                                        const submissionDate = getValues('submissionDeadline')
+                                        if (submissionDate && isLocalDateTimeInPastWithTime(submissionDate, value)) {
+                                            return "Submission date & time cannot be in the past"
+                                        }
+                                        
                                         // Check if submission time is after start time when dates are the same
                                         const startDate = getValues('startDateDeadline')
-                                        const submissionDate = getValues('submissionDeadline')
                                         const startTime = getValues('startTimeDeadline')
                                         
                                         if (startDate && submissionDate && startTime) {

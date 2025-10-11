@@ -32,6 +32,7 @@ import {
 import toast from 'react-hot-toast'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
+import { localDateTimeToUTC, utcToLocalDateTime } from '@/lib/calendarUtils'
 
 interface EssayFormData {
     mainTitle: string
@@ -40,6 +41,16 @@ interface EssayFormData {
     assignmentTitle: string
     points: number
     submissionDeadline: Date
+}
+
+// Helper function for timezone conversion
+const convertUTCDateToLocal = (utcIsoString: string) => {
+    try {
+        return utcToLocalDateTime(utcIsoString)
+    } catch (error) {
+        console.error('Error converting UTC to local:', error)
+        return { date: new Date(), time: '09:00' }
+    }
 }
 
 export default function CreateEssayAssignment() {
@@ -127,22 +138,16 @@ export default function CreateEssayAssignment() {
             setValue('selectedSeries', a.series_id || a.series?.id || '')
             setValue('selectedCourses', a.course_id || a.course?.id || '')
 
-            // Dates for header
+            // Dates for header - convert UTC to local timezone
             if (a.published_at && a.due_at) {
-                const publishedDate = new Date(a.published_at)
-                const dueDate = new Date(a.due_at)
-
-                const toUTCClone = (d: Date) => new Date(
-                    d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds()
-                )
-                const two = (n: number) => String(n).padStart(2, '0')
-                const fmt = (d: Date) => `${two(d.getUTCHours())}:${two(d.getUTCMinutes())}`
+                const publishedLocal = convertUTCDateToLocal(a.published_at)
+                const dueLocal = convertUTCDateToLocal(a.due_at)
 
                 setInitialDates({
-                    startDateDeadline: toUTCClone(publishedDate),
-                    startTimeDeadline: fmt(publishedDate),
-                    submissionDeadline: toUTCClone(dueDate),
-                    submissionTimeDeadline: fmt(dueDate)
+                    startDateDeadline: publishedLocal.date,
+                    startTimeDeadline: publishedLocal.time,
+                    submissionDeadline: dueLocal.date,
+                    submissionTimeDeadline: dueLocal.time
                 })
             }
 
@@ -179,7 +184,7 @@ export default function CreateEssayAssignment() {
                     id: selectedEssayId,
                     title: data.assignmentTitle,
                     points: data.points,
-                    submissionDeadline: data.submissionDeadline.toISOString() 
+                    submissionDeadline: data.submissionDeadline.toISOString()
                 }
 
                 dispatch(updateEssay({ id: selectedEssayId, essay: updatedEssay }))
@@ -192,7 +197,7 @@ export default function CreateEssayAssignment() {
                     id: Date.now().toString(),
                     title: data.assignmentTitle,
                     points: data.points,
-                    submissionDeadline: data.submissionDeadline.toISOString() 
+                    submissionDeadline: data.submissionDeadline.toISOString()
                 }
 
                 essaysToAdd.push(newEssay)
@@ -207,7 +212,7 @@ export default function CreateEssayAssignment() {
                     id: (Date.now() + index + 1).toString(),
                     title: question.assignmentTitle,
                     points: question.points,
-                    submissionDeadline: data.submissionDeadline.toISOString() 
+                    submissionDeadline: data.submissionDeadline.toISOString()
                 }
                 essaysToAdd.push(additionalEssay)
                 dispatch(addEssay(additionalEssay))
@@ -285,14 +290,20 @@ export default function CreateEssayAssignment() {
         // Get form data
         const formData = getValues()
 
-        // Format dates for API
-        const publishedAt = dateData?.startDateDeadline
-            ? new Date(`${dateData.startDateDeadline.toISOString().split('T')[0]}T${dateData.startTimeDeadline || '00:00'}:00.000Z`)
-            : new Date()
+        // Convert local datetime to UTC ISO strings
+        let publishedAt, dueAt
+        try {
+            publishedAt = dateData?.startDateDeadline && dateData?.startTimeDeadline
+                ? localDateTimeToUTC(dateData.startDateDeadline, dateData.startTimeDeadline)
+                : new Date().toISOString()
 
-        const dueAt = dateData?.submissionDeadline
-            ? new Date(`${dateData.submissionDeadline.toISOString().split('T')[0]}T${dateData.submissionTimeDeadline || '23:59'}:00.000Z`)
-            : new Date()
+            dueAt = dateData?.submissionDeadline && dateData?.submissionTimeDeadline
+                ? localDateTimeToUTC(dateData.submissionDeadline, dateData.submissionTimeDeadline)
+                : new Date().toISOString()
+        } catch (error) {
+            toast.error('Please select valid start and submission dates')
+            return
+        }
 
         // Format data according to required structure
         const publishData: any = {
@@ -300,8 +311,8 @@ export default function CreateEssayAssignment() {
             description: formData.mainTitle || "Complete the following questions.",
             series_id: formData.selectedSeries || "",
             course_id: formData.selectedCourses || "",
-            published_at: publishedAt.toISOString(),
-            due_at: dueAt.toISOString(),
+            published_at: publishedAt,
+            due_at: dueAt,
             questions: essays.map((essay, index) => ({
                 title: essay.title,
                 points: essay.points,

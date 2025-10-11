@@ -41,7 +41,7 @@ interface QuizData {
     submissions: QuizSubmission[]
     submission_count: number
     total_students: number
-    remaining_time?: number
+    remaining_time?: string
 }
 
 

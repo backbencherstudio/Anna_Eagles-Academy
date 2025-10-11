@@ -405,17 +405,17 @@ export default function DateRangePicker({
                             variant="ghost"
                             size="sm"
                             onClick={handleClear}
-                            className="text-sm cursor-pointer text-gray-600 hover:text-gray-800"
+                            className="text-sm cursor-pointer border border-gray-300 text-gray-600 hover:text-gray-800 rounded-md"
                         >
-                            Clear dates
+                            Clear Range
                         </Button>
                         <Button
                             type="button"
                             size="sm"
                             onClick={handleApply}
-                            className="text-sm bg-[#0F2598] cursor-pointer hover:bg-[#0F2598]/90 text-white px-6"
+                            className="text-sm bg-[#0F2598] cursor-pointer transition-all duration-300 hover:bg-[#0F2598]/80 text-white px-6 rounded-md"
                         >
-                            Close
+                            Apply
                         </Button>
                     </div>
                 </div>

@@ -6,7 +6,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
-import { toIsoWithTime, validateTimeRange, getSuggestedEndTime } from '@/lib/calendarUtils'
+import { toIsoWithTime } from '@/lib/calendarUtils'
 import { useForm, Controller } from "react-hook-form"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
