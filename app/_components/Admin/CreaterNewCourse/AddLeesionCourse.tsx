@@ -14,6 +14,7 @@ import ButtonSpring from '@/components/Resuable/ButtonSpring'
 // Utils & Hooks
 import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
 import { setCurrentSeriesId } from '@/rtk/slices/admin/managementCourseSlice'
+import type { RootState } from '@/rtk'
 
 // API Hooks
 import {
@@ -65,7 +66,7 @@ export default function AddLeesionCourse({ seriesId, onLessonsAdded }: AddLeesio
 
     // ==================== REDUX SETUP ====================
     const dispatch = useAppDispatch()
-    const seriesIdFromStore = useAppSelector((s) => s.managementCourse.currentSeriesId)
+    const seriesIdFromStore = useAppSelector((s: RootState) => s.managementCourse.currentSeriesId)
 
     useEffect(() => {
         if (seriesId) dispatch(setCurrentSeriesId(seriesId))

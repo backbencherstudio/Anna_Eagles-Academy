@@ -86,7 +86,13 @@ export default function CreateSeries({ seriesId, onNext }: CreateSeriesProps) {
             formData.append('title', data.title)
             formData.append('description', data.description)
             if (data.note) formData.append('note', data.note)
-            formData.append('available_site', String(Number(data.enrollCount)))
+            // Only append enroll count for bootcamp courses
+            if (data.courseType === 'bootcamp') {
+                formData.append('available_site', String(Number(data.enrollCount)))
+            } else {
+                // For regular courses, set a default value or 0
+                formData.append('available_site', '0')
+            }
             formData.append('course_type', data.courseType)
             if (data.thumbnailFile) formData.append('thumbnail', data.thumbnailFile)
 
@@ -95,7 +101,7 @@ export default function CreateSeries({ seriesId, onNext }: CreateSeriesProps) {
                 // For updates, call onNext to proceed to next step
                 onNext?.({
                     title: data.title,
-                    enrollCount: Number(data.enrollCount),
+                    enrollCount: data.courseType === 'bootcamp' ? Number(data.enrollCount) : 0,
                     courseType: data.courseType,
                     thumbnailFile: data.thumbnailFile,
                     description: data.description,
@@ -160,27 +166,6 @@ export default function CreateSeries({ seriesId, onNext }: CreateSeriesProps) {
                     </div>
 
 
-                    {/* Student Enroll */}
-                    <div className="space-y-2">
-                        <Label htmlFor="available_site" className="text-sm font-medium text-gray-700">
-                            Student enroll <span className="text-red-500">*</span>
-                        </Label>
-
-
-                        <Input
-                            type="number"
-                            id="available_site"
-                            placeholder="E.g 15 student"
-                            {...register('enrollCount', {
-                                required: 'Enroll count is required',
-                                validate: (v) => (v === '' ? false : Number(v) > 0) || 'Must be greater than 0',
-                                valueAsNumber: true,
-                            })}
-                            className="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                            disabled={!!seriesId && !isEditMode}
-                        />
-                        {errors.enrollCount && <p className="text-xs text-red-500">{errors.enrollCount.message as string}</p>}
-                    </div>
 
                     {/* Course Type */}
                     <div className="space-y-2">
@@ -198,6 +183,37 @@ export default function CreateSeries({ seriesId, onNext }: CreateSeriesProps) {
                         </Select>
                         {errors.courseType && <p className="text-xs text-red-500">Course type is required</p>}
                     </div>
+
+
+                    {/* Student Enroll - Only show for Bootcamp */}
+                    {courseType === 'bootcamp' && (
+                        <div className="space-y-2">
+                            <Label htmlFor="available_site" className="text-sm font-medium text-gray-700">
+                                Student enroll <span className="text-red-500">*</span>
+                            </Label>
+
+                            <Input
+                                type="number"
+                                id="available_site"
+                                placeholder="E.g 15 student"
+                                {...register('enrollCount', {
+                                    required: courseType === 'bootcamp' ? 'Enroll count is required' : false,
+                                    validate: (v) => {
+                                        if (courseType === 'bootcamp') {
+                                            return (v === '' ? false : Number(v) > 0) || 'Must be greater than 0'
+                                        }
+                                        return true
+                                    },
+                                    valueAsNumber: true,
+                                })}
+                                className="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                                disabled={!!seriesId && !isEditMode}
+                            />
+                            {errors.enrollCount && <p className="text-xs text-red-500">{errors.enrollCount.message as string}</p>}
+                        </div>
+                    )}
+
+
 
                     {/* Upload Thumbnail */}
                     <div className="space-y-2">
@@ -276,7 +292,7 @@ export default function CreateSeries({ seriesId, onNext }: CreateSeriesProps) {
                                             if (onNext) {
                                                 onNext({
                                                     title: vals.title,
-                                                    enrollCount: Number(vals.enrollCount || 0),
+                                                    enrollCount: vals.courseType === 'bootcamp' ? Number(vals.enrollCount || 0) : 0,
                                                     courseType: vals.courseType,
                                                     thumbnailFile: vals.thumbnailFile,
                                                     description: vals.description,

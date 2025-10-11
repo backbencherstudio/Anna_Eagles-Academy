@@ -19,11 +19,12 @@ interface CourseCardProps {
         visibility: string
         video_length: string | null
         duration: string | null
-        start_date: string
-        end_date: string
+        start_date: string | null
+        end_date: string | null
         thumbnail: string
         total_price: string
         course_type: string
+        total_site: number
         note: string
         available_site: number
         created_at: string
@@ -46,8 +47,11 @@ export default function CourseCard({ course }: CourseCardProps) {
     const [isDeleting, setIsDeleting] = useState(false)
     const router = useRouter()
     const [deleteSeries] = useDeleteSingleSeriesMutation()
-    const formatDate = (dateString: string) => {
+    const formatDate = (dateString: string | null) => {
+        if (!dateString) return 'N/A'
         const date = new Date(dateString)
+        // Check if date is valid (not NaN)
+        if (isNaN(date.getTime())) return 'N/A'
         return date.toISOString().split('T')[0]
     }
 
@@ -65,6 +69,7 @@ export default function CourseCard({ course }: CourseCardProps) {
     const notesText = course.note || ''
     const typeText = course.course_type || ''
     const availableSite = course.available_site.toString()
+    const total_site = course.total_site.toString()
     const startDate = formatDate(course.start_date)
     const endDate = formatDate(course.end_date)
     const totalModules = course._count.courses
@@ -224,16 +229,18 @@ export default function CourseCard({ course }: CourseCardProps) {
                             {typeText}
                         </span>
                     </div>
-                    <div className="flex items-center justify-between">
-                        <span className="text-gray-500">Available site:</span>
-                        <span className="text-gray-700">
-                            {availableSite}
-                            <span className="mx-1 text-gray-400">|</span>
+                    {course.course_type === 'bootcamp' && (
+                        <div className="flex items-center justify-between">
+                            <span className="text-gray-500">Available site:</span>
                             <span className="text-gray-700">
                                 {availableSite}
+                                <span className="mx-1 text-gray-400">|</span>
+                                <span className="text-gray-700">
+                                    {total_site}
+                                </span>
                             </span>
-                        </span>
-                    </div>
+                        </div>
+                    )}
                     {/* Status */}
                     <div className="flex items-center justify-between">
                         <span className="text-gray-500">Status:</span>
@@ -241,14 +248,16 @@ export default function CourseCard({ course }: CourseCardProps) {
                             {getStatusText(course.visibility)}
                         </span>
                     </div>
-                    <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-start justify-between">
-                        <span className="text-gray-500">Date:</span>
-                        <span className="text-gray-700">
-                            <span className="">Start: {startDate}</span>
-                            <span className="mx-2 text-gray-500">|</span>
-                            <span className="">End: {endDate}</span>
-                        </span>
-                    </div>
+                    {(startDate !== 'N/A' || endDate !== 'N/A') && (
+                        <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-start justify-between">
+                            <span className="text-gray-500">Date:</span>
+                            <span className="text-gray-700">
+                                <span className="">Start: {startDate}</span>
+                                <span className="mx-2 text-gray-500">|</span>
+                                <span className="">End: {endDate}</span>
+                            </span>
+                        </div>
+                    )}
 
 
                 </div>

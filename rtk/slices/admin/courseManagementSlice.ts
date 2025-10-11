@@ -36,8 +36,8 @@ export interface ApiCourse {
     visibility: string
     video_length: string | null
     duration: string | null
-    start_date: string
-    end_date: string
+    start_date: string | null
+    end_date: string | null
     thumbnail: string
     total_price: string
     course_type: string
@@ -94,8 +94,8 @@ export interface CourseFormData {
     note: string
     price: number
     thumbnail: File | null
-    start_date: string
-    end_date: string
+    start_date: string | null
+    end_date: string | null
     courses: Course[]
     dateRange: DateRange | undefined
 }
