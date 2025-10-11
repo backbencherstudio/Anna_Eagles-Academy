@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import MySchedule from './MySchedule';
+import CalendarShimmerEffect from '@/app/_components/Admin/Report/ShimmerEffect/CalendarShimmerEffect';
 
 interface ScheduleItem {
     id: number;
@@ -41,9 +42,10 @@ function getMonthLabel(date: Date): string {
 interface CalanderPageProps {
     scheduleData: ScheduleItem[];
     initialSelectedDate?: string;
+    isLoading?: boolean;
 }
 
-export default function CalanderPage({ scheduleData, initialSelectedDate }: CalanderPageProps) {
+export default function CalanderPage({ scheduleData, initialSelectedDate, isLoading = false }: CalanderPageProps) {
     const [selectedDate, setSelectedDate] = useState<string>(initialSelectedDate || '');
     const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
 
@@ -82,6 +84,17 @@ export default function CalanderPage({ scheduleData, initialSelectedDate }: Cala
     });
 
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    if (isLoading) {
+        return (
+            <div className="rounded-2xl">
+                <CalendarShimmerEffect />
+                <div className='my-5'>
+                    <MySchedule scheduleData={[]} isLoading={true} />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="rounded-2xl">
@@ -168,7 +181,7 @@ export default function CalanderPage({ scheduleData, initialSelectedDate }: Cala
             </div>
 
             <div className='my-5'>
-                <MySchedule scheduleData={filteredSchedule} />
+                <MySchedule scheduleData={filteredSchedule} isLoading={isLoading} />
             </div>
         </div>
     );

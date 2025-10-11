@@ -1,35 +1,63 @@
 
 import React from 'react'
+import { FaDollarSign, FaBookOpen, FaUsers, FaUserPlus, FaCreditCard } from 'react-icons/fa'
+import CardShimmerEffect from './Report/ShimmerEffect/CardShimmerEffect';
 
-import { FaDollarSign, FaBookOpen, FaUsers } from 'react-icons/fa'
+interface DashboardStats {
+    total_revenue: string;
+    total_users: number;
+    new_enrollments: number;
+    new_users: number;
+    completed_payments: number;
+}
 
+interface DashboardCardProps {
+    dashboardStats?: DashboardStats;
+    isLoading?: boolean;
+}
 
+export default function DashboardCard({ dashboardStats, isLoading }: DashboardCardProps) {
+    const data = [
+        {
+            title: 'Total Revenue',
+            value: `$${dashboardStats?.total_revenue || '0'}`,
+            icon: FaDollarSign,
+            iconBgColor: 'bg-[#F1C27D]'
+        },
+        {
+            title: 'Total Users',
+            value: dashboardStats?.total_users?.toString() || '0',
+            icon: FaUsers,
+            iconBgColor: 'bg-[#F1C27D]'
+        },
+        {
+            title: "New Enrollments",
+            value: dashboardStats?.new_enrollments?.toString() || '0',
+            icon: FaBookOpen,
+            iconBgColor: "bg-[#F1C27D]"
+        },
+        {
+            title: "New Users",
+            value: dashboardStats?.new_users?.toString() || '0',
+            icon: FaUserPlus,
+            iconBgColor: "bg-[#F1C27D]"
+        }
+    
+    ]
 
-const data = [
-    {
-        title: 'Total Revenue',
-        value: '$128,400.00',
-        icon: FaDollarSign,
-        iconBgColor: 'bg-[#F1C27D]'
-    },
-    {
-        title: 'Traffic Today',
-        value: '580',
-        icon: FaBookOpen,
-        iconBgColor: 'bg-[#F1C27D]'
-    },
-    {
-        title: "Total Students",
-        value: "14,200",
-        icon: FaUsers,
-        iconBgColor: "bg-[#F1C27D]"
+    if (isLoading) {
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-6">
+                {[...Array(4)].map((_, index) => (
+                    <CardShimmerEffect key={index} />
+                ))}
+            </div>
+        )
     }
-]
 
 
-export default function DashboardCard() {
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-6">
             {data.map((item, index) => (
                 <div key={index} className="bg-white rounded-lg p-6 ">
                     <div className="flex items-center justify-between">

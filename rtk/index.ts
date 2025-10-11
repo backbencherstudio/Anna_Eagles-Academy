@@ -37,6 +37,8 @@ import studentsQuestionReducer from '@/rtk/slices/admin/studentsQuestionSlice'
 import { studentsQuestionApi } from './api/admin/studentsQuestionApis'
 import studentManagementReducer from '@/rtk/slices/admin/studentManagementSlice'
 import { studentManagementApi } from './api/admin/studentManagementApis'
+import mainDashboardReducer from '@/rtk/slices/admin/mainDashboardSlice'
+import { mainDashboardApi } from './api/admin/mainDashboardApis'
 
 
 export const store = configureStore({
@@ -79,6 +81,8 @@ export const store = configureStore({
     [studentsQuestionApi.reducerPath]: studentsQuestionApi.reducer,
     studentManagement: studentManagementReducer,
     [studentManagementApi.reducerPath]: studentManagementApi.reducer,
+    mainDashboard: mainDashboardReducer,
+    [mainDashboardApi.reducerPath]: mainDashboardApi.reducer,
     [reportApi.reducerPath]: reportApi.reducer,
     [seriesProgressApi.reducerPath]: seriesProgressApi.reducer,
     [paymentOverviewApi.reducerPath]: paymentOverviewApi.reducer,
@@ -130,6 +134,7 @@ export const store = configureStore({
       giftCardGenerateApi.middleware,
       studentsQuestionApi.middleware,
       studentManagementApi.middleware,
+      mainDashboardApi.middleware,
       reportApi.middleware,
       seriesProgressApi.middleware,
       paymentOverviewApi.middleware,

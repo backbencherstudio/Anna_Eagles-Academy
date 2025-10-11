@@ -1,3 +1,4 @@
+import ScheduleShimmerEffect from '@/app/_components/Admin/Report/ShimmerEffect/ScheduleShimmerEffect';
 import React from 'react';
 
 interface ScheduleItem {
@@ -10,6 +11,7 @@ interface ScheduleItem {
 
 interface MyScheduleProps {
     scheduleData: ScheduleItem[];
+    isLoading?: boolean;
 }
 
 const TIME_SLOTS = [
@@ -22,45 +24,59 @@ const TIME_SLOTS = [
     '03:00 PM',
     '04:00 PM',
     '05:00 PM',
-    // '06:00 PM',
-    // '07:00 PM',
-    // '08:00 PM',
-    // '09:00 PM',
-    // '10:00 PM',
-    // '11:00 PM',
-    // '12:00 AM',
-    // '01:00 AM',
-    // '02:00 AM',
-    // '03:00 AM',
-    // '04:00 AM',
-    // '05:00 AM',
-    // '06:00 AM',
-    // '07:00 AM',
-    // '08:00 AM',
+    '06:00 PM',
+    '07:00 PM',
+    '08:00 PM',
+    '09:00 PM',
+    '10:00 PM',
+    '11:00 PM',
+    '12:00 AM',
+    '01:00 AM',
+    '02:00 AM',
+    '03:00 AM',
+    '04:00 AM',
+    '05:00 AM',
+    '06:00 AM',
+    '07:00 AM',
+    '08:00 AM',
 ];
 
 const parseTime = (timeStr: string) => {
+    if (!timeStr || typeof timeStr !== 'string') {
+        return 0;
+    }
     const [time, modifier] = timeStr.split(' ');
+    if (!time || !modifier) {
+        return 0;
+    }
     let [hours, minutes] = time.split(':').map(Number);
     if (modifier === 'PM' && hours !== 12) hours += 12;
     if (modifier === 'AM' && hours === 12) hours = 0;
     return hours * 60 + minutes;
 };
 
-const MySchedule: React.FC<MyScheduleProps> = ({ scheduleData }) => {
+const   MySchedule: React.FC<MyScheduleProps> = ({ scheduleData, isLoading = false }) => {
 
     const slotTaskMap: Record<string, { task: ScheduleItem; isFirst: boolean; isLast: boolean } | null> = {};
     TIME_SLOTS.forEach((slot) => {
         slotTaskMap[slot] = null;
         for (const task of scheduleData) {
-            const [start, end] = task.time.split(' - ');
+            if (!task.time || typeof task.time !== 'string') {
+                continue;
+            }
+            const timeParts = task.time.split(' - ');
+            if (timeParts.length !== 2) {
+                continue;
+            }
+            const [start, end] = timeParts;
             const slotTime = parseTime(slot);
             const startTime = parseTime(start);
             const endTime = parseTime(end);
-            if (slotTime >= startTime && slotTime <= endTime) {
+            // Only color the start time slot, not the entire range
+            if (slotTime === startTime) {
                 slotTaskMap[slot] = {
                     task,
-                    isFirst: slotTime === startTime,
+                    isFirst: true,
                     isLast: slotTime === endTime,
                 };
                 break;
@@ -68,63 +84,42 @@ const MySchedule: React.FC<MyScheduleProps> = ({ scheduleData }) => {
         }
     });
 
+    if (isLoading) {
+        return <ScheduleShimmerEffect />;
+    }   
+
     return (
-        <div className='h-fit border border-[#ECEFF3] bg-white rounded-2xl p-6 overflow-y-auto font-spline-sans'>
-            <h3 className='text-[#1D1F2C] font-bold text-xl lg:text-xl pb-4 font-spline-sans'>My Schedule</h3>
+        <div className='max-h-[900px] border border-[#ECEFF3] bg-white rounded-2xl p-6 overflow-y-auto font-spline-sans'>
+            <h3 className='text-[#1D1F2C] font-bold text-xl lg:text-xl pb-4 font-spline-sans sticky top-0 bg-white z-10'>My Schedule</h3>
             {TIME_SLOTS.map((slot, idx) => {
                 const slotInfo = slotTaskMap[slot];
 
-
-                let marginBottom = 12;
-                if (slotInfo && idx < TIME_SLOTS.length - 1) {
-                    const nextSlot = TIME_SLOTS[idx + 1];
-                    const nextSlotInfo = slotTaskMap[nextSlot];
-                    if (nextSlotInfo && slotInfo.task.id === nextSlotInfo.task.id) {
-                        marginBottom = 0;
-                    }
-                }
-
-
-                const isMiddleSegment = !!(slotInfo && !slotInfo.isFirst && !slotInfo.isLast);
                 const bgClass = slotInfo ? 'bg-[#FFF7ED]' : 'bg-[#F7F8FA]';
-                const roundedClass = slotInfo
-                    ? slotInfo.isFirst && slotInfo.isLast
-                        ? 'rounded-2xl'
-                        : slotInfo.isFirst
-                            ? 'rounded-t-2xl'
-                            : slotInfo.isLast
-                                ? 'rounded-b-2xl'
-                                : 'rounded-none'
-                    : 'rounded-2xl';
+                const roundedClass = 'rounded-2xl';
 
                 return (
-                    <div key={slot} className={`flex items-stretch gap-4 ${marginBottom === 0 ? 'mb-0' : 'mb-3'}`}>
-                        {/* Time column */}
-                        <div className='w-[90px] text-[#6B7280]  min-h-[48px] flex items-center'>
+                    <div key={slot} className={`flex items-stretch gap-4 mb-3`}>
+                        {/* Time column - LEFT SIDE */}
+                        <div className='w-[90px] text-[#F5A623] font-bold min-h-[48px] flex items-center'>
                             {slot}
                         </div>
 
                         {/* Slot box */}
                         <div className={`min-h-[48px] flex flex-col justify-center w-full p-4 ${bgClass} ${roundedClass}`}>
                             {slotInfo ? (
-                                slotInfo.isFirst ? (
-                                    <>
-                                        <div className='text-[#E6A23C] font-semibold text-[16px]'>
-                                            {slotInfo.task.subject}
-                                        </div>
-                                        <div className='text-[#E6A23C] font-bold'>
-                                            {slotInfo.task.task}
-                                        </div>
-                                        <div className='text-[#E6A23C] font-normal text-[13px]'>
-                                            {slotInfo.task.time}
-                                        </div>
-                                    </>
-                                ) : isMiddleSegment ? null : (
-
-                                    null
-                                )
+                                <>
+                                    <div className='text-[#E6A23C] font-semibold text-[16px]'>
+                                        {slotInfo.task.subject}
+                                    </div>
+                                    <div className='text-[#E6A23C] font-bold'>
+                                        {slotInfo.task.task}
+                                    </div>
+                                    <div className='text-[#E6A23C] font-normal text-[13px]'>
+                                        {slotInfo.task.time}
+                                    </div>
+                                </>
                             ) : (
-                                <div className='text-[#A0A6AD]  text-center'>N/A</div>
+                                <div className='text-[#A0A6AD] text-center'>N/A</div>
                             )}
                         </div>
                     </div>

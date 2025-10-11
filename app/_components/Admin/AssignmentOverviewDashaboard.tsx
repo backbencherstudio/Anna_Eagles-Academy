@@ -59,7 +59,7 @@ export default function AssignmentOverviewDashaboard() {
             <div className='bg-white rounded-lg p-4 sm:p-6'>
                 <div className="flex items-center justify-between mb-4 sm:mb-6">
                     <h2 className="text-lg sm:text-xl font-semibold text-gray-600">Assignment</h2>
-                    <Link href="/create-assignments">
+                    <Link href="/admin/assignment-management">
                         <Button variant="outline" className="text-xs sm:text-sm cursor-pointer">
                             View all
                         </Button>

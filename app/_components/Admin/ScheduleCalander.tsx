@@ -1,6 +1,5 @@
 import CalanderPage from '@/components/Resuable/CalanderPage'
-import React, { useEffect, useState } from 'react'
-
+import React, { useMemo } from 'react'
 
 interface ScheduleItem {
     id: number;
@@ -12,19 +11,87 @@ interface ScheduleItem {
     link_label?: string;
 }
 
+interface ScheduleEvent {
+    id: string;
+    title: string;
+    description?: string;
+    start_at: string;
+    end_at: string;
+    type: string;
+    assignment?: {
+        id: string;
+        title: string;
+    };
+    quiz?: {
+        id: string;
+        title: string;
+    };
+    course?: {
+        id: string;
+        title: string;
+    };
+    series?: {
+        id: string;
+        title: string;
+    };
+}
 
-export default function ScheduleCalander() {
-    const [scheduleData, setScheduleData] = useState<ScheduleItem[]>([]);
+interface ScheduleCalanderProps {
+    scheduleEvents?: ScheduleEvent[];
+    isLoading?: boolean;
+}
 
-    useEffect(() => {
-        fetch('/data/MyScheduleData.json')
-            .then((res) => res.json())
-            .then((data) => setScheduleData(data))
-            .catch((error) => console.error('Error fetching schedule data:', error));
-    }, []);
+export default function ScheduleCalander({ scheduleEvents = [], isLoading = false }: ScheduleCalanderProps) {
+    // Transform API data to match CalanderPage expected format
+    const scheduleData: ScheduleItem[] = useMemo(() => {
+        return scheduleEvents.map((event, index) => {
+            // Extract date from start_at (format: "2025-10-11T00:00:00.000Z")
+            const startDate = new Date(event.start_at);
+            const endDate = new Date(event.end_at);
+
+            // Format date as YYYY-MM-DD for CalanderPage
+            const dateStr = startDate.toISOString().split('T')[0];
+
+            // Format time range
+            const startTime = startDate.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+            const endTime = endDate.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+            const timeStr = `${startTime} - ${endTime}`;
+
+            // Determine subject based on type and related data
+            let subject = '';
+            if (event.type === 'ASSIGNMENT' && event.assignment) {
+                subject = event.assignment.title;
+            } else if (event.type === 'QUIZ' && event.quiz) {
+                subject = event.quiz.title;
+            } else if (event.course) {
+                subject = event.course.title;
+            } else {
+                subject = event.type;
+            }
+
+            return {
+                id: index + 1, // Use index as id since API uses string ids
+                task: event.title,
+                subject: subject,
+                date: dateStr,
+                time: timeStr,
+                link: event.description || undefined,
+                link_label: event.type
+            };
+        });
+    }, [scheduleEvents]);
+
     return (
         <div>
-            <CalanderPage scheduleData={scheduleData} />
+            <CalanderPage scheduleData={scheduleData} isLoading={isLoading} />
         </div>
     )
 }

@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import React, { useState } from 'react'
 import UploadVideo from '../CourseManagement/CreateCourse/UploadVideo'
 import { useForm } from 'react-hook-form'
-import { Pencil, Trash2 } from 'lucide-react'
+import { ArrowRight, Pencil, Trash2 } from 'lucide-react'
 import ButtonSpring from '@/components/Resuable/ButtonSpring'
 import { useCreateModuleMutation, useGetAllModulesQuery, useUpdateSingleModuleMutation, useDeleteSingleModuleMutation } from '@/rtk/api/admin/managementCourseApis'
 import ConfirmDialog from '@/components/Resuable/ConfirmDialog'
@@ -199,7 +199,7 @@ export default function CourseModuesAdded({ seriesId, onNext }: CourseModuesAdde
                             onClick={() => {
                                 onSaveModule()
                             }}
-                            className='bg-[#F1C27D] w-fit hover:bg-[#F1C27D]/80 cursor-pointer text-white inline-flex items-center gap-2'
+                            className='border-[#0F2598] border bg-transparent w-fit hover:bg-[#0F2598]/90 hover:text-white cursor-pointer text-[#0F2598] inline-flex items-center gap-2 transition-all duration-300'
                         >
                             {isSaving && <ButtonSpring loading variant='spinner' size={16} color='#ffffff' />}
                             {isSaving ? (editingId ? 'Updating...' : 'Saving...') : (editingId ? 'Update Module' : 'Save Module')}
@@ -210,6 +210,7 @@ export default function CourseModuesAdded({ seriesId, onNext }: CourseModuesAdde
                         <Button disabled={isContinuing} type="button" onClick={onSubmit} className='bg-[#0F2598] w-fit hover:bg-[#0F2598]/80 cursor-pointer text-white inline-flex items-center gap-2'>
                             {isContinuing && <ButtonSpring loading variant='spinner' size={16} color='#ffffff' />}
                             {isContinuing ? 'Processing...' : 'Continue'}
+                            <ArrowRight className='' />
                         </Button>
                     )}
                 </div>

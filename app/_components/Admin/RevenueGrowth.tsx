@@ -1,62 +1,192 @@
 import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { ChevronDown, RefreshCw, TrendingDown } from 'lucide-react'
+import { ChevronDown, RefreshCw, TrendingDown, TrendingUp } from 'lucide-react'
 import { Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts'
+import ChartShimmerEffect from './Report/ShimmerEffect/ChartShimmerEffect'
 
-export default function RevenueGrowthPage() {
-    const [selectedPeriod, setSelectedPeriod] = useState('Month')
+// Types
+interface ChartDataPoint {
+    date?: string;
+    day?: string;
+    month?: string;
+    revenue: number;
+}
 
-    const chartData = [
-        { date: 'May 01', thisPeriod: 6000, lastPeriod: 3000 },
-        { date: 'May 05', thisPeriod: 5800, lastPeriod: 2500 },
-        { date: 'May 08', thisPeriod: 7200, lastPeriod: 3500 },
-        { date: 'May 13', thisPeriod: 5900, lastPeriod: 4800 },
-        { date: 'May 18', thisPeriod: 6500, lastPeriod: 3200 },
-        { date: 'May 20', thisPeriod: 7300, lastPeriod: 4000 },
-        { date: 'May 25', thisPeriod: 6800, lastPeriod: 2800 },
-        { date: 'May 30', thisPeriod: 5000, lastPeriod: 2800 },
-    ]
+interface ChartData {
+    label: string;
+    data: ChartDataPoint[];
+}
 
-    const currentRevenue = 1280.00
-    const percentageChange = -8.5
+interface RevenueGrowthSummary {
+    current_period_revenue: number;
+    previous_period_revenue: number;
+    growth_percentage: number;
+    growth_direction: "up" | "down";
+    current_period_label: string;
+    previous_period_label: string;
+    period_type: string;
+}
+
+interface RevenueGrowth {
+    summary: RevenueGrowthSummary;
+    chart_data: {
+        current_period: ChartData;
+        last_period: ChartData;
+    };
+}
+
+interface RevenueGrowthPageProps {
+    revenueGrowth?: RevenueGrowth;
+    onPeriodChange?: (period: string) => void;
+    onReload?: () => void;
+    isLoading?: boolean;
+}
+
+export default function RevenueGrowthPage({ revenueGrowth, onPeriodChange, onReload, isLoading }: RevenueGrowthPageProps) {
+    const [selectedPeriod, setSelectedPeriod] = useState('Week')
+    const [isRefreshing, setIsRefreshing] = useState(false)
+
+    // Handle period change
+    const handlePeriodChange = (period: string) => {
+        setSelectedPeriod(period);
+        onPeriodChange?.(period.toLowerCase());
+    };
+
+    // Handle reload with animation
+    const handleReload = () => {
+        if (isRefreshing) return;
+
+        setIsRefreshing(true);
+        onReload?.();
+        // Keep shimmer visible for a minimum time for better UX
+        setTimeout(() => {
+            setIsRefreshing(false);
+        }, 1500);
+    };
+
+    // Transform API data to chart format
+    const transformChartData = () => {
+        if (!revenueGrowth?.chart_data) return [];
+
+        const currentData = revenueGrowth.chart_data.current_period.data || [];
+        const lastData = revenueGrowth.chart_data.last_period.data || [];
+        const dataMap = new Map();
+
+        // Process current period data
+        currentData.forEach(item => {
+            const key = item.date || item.day || item.month || 'Unknown';
+            const displayLabel = item.month || item.day || item.date || 'Unknown';
+
+            dataMap.set(key, {
+                date: displayLabel,
+                thisPeriod: item.revenue,
+                lastPeriod: 0
+            });
+        });
+
+        // Process last period data
+        lastData.forEach(item => {
+            const key = item.date || item.day || item.month || 'Unknown';
+            const displayLabel = item.month || item.day || item.date || 'Unknown';
+
+            if (dataMap.has(key)) {
+                dataMap.get(key).lastPeriod = item.revenue;
+            } else {
+                dataMap.set(key, {
+                    date: displayLabel,
+                    thisPeriod: 0,
+                    lastPeriod: item.revenue
+                });
+            }
+        });
+
+        return Array.from(dataMap.values());
+    };
 
     // Custom tooltip component
     const CustomTooltip = ({ active, payload, label }: any) => {
-        if (active && payload && payload.length) {
-            const thisPeriodValue = payload.find((p: any) => p.dataKey === 'thisPeriod')?.value || 0
-            const lastPeriodValue = payload.find((p: any) => p.dataKey === 'lastPeriod')?.value || 0
+        if (!active || !payload?.length) return null;
 
-            return (
-                <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 min-w-[200px] z-50">
-                    <div className="text-sm font-medium text-gray-900 mb-2">Total Revenue</div>
-                    <div className="space-y-1">
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600">{label}, 2025</span>
-                            <span className="text-sm font-medium text-orange-500">
-                                ${(thisPeriodValue / 1000).toFixed(1)}K
-                            </span>
+        const thisPeriodValue = payload.find((p: any) => p.dataKey === 'thisPeriod')?.value || 0;
+        const lastPeriodValue = payload.find((p: any) => p.dataKey === 'lastPeriod')?.value || 0;
+
+        const formatLabel = (label: string) => {
+            if (!label || label === 'Invalid Date') {
+                return revenueGrowth?.summary?.current_period_label || 'This period';
+            }
+            if (['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].includes(label)) {
+                return `${label} ${revenueGrowth?.summary?.current_period_label || 'This period'}`;
+            }
+            return label;
+        };
+
+        return (
+            <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 min-w-[200px] z-50">
+                <div className="text-sm font-medium text-gray-900 mb-2">Total Revenue</div>
+                <div className="space-y-1">
+                    <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">{formatLabel(label)}</span>
+                        <span className="text-sm font-medium text-orange-500">${thisPeriodValue}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">
+                            {revenueGrowth?.summary?.previous_period_label || 'Last period'}
+                        </span>
+                        <span className="text-sm font-medium text-blue-500">${lastPeriodValue}</span>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // Get data and values
+    const chartData = transformChartData();
+    const currentRevenue = revenueGrowth?.summary?.current_period_revenue || 0;
+    const percentageChange = revenueGrowth?.summary?.growth_percentage || 0;
+    const growthDirection = revenueGrowth?.summary?.growth_direction || 'up';
+
+
+
+    if (isLoading || isRefreshing) {
+        return (
+            <div className="p-5 bg-white rounded-lg">
+                {/* Header skeleton */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 border-b border-gray-200 pb-4 mb-4">
+                    <div className="h-7 bg-gray-200 rounded animate-pulse w-40"></div>
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="h-8 bg-gray-200 rounded animate-pulse w-32"></div>
+                        <div className="h-9 w-9 bg-gray-200 rounded animate-pulse"></div>
+                    </div>
+                </div>
+
+                {/* Revenue info skeleton */}
+                <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6'>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                        <div className="h-8 bg-gray-200 rounded animate-pulse w-32"></div>
+                        <div className="h-6 bg-gray-200 rounded animate-pulse w-24"></div>
+                    </div>
+                    <div className="flex items-center gap-3 sm:gap-4">
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-gray-200 rounded animate-pulse"></div>
+                            <div className="h-4 bg-gray-200 rounded animate-pulse w-20"></div>
                         </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600">
-                                {label.replace('May', 'Apr')}, 2025
-                            </span>
-                            <span className="text-sm font-medium text-blue-500">
-                                ${(lastPeriodValue / 1000).toFixed(1)}K
-                            </span>
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-gray-200 rounded animate-pulse"></div>
+                            <div className="h-4 bg-gray-200 rounded animate-pulse w-20"></div>
                         </div>
                     </div>
                 </div>
-            )
-        }
-        return null
+
+                {/* Chart skeleton */}
+                <ChartShimmerEffect />
+            </div>
+        )
     }
 
-    // Custom Y-axis tick formatter
-    const formatYAxis = (tickItem: number) => `$${(tickItem / 1000)}K`
 
     return (
-        <div className="p-4 sm:p-6 bg-white rounded-lg">
+        <div className="p-5 bg-white rounded-lg">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 border-b border-gray-200 pb-4 mb-4">
                 <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Revenue Growth</h2>
@@ -65,25 +195,32 @@ export default function RevenueGrowthPage() {
                 <div className="flex items-center gap-2 sm:gap-3">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="flex items-center gap-2 text-sm">
+                            <Button variant="outline" className="flex items-center gap-2 text-sm cursor-pointer">
                                 {selectedPeriod}
                                 <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => setSelectedPeriod('Week')}>
+                            <DropdownMenuItem onClick={() => handlePeriodChange('Week')} className='cursor-pointer'>
                                 Week
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setSelectedPeriod('Month')}>
+                            <DropdownMenuItem onClick={() => handlePeriodChange('Month')} className='cursor-pointer'>
                                 Month
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setSelectedPeriod('Year')}>
-                                Year
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button variant="outline" size="icon" className="h-9 w-9 sm:h-10 sm:w-10">
-                        <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4" />
+
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9 sm:h-10 sm:w-10 cursor-pointer"
+                        onClick={handleReload}
+                        disabled={isRefreshing}
+                    >
+                        <RefreshCw
+                            className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-1000 ease-in-out ${isRefreshing ? 'animate-spin' : ''
+                                }`}
+                        />
                     </Button>
                 </div>
             </div>
@@ -92,8 +229,8 @@ export default function RevenueGrowthPage() {
             <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6'>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                     <span className="text-2xl sm:text-3xl font-bold text-gray-900">${currentRevenue.toFixed(2)}</span>
-                    <div className="flex items-center gap-1 text-red-500">
-                        <TrendingDown className="w-4 h-4" />
+                    <div className={`flex items-center gap-1 ${growthDirection === 'up' ? 'text-green-500' : 'text-red-500'}`}>
+                        {growthDirection === 'up' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                         <span className="text-sm font-medium">{Math.abs(percentageChange)}</span>
                         <span className='text-sm font-medium text-black'>% from last period</span>
                     </div>
@@ -103,11 +240,11 @@ export default function RevenueGrowthPage() {
                 <div className="flex items-center gap-3 sm:gap-4">
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 bg-orange-500 rounded"></div>
-                        <span className="text-xs sm:text-sm text-gray-600">This period</span>
+                        <span className="text-xs sm:text-sm text-gray-600">{revenueGrowth?.summary?.current_period_label || 'This period'}</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                        <span className="text-xs sm:text-sm text-gray-600">Last period</span>
+                        <span className="text-xs sm:text-sm text-gray-600">{revenueGrowth?.summary?.previous_period_label || 'Last period'}</span>
                     </div>
                 </div>
             </div>
@@ -115,15 +252,10 @@ export default function RevenueGrowthPage() {
             {/* Chart */}
             <div className="w-full overflow-x-auto">
                 <div className="min-w-[600px] h-[250px] sm:h-[300px] lg:h-[350px]">
-                    <ResponsiveContainer width="100%" height="100%" >
+                    <ResponsiveContainer width="100%" height="100%">
                         <AreaChart
                             data={chartData}
-                            margin={{
-                                top: 20,
-                                right: 30,
-                                left: 20,
-                                bottom: 20,
-                            }}
+                            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
                         >
                             <defs>
                                 <linearGradient id="thisPeriodGradient" x1="0" y1="0" x2="0" y2="1">
@@ -135,11 +267,8 @@ export default function RevenueGrowthPage() {
                                     <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05} />
                                 </linearGradient>
                             </defs>
-                            <CartesianGrid
-                                strokeDasharray="5 5"
-                                stroke="#e5e7eb"
-                                vertical={false}
-                            />
+
+                            <CartesianGrid strokeDasharray="5 5" stroke="#e5e7eb" vertical={false} />
                             <XAxis
                                 dataKey="date"
                                 axisLine={false}
@@ -151,7 +280,7 @@ export default function RevenueGrowthPage() {
                                 axisLine={false}
                                 tickLine={false}
                                 tick={{ fontSize: 11, fill: '#6b7280' }}
-                                tickFormatter={formatYAxis}
+                                tickFormatter={(value) => `$${value}`}
                                 tickMargin={10}
                                 width={50}
                             />
