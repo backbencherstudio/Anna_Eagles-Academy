@@ -32,6 +32,7 @@ import eventsReducer from '@/rtk/slices/admin/eventsSlice'
 import { eventsApi } from '@/rtk/api/admin/enventsApis'
 import calendarSchedulesReducer from '@/rtk/slices/admin/calendarSehedulesSlice'
 import { calendarSchedulesApi } from '@/rtk/api/admin/calendarSehedulesApis'
+import { allCourseListApi } from '@/rtk/api/users/allCourseListApis'
 
 import studentsQuestionReducer from '@/rtk/slices/admin/studentsQuestionSlice'
 import { studentsQuestionApi } from './api/admin/studentsQuestionApis'
@@ -87,6 +88,8 @@ export const store = configureStore({
     [seriesProgressApi.reducerPath]: seriesProgressApi.reducer,
     [paymentOverviewApi.reducerPath]: paymentOverviewApi.reducer,
     [enrollmentDataApi.reducerPath]: enrollmentDataApi.reducer,
+    [allCourseListApi.reducerPath]: allCourseListApi.reducer,
+    
   },
 
 
@@ -141,6 +144,7 @@ export const store = configureStore({
       enrollmentDataApi.middleware,
       eventsApi.middleware,
       calendarSchedulesApi.middleware,
+      allCourseListApi.middleware,
     ),
 })
 

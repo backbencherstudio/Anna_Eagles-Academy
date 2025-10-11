@@ -60,24 +60,67 @@ function CourseSkeleton() {
     );
 }
 
-export default function DiscoverCourses() {
+interface CourseData {
+    id: string
+    title: string
+    description: string
+    thumbnail: string
+    price: number
+    duration: string
+    totalModules: number
+    totalVideos: number
+    totalAudios: number
+    totalDocs: number
+    courseType: string
+    availableSeats: number
+    totalSeats: number
+    startDate: string
+    endDate: string
+}
+
+interface DiscoverCoursesProps {
+    courseData?: CourseData
+}
+
+export default function DiscoverCourses({ courseData }: DiscoverCoursesProps) {
     const [course, setCourse] = useState<any>(null);
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [discountCode, setDiscountCode] = useState("");
 
     useEffect(() => {
-        fetch("/data/CourseData.json")
-            .then((res) => res.json())
-            .then((data) => {
-                if (data && data.course) {
-                    setCourse(data.course);
-                }
-            })
-            .catch((error) => {
-                console.error("Error fetching course data:", error);
+        if (courseData) {
+            // Use the passed course data
+            setCourse({
+                course_id: courseData.id,
+                course_title: courseData.title,
+                course_description: courseData.description,
+                course_price: courseData.price,
+                course_thumbnail: courseData.thumbnail,
+                total_modules: courseData.totalModules,
+                total_videos: courseData.totalVideos,
+                total_audios: courseData.totalAudios,
+                total_docs: courseData.totalDocs,
+                course_type: courseData.courseType,
+                available_seats: courseData.availableSeats,
+                total_seats: courseData.totalSeats,
+                start_date: courseData.startDate,
+                end_date: courseData.endDate
             });
-    }, []);
+        } else {
+            // Fallback to original data fetching
+            fetch("/data/CourseData.json")
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data && data.course) {
+                        setCourse(data.course);
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error fetching course data:", error);
+                });
+        }
+    }, [courseData]);
 
 
 
@@ -186,23 +229,23 @@ export default function DiscoverCourses() {
                         <div className="space-y-3">
                             <div className="flex items-center gap-3">
                                 <Clock className="h-4 w-4 text-[#1D1F2C]" />
-                                <span className="text-[#1D1F2C] text-sm">Total Time 6hr 10min 2sec</span>
+                                <span className="text-[#1D1F2C] text-sm">Total Time {course?.duration || '6hr 10min'}</span>
                             </div>
                             <div className="flex items-center gap-3">
                                 <Briefcase className="h-4 w-4 text-[#1D1F2C]" />
-                                <span className="text-[#1D1F2C] text-sm">3 Course</span>
+                                <span className="text-[#1D1F2C] text-sm">{course?.total_modules || 3} Course</span>
                             </div>
                             <div className="flex items-center gap-3">
                                 <Play className="h-4 w-4 text-[#1D1F2C]" />
-                                <span className="text-[#1D1F2C] text-sm">24 Videos</span>
+                                <span className="text-[#1D1F2C] text-sm">{course?.total_videos || 24} Videos</span>
                             </div>
                             <div className="flex items-center gap-3">
                                 <Music className="h-4 w-4 text-[#1D1F2C]" />
-                                <span className="text-[#1D1F2C] text-sm">4 Audios</span>
+                                <span className="text-[#1D1F2C] text-sm">{course?.total_audios || 4} Audios</span>
                             </div>
                             <div className="flex items-center gap-3">
                                 <FileText className="h-4 w-4 text-[#1D1F2C]" />
-                                <span className="text-[#1D1F2C] text-sm">8 Doc File</span>
+                                <span className="text-[#1D1F2C] text-sm">{course?.total_docs || 8} Doc File</span>
                             </div>
                             <div className="flex items-center gap-3">
                                 <Video className="h-4 w-4 text-[#1D1F2C]" />
@@ -210,15 +253,15 @@ export default function DiscoverCourses() {
                             </div>
                             <div className="flex items-center gap-3">
                                 <Search className="h-4 w-4 text-[#AD0AFD]" />
-                                <span className="text-[#AD0AFD] text-sm">Bootcamp Type Course</span>
+                                <span className="text-[#AD0AFD] text-sm">{course?.course_type?.charAt(0).toUpperCase() + course?.course_type?.slice(1)} Type Course</span>
                             </div>
                             <div className="flex items-center gap-3">
                                 <Users className="h-4 w-4 text-[#1D1F2C]" />
-                                <span className="text-[#1D1F2C] text-sm">12 Seat Left</span>
+                                <span className="text-[#1D1F2C] text-sm">{course?.available_seats || 12} Seat Left</span>
                             </div>
                             <div className="flex items-center gap-3">
                                 <Calendar className="h-4 w-4 text-[#1D1F2C]" />
-                                <span className="text-[#1D1F2C] text-sm">Start: 2024-09-01 | End: 2024-12-01</span>
+                                <span className="text-[#1D1F2C] text-sm">Start: {course?.start_date || '2024-09-01'} | End: {course?.end_date || '2024-12-01'}</span>
                             </div>
                         </div>
                     </div>
