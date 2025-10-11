@@ -33,6 +33,7 @@ import { eventsApi } from '@/rtk/api/admin/enventsApis'
 import calendarSchedulesReducer from '@/rtk/slices/admin/calendarSehedulesSlice'
 import { calendarSchedulesApi } from '@/rtk/api/admin/calendarSehedulesApis'
 import { allCourseListApi } from '@/rtk/api/users/allCourseListApis'
+import allCourseListReducer from '@/rtk/slices/users/allCourseListSlice'
 
 import studentsQuestionReducer from '@/rtk/slices/admin/studentsQuestionSlice'
 import { studentsQuestionApi } from './api/admin/studentsQuestionApis'
@@ -89,6 +90,7 @@ export const store = configureStore({
     [paymentOverviewApi.reducerPath]: paymentOverviewApi.reducer,
     [enrollmentDataApi.reducerPath]: enrollmentDataApi.reducer,
     [allCourseListApi.reducerPath]: allCourseListApi.reducer,
+    allCourseList: allCourseListReducer,
     
   },
 
