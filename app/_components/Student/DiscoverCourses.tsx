@@ -5,6 +5,9 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useGetSingleCourseListQuery } from '@/rtk/api/users/allCourseListApis';
+import { useCheckoutMutation } from '@/rtk/api/users/paymentsApis';
+import { useDispatch } from 'react-redux';
+import { setCheckoutData, setLoading, setError } from '@/rtk/slices/users/paymentsSlice';
 
 
 function CourseSkeleton() {
@@ -99,7 +102,9 @@ export default function DiscoverCourses({ courseId, courseData }: DiscoverCourse
     const [course, setCourse] = useState<CourseData | null>(null);
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
-    const [discountCode, setDiscountCode] = useState("");
+    const dispatch = useDispatch();
+    const [checkout, { isLoading: checkoutLoading }] = useCheckoutMutation();
+
 
     // Use API query if courseId is provided
     const { data: apiData, isLoading: apiLoading, error } = useGetSingleCourseListQuery(
@@ -116,18 +121,6 @@ export default function DiscoverCourses({ courseId, courseData }: DiscoverCourse
             setCourse(apiData.data);
         } else if (error) {
             console.error("API Error:", error);
-        } else if (!courseId) {
-            // Fallback to original data fetching
-            fetch("/data/CourseData.json")
-                .then((res) => res.json())
-                .then((data) => {
-                    if (data && data.course) {
-                        setCourse(data.course);
-                    }
-                })
-                .catch((error) => {
-                    console.error("Error fetching course data:", error);
-                });
         }
     }, [courseData, apiData, courseId, error]);
 
@@ -159,24 +152,38 @@ export default function DiscoverCourses({ courseId, courseData }: DiscoverCourse
         return <CourseSkeleton />;
     }
 
-    // handle buy now button time out
-    const handleBuyNow = () => {
+    // handle buy now button - create checkout
+    const handleBuyNow = async () => {
+        if (!course?.id) {
+            dispatch(setError('Course ID not found'));
+            return;
+        }
+
         setIsLoading(true);
+        dispatch(setLoading(true));
+        dispatch(setError(null));
 
-        setTimeout(() => {
-            router.push(`/user/checkout/${course.id}`);
+        try {
+            const result = await checkout({ series_id: course.id }).unwrap();
+            
+            if (result.success && result.data) {
+                dispatch(setCheckoutData(result.data));
+                router.push(`/user/checkout/${result.data.id}`);
+            } else {
+                dispatch(setError('Failed to create checkout'));
+            }
+        } catch (error: any) {
+            console.error('Checkout error:', error);
+            dispatch(setError(error?.data?.message || 'Failed to create checkout'));
+        } finally {
             setIsLoading(false);
-        }, 1000);
+            dispatch(setLoading(false));
+        }
     }
 
-    // handle discount code apply
-    const handleApplyCode = () => {
-        // Add your discount code logic here
-        console.log("Applying discount code:", discountCode);
-    }
 
     return (
-        <div className="flex flex-col xl:flex-row gap-8 px-1  ">
+        <div className="flex flex-col xl:flex-row gap-8 px-1">
             {/* Left Side */}
             <div className="flex-1 w-full xl:w-9/12">
                 <div className="bg-white rounded-2xl p-6">
@@ -213,26 +220,9 @@ export default function DiscoverCourses({ courseId, courseData }: DiscoverCourse
             {/* Right Side */}
             <div className="w-full xl:w-3/12 flex flex-col gap-6">
                 {/* Course Card */}
-                <div className="bg-white rounded-2xl  overflow-hidden py-4">
-                    {/* Course Image with Title Overlay */}
-                    {/* <div className=" aspect-video p-4">
-                        {course?.thumbnail_url && (
-                            <Image
-                                src={course.thumbnail_url}
-                                alt={course.title || "Course"}
-                                className="w-full h-full object-cover rounded-2xl"
-                                width={400}
-                                height={192}
-                                priority
-                            />
-                        )}
-
-                    </div> */}
-
-
-
+                <div className="bg-white rounded-2xl overflow-hidden py-4">
                     {/* Course Details */}
-                    <div className="px-6 ">
+                    <div className="px-6">
                         <h4 className="font-medium text-[#070707] text-base lg:text-lg mb-4">What's in this course</h4>
                         <div className="space-y-3">
                             <div className="flex items-center gap-3">
@@ -275,19 +265,19 @@ export default function DiscoverCourses({ courseId, courseData }: DiscoverCourse
                     </div>
 
                     {/* Price and Enroll Button */}
-                    <div className="px-4 ">
+                    <div className="px-4">
                         <div className="text-2xl font-medium mb-4 mt-4">
-                            Price: <span className="font-medium text-[#070707]  ">${course?.total_price}</span>
+                            Price: <span className="font-medium text-[#070707]">${course?.total_price}</span>
                         </div>
                         <Button
-                            disabled={isLoading}
+                            disabled={isLoading || checkoutLoading}
                             onClick={handleBuyNow}
                             className="w-full cursor-pointer bg-[#0F2598] hover:bg-[#0F2598]/80 text-white font-bold py-5 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
-                            {isLoading ? (
+                            {(isLoading || checkoutLoading) ? (
                                 <div className="flex items-center gap-2">
                                     <Loader2 className="animate-spin h-5 w-5" />
-                                    <span>Processing...</span>
+                                    <span>Creating Checkout...</span>
                                 </div>
                             ) : (
                                 "Enroll Now"
@@ -295,36 +285,17 @@ export default function DiscoverCourses({ courseId, courseData }: DiscoverCourse
                         </Button>
                     </div>
 
-                    {/* Discount Code Section */}
-                    {/* <div className="px-6 pb-6">
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="text"
-                                placeholder="Apply Code"
-                                value={discountCode}
-                                onChange={(e) => setDiscountCode(e.target.value)}
-                                className="flex-1 border border-dashed border-[#D2D2D5] px-3 py-2  bg-[#F6F8FA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F2598] focus:border-transparent"
-                            />
-                            <Button
-                                onClick={handleApplyCode}
-                                className="px-4 cursor-pointer py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200"
-                            >
-                                Apply
-                            </Button>
-                        </div>
-                    </div> */}
-
                     {/* Financial Hardship Section */}
-                    <div className="px-6">
+                    <div className="px-6 mt-4">
                         <div className="bg-pink-50 rounded-lg p-4">
                             <p className="text-xs text-[#1D1F2C] mb-2 text-center">
                                 If you're unable to enroll in any of the courses due to financial hardship, please email
                             </p>
                             <a
                                 href="mailto:info@thewhiteeaglesacademy@gmail.com"
-                                className="text-blue-600 hover:text-blue-800 text-xs "
+                                className="text-blue-600 hover:text-blue-800 text-xs"
                             >
-                                <span className="text-[#1D1F2C] ">email:</span>
+                                <span className="text-[#1D1F2C]">email:</span>
                                 <span className="text-blue-600 ms-1 hover:text-blue-800 text-xs underline">thewhiteeaglesacademy@gmail.com</span>
                             </a>
                         </div>

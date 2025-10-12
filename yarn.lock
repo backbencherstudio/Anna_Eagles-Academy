@@ -1649,6 +1649,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@stripe/react-stripe-js@npm:^5.2.0":
+  version: 5.2.0
+  resolution: "@stripe/react-stripe-js@npm:5.2.0"
+  dependencies:
+    prop-types: "npm:^15.7.2"
+  peerDependencies:
+    "@stripe/stripe-js": ">=8.0.0 <9.0.0"
+    react: ">=16.8.0 <20.0.0"
+    react-dom: ">=16.8.0 <20.0.0"
+  checksum: 10c0/b9b52fef86da035d200c874f1b0f6459a4dfed3fe9fdfca46dece28f428063d615d9c8a0fec9dcba9d28fff2ec44157e2cc0cc0c5704e994cc04fa6554c6d9d2
+  languageName: node
+  linkType: hard
+
+"@stripe/stripe-js@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "@stripe/stripe-js@npm:8.0.0"
+  checksum: 10c0/f983fb9e3cd2f906c98bdcdee2a870ae6b71cfd2426c82aef41ff35b71aebf721d44b995d750ddd282b1df626afeb65470d7fbac49eb3be69a3b17480ef96528
+  languageName: node
+  linkType: hard
+
 "@svta/common-media-library@npm:^0.12.4":
   version: 0.12.4
   resolution: "@svta/common-media-library@npm:0.12.4"
@@ -2348,6 +2368,8 @@ __metadata:
     "@radix-ui/react-switch": "npm:^1.2.5"
     "@radix-ui/react-tabs": "npm:^1.1.13"
     "@reduxjs/toolkit": "npm:^2.9.0"
+    "@stripe/react-stripe-js": "npm:^5.2.0"
+    "@stripe/stripe-js": "npm:^8.0.0"
     "@tailwindcss/postcss": "npm:^4"
     "@tinymce/tinymce-react": "npm:^6.3.0"
     "@types/file-saver": "npm:^2"
@@ -2381,6 +2403,7 @@ __metadata:
     react-player: "npm:^3.3.1"
     react-redux: "npm:^9.2.0"
     recharts: "npm:^3.1.0"
+    stripe: "npm:^19.1.0"
     tailwind-merge: "npm:^3.3.1"
     tailwindcss: "npm:^4"
     tinymce: "npm:^8.0.2"
@@ -5318,6 +5341,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"qs@npm:^6.11.0":
+  version: 6.14.0
+  resolution: "qs@npm:6.14.0"
+  dependencies:
+    side-channel: "npm:^1.1.0"
+  checksum: 10c0/8ea5d91bf34f440598ee389d4a7d95820e3b837d3fd9f433871f7924801becaa0cd3b3b4628d49a7784d06a8aea9bc4554d2b6d8d584e2d221dc06238a42909c
+  languageName: node
+  linkType: hard
+
 "queue-microtask@npm:^1.2.2":
   version: 1.2.3
   resolution: "queue-microtask@npm:1.2.3"
@@ -6128,6 +6160,20 @@ __metadata:
   version: 3.1.1
   resolution: "strip-json-comments@npm:3.1.1"
   checksum: 10c0/9681a6257b925a7fa0f285851c0e613cc934a50661fa7bb41ca9cbbff89686bb4a0ee366e6ecedc4daafd01e83eee0720111ab294366fe7c185e935475ebcecd
+  languageName: node
+  linkType: hard
+
+"stripe@npm:^19.1.0":
+  version: 19.1.0
+  resolution: "stripe@npm:19.1.0"
+  dependencies:
+    qs: "npm:^6.11.0"
+  peerDependencies:
+    "@types/node": ">=16"
+  peerDependenciesMeta:
+    "@types/node":
+      optional: true
+  checksum: 10c0/d1f6412373962a585f877af6b5933a000573dad1b0c5fe3937633ccb7117764ad46c8fb565431d846ac08f32811c150ffdce3a273717905a983e416ea131091f
   languageName: node
   linkType: hard
 
