@@ -11,7 +11,7 @@ import { courseFilterApi } from './api/admin/courseFilterApis'
 import { reportApi, seriesProgressApi, paymentOverviewApi, enrollmentDataApi   } from '@/rtk/api/admin/reportApis'
 import reportReducer from '@/rtk/slices/admin/reportSlice'
 import { quizApi } from './api/admin/quizApis'
-import { assignmentApi } from './api/admin/assignmentApis'
+import { assignmentApi as adminAssignmentApi } from './api/admin/assignmentApis'
 import assignmentEvaluationReducer from '@/rtk/slices/admin/assignmentEvaluationSlice'
 import assignmentEssayEvaluationReducer from '@/rtk/slices/admin/assignmentEssayEvaluationSlice'
 import assignmentQuizEvaluationReducer from '@/rtk/slices/admin/assignmentQuizEvaluationSlice'
@@ -36,6 +36,10 @@ import { allCourseListApi } from '@/rtk/api/users/allCourseListApis'
 import allCourseListReducer from '@/rtk/slices/users/allCourseListSlice'
 import { paymentsApi } from '@/rtk/api/users/paymentsApis'
 import paymentsReducer from '@/rtk/slices/users/paymentsSlice'
+import { assignmentApi as assignmentQuizApi } from '@/rtk/api/users/assignmentQuizApis'
+import assignmentQuizReducer from '@/rtk/slices/users/assignmentQuizSlice'
+import { myCoursesApi } from '@/rtk/api/users/myCoursesApis'
+import myCoursesReducer from '@/rtk/slices/users/myCoursesSlice'
 
 import studentsQuestionReducer from '@/rtk/slices/admin/studentsQuestionSlice'
 import { studentsQuestionApi } from './api/admin/studentsQuestionApis'
@@ -69,7 +73,7 @@ export const store = configureStore({
     [manageMaterialsApi.reducerPath]: manageMaterialsApi.reducer,
     [courseFilterApi.reducerPath]: courseFilterApi.reducer,
     [quizApi.reducerPath]: quizApi.reducer,
-    [assignmentApi.reducerPath]: assignmentApi.reducer,
+    [adminAssignmentApi.reducerPath]: adminAssignmentApi.reducer,
     [assignmentEvaluationApi.reducerPath]: assignmentEvaluationApi.reducer,
     [studentFileDownloadApi.reducerPath]: studentFileDownloadApi.reducer,
     [teacherSectionApi.reducerPath]: teacherSectionApi.reducer,
@@ -97,6 +101,10 @@ export const store = configureStore({
     allCourseList: allCourseListReducer,
     [paymentsApi.reducerPath]: paymentsApi.reducer,
     payments: paymentsReducer,
+    [assignmentQuizApi.reducerPath]: assignmentQuizApi.reducer,
+    assignmentQuiz: assignmentQuizReducer,
+    [myCoursesApi.reducerPath]: myCoursesApi.reducer,
+    myCourses: myCoursesReducer,
 
     
     
@@ -137,7 +145,7 @@ export const store = configureStore({
       manageMaterialsApi.middleware,
       courseFilterApi.middleware,
       quizApi.middleware,
-      assignmentApi.middleware,
+      adminAssignmentApi.middleware,
       assignmentEvaluationApi.middleware,
       studentFileDownloadApi.middleware,
       teacherSectionApi.middleware,
@@ -157,6 +165,8 @@ export const store = configureStore({
       // user
       allCourseListApi.middleware,
       paymentsApi.middleware,
+      assignmentQuizApi.middleware,
+      myCoursesApi.middleware,
     ),
 })
 

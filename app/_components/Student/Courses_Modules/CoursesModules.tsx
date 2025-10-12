@@ -16,7 +16,7 @@ export default function CoursesModules() {
   const [openModules, setOpenModules] = useState<string[]>([]);
   const [lockNotification, setLockNotification] = useState<{ show: boolean; message: string }>({ show: false, message: '' });
   const searchParams = useSearchParams();
-  
+
   // Use the video progress hook
   const { isVideoCompleted } = useVideoProgress();
 
@@ -117,7 +117,7 @@ export default function CoursesModules() {
     // Check if there's a next video in the same module
     if (videoIndex < course.modules[moduleIndex].videos.length - 1) {
       const nextVideoIndex = videoIndex + 1;
-      
+
       // Check if the next video is unlocked
       if (!isVideoUnlocked(moduleIndex, nextVideoIndex)) {
         // Show notification that video is locked
@@ -129,7 +129,7 @@ export default function CoursesModules() {
         setTimeout(() => setLockNotification({ show: false, message: '' }), 3000);
         return;
       }
-      
+
       const currentModule = course.modules[moduleIndex];
       const nextVideo = currentModule.videos[nextVideoIndex];
       setCurrentVideo({
@@ -141,7 +141,7 @@ export default function CoursesModules() {
       // Check if there's a next module
       if (moduleIndex < course.modules.length - 1) {
         const nextModuleIndex = moduleIndex + 1;
-        
+
         // Check if the first video of the next module is unlocked
         if (!isVideoUnlocked(nextModuleIndex, 0)) {
           // Show notification that video is locked
@@ -153,7 +153,7 @@ export default function CoursesModules() {
           setTimeout(() => setLockNotification({ show: false, message: '' }), 3000);
           return;
         }
-        
+
         const nextModule = course.modules[nextModuleIndex];
         const nextVideo = nextModule.videos[0];
         setCurrentVideo({
@@ -183,7 +183,7 @@ export default function CoursesModules() {
     if (!isLastInModule || !isLastModule) {
       const nextVideoIndex = isLastInModule ? 0 : videoIndex + 1;
       const nextModuleIndex = isLastInModule ? moduleIndex + 1 : moduleIndex;
-      
+
       if (!isVideoUnlocked(nextModuleIndex, nextVideoIndex)) {
         return true; // Treat as last video if next is locked
       }
@@ -267,7 +267,7 @@ export default function CoursesModules() {
   }
 
   return (
-    <div className={`flex max-w-7xl mx-auto gap-6 transition-all duration-500 ease-in-out ${isTheaterMode ? 'flex-col max-w-full px-0' : 'flex-col lg:flex-row '
+    <div className={`flex max-w-7xl mx-auto gap-6 transition-all duration-500 ease-in-out ${isTheaterMode ? 'flex-col max-w-full px-0' : 'flex-col xl:flex-row '
       }`}>
       {/* Lock Notification */}
       {lockNotification.show && (
@@ -320,6 +320,8 @@ export default function CoursesModules() {
           showBuffering={true}
           autoPlay={true}
           showVolumeControls={true}
+          showSkipControls={false}
+          allowSeeking={false}
           onNetworkStateChange={handleNetworkStateChange}
         />
 

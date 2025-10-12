@@ -181,7 +181,7 @@ export default function Modules_Sidebar({
   }, [throttledLoadProgress]);
 
   return (
-    <div className={`bg-white overflow-y-auto max-h-[80vh] rounded-2xl shadow transition-all duration-500 ease-in-out ${isTheaterMode ? 'w-full p-6' : 'w-full lg:w-96 p-6'}`}>
+    <div className={`bg-white overflow-y-auto max-h-[80vh] rounded-2xl shadow transition-all duration-500 ease-in-out ${isTheaterMode ? 'w-full p-6' : 'w-full xl:w-96 p-6'}`}>
       <div className="font-semibold text-lg mb-4">Modules</div>
       <Accordion.Root
         type="multiple"

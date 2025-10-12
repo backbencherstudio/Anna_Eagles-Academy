@@ -54,6 +54,10 @@ interface CustomVideoPlayerProps {
     onNetworkStateChange?: (state: number, message: string) => void;
     /** Whether to show volume controls */
     showVolumeControls?: boolean;
+    /** Whether to show rewind/forward 10s buttons */
+    showSkipControls?: boolean;
+    /** Whether to allow seeking on progress bar */
+    allowSeeking?: boolean;
 }
 
 /**
@@ -115,7 +119,9 @@ export default function CustomVideoPlayer({
     preload = 'metadata',
     showBuffering = true,
     onNetworkStateChange,
-    showVolumeControls = true
+    showVolumeControls = true,
+    showSkipControls = true,
+    allowSeeking = true
 }: CustomVideoPlayerProps) {
     const [playing, setPlaying] = useState(false);
     const [videoError, setVideoError] = useState<string | null>(null);
@@ -215,7 +221,7 @@ export default function CustomVideoPlayer({
         return () => {
             if (controlsTimeout) clearTimeout(controlsTimeout);
         };
-    }, [mouseInControls, playing, isTheaterMode, controlsTimeout]);
+    }, [mouseInControls, playing, isTheaterMode]);
 
 
     useEffect(() => {
@@ -225,7 +231,7 @@ export default function CustomVideoPlayer({
                 clearTimeout(volumeSliderTimeout);
             }
         };
-    }, [volumeSliderTimeout]);
+    }, []);
 
 
     useEffect(() => {
@@ -282,7 +288,6 @@ export default function CustomVideoPlayer({
     useEffect(() => {
         if (!isMountedRef.current) return;
 
-
         if (!checkNetworkConnectivity()) {
             return;
         }
@@ -299,12 +304,10 @@ export default function CustomVideoPlayer({
         setPlaying(false);
         setIsMuted(false);
 
-
         if (videoRef.current) {
             videoRef.current.currentTime = 0;
             videoRef.current.load();
         }
-
 
         const loadingTimeout = setTimeout(() => {
             if (isMountedRef.current) {
@@ -313,7 +316,7 @@ export default function CustomVideoPlayer({
         }, 10000);
 
         return () => clearTimeout(loadingTimeout);
-    }, [videoData.video_id, videoData.video_url, checkNetworkConnectivity]);
+    }, [videoData.video_id, videoData.video_url]);
 
 
     useEffect(() => {
@@ -529,7 +532,7 @@ export default function CustomVideoPlayer({
             video.removeEventListener('error', handleError);
             video.removeEventListener('abort', handleAbort);
         };
-    }, [getNetworkStateMessage, onNetworkStateChange, playing, currentTime, autoPlay, isMuted]);
+    }, [getNetworkStateMessage, onNetworkStateChange, autoPlay]);
 
 
 
@@ -773,7 +776,7 @@ export default function CustomVideoPlayer({
         if (volumeSliderTimeout) {
             clearTimeout(volumeSliderTimeout);
         }
-    }, [volumeSliderTimeout]);
+    }, []);
 
     const handleVolumeLeave = useCallback(() => {
         const timeout = setTimeout(() => {
@@ -859,7 +862,7 @@ export default function CustomVideoPlayer({
 
     // Add useEffect to control initial playback
     useEffect(() => {
-        if (autoPlay && videoRef.current) {
+        if (autoPlay && videoRef.current && !playing) {
             videoRef.current.play().then(() => {
                 setPlaying(true);
             }).catch(() => {
@@ -878,7 +881,7 @@ export default function CustomVideoPlayer({
         setPlaying(false);
         setIsMuted(false);
         setHasRestoredProgress(false); // Reset progress restoration flag
-    }, [videoData.video_id, videoData.video_url]);
+    }, [videoData.video_id]);
 
     // Video progress tracking state
     const [savedProgress, setSavedProgress] = useState<number>(0);
@@ -895,7 +898,7 @@ export default function CustomVideoPlayer({
         }, 3000); // Check every 3 seconds, but throttle ensures max once per 3 seconds
 
         return () => clearInterval(interval);
-    }, [videoData?.video_id, currentTime, duration, throttledSaveProgress]);
+    }, [videoData?.video_id, currentTime, duration]);
 
     // Restore video progress when video loads
     useEffect(() => {
@@ -927,7 +930,7 @@ export default function CustomVideoPlayer({
                 videoRef.current.addEventListener('loadedmetadata', handleMetadataLoaded);
             }
         }
-    }, [videoData?.video_id, loadVideoProgress, hasRestoredProgress]);
+    }, [videoData?.video_id, hasRestoredProgress]);
 
     if (!videoData) {
         return (
@@ -1135,7 +1138,7 @@ export default function CustomVideoPlayer({
                         >
                             {/* Progress Bar with Buffering Indicator */}
                             <div
-                                className="mb-3 relative cursor-pointer"
+                                className={`mb-3 relative ${allowSeeking ? 'cursor-pointer' : 'cursor-default'}`}
                                 onClick={(e) => e.stopPropagation()}
                                 onMouseMove={handleProgressHover}
                                 onMouseLeave={handleProgressLeave}
@@ -1184,17 +1187,19 @@ export default function CustomVideoPlayer({
                                 </div>
 
                                 {/* Seekable Range Input */}
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max={duration || 0}
-                                    value={currentTime}
-                                    onChange={handleSeek}
-                                    onMouseDown={(e) => { e.stopPropagation(); handleSeekMouseDown(); }}
-                                    onMouseUp={(e) => { e.stopPropagation(); handleSeekMouseUp(); }}
-                                    className="absolute top-0 left-0 w-full h-1.5 opacity-0 cursor-pointer z-10"
-                                    style={{ pointerEvents: 'auto' }}
-                                />
+                                {allowSeeking && (
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max={duration || 0}
+                                        value={currentTime}
+                                        onChange={handleSeek}
+                                        onMouseDown={(e) => { e.stopPropagation(); handleSeekMouseDown(); }}
+                                        onMouseUp={(e) => { e.stopPropagation(); handleSeekMouseUp(); }}
+                                        className="absolute top-0 left-0 w-full h-1.5 opacity-0 cursor-pointer z-10"
+                                        style={{ pointerEvents: 'auto' }}
+                                    />
+                                )}
                             </div>
 
                             {/* Controls Bar */}
@@ -1311,26 +1316,30 @@ export default function CustomVideoPlayer({
                                 {/* Right Controls */}
                                 <div className="flex items-center gap-1 flex-shrink-0">
                                     {/* Rewind 10s */}
-                                    <button
-                                        type="button"
-                                        onClick={(e) => handleButtonClick(e, skipBackward)}
-                                        onMouseEnter={(e) => showTooltip("Rewind 10s", e)}
-                                        onMouseLeave={hideTooltip}
-                                        className="video-control-btn cursor-pointer p-1 rounded-full transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 hover:bg-white/20 hover:shadow-md"
-                                    >
-                                        <MdOutlineReplay10 className="text-2xl" />
-                                    </button>
+                                    {showSkipControls && (
+                                        <button
+                                            type="button"
+                                            onClick={(e) => handleButtonClick(e, skipBackward)}
+                                            onMouseEnter={(e) => showTooltip("Rewind 10s", e)}
+                                            onMouseLeave={hideTooltip}
+                                            className="video-control-btn cursor-pointer p-1 rounded-full transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 hover:bg-white/20 hover:shadow-md"
+                                        >
+                                            <MdOutlineReplay10 className="text-2xl" />
+                                        </button>
+                                    )}
 
                                     {/* Forward 10s */}
-                                    <button
-                                        type="button"
-                                        onClick={(e) => handleButtonClick(e, skipForward)}
-                                        onMouseEnter={(e) => showTooltip("Forward 10s", e)}
-                                        onMouseLeave={hideTooltip}
-                                        className="video-control-btn cursor-pointer p-1 rounded-full transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 hover:bg-white/20 hover:shadow-md"
-                                    >
-                                        <MdOutlineForward10 className="text-2xl" />
-                                    </button>
+                                    {showSkipControls && (
+                                        <button
+                                            type="button"
+                                            onClick={(e) => handleButtonClick(e, skipForward)}
+                                            onMouseEnter={(e) => showTooltip("Forward 10s", e)}
+                                            onMouseLeave={hideTooltip}
+                                            className="video-control-btn cursor-pointer p-1 rounded-full transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 hover:bg-white/20 hover:shadow-md"
+                                        >
+                                            <MdOutlineForward10 className="text-2xl" />
+                                        </button>
+                                    )}
 
                                     {/* Loop */}
                                     <button
