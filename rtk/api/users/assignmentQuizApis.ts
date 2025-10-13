@@ -8,15 +8,12 @@ export const assignmentApi = createApi({
     baseQuery: createAuthBaseQuery(),
     tagTypes: ['Assignment'],
     endpoints: (builder) => ({
-
-        // ****************assignment data get all assignment data ****************
-
-        // Get all assignments params /api/student/assignment?submission_status=&page&limit
+        // Get all assignments params 
         getAllAssignments: builder.query({
-            query: ({ submission_status = '', page = DEFAULT_PAGINATION.page, limit = DEFAULT_PAGINATION.limit }) => ({
+            query: ({ page = DEFAULT_PAGINATION.page, limit = DEFAULT_PAGINATION.limit, search = DEFAULT_PAGINATION.search, type = DEFAULT_PAGINATION.type, submission_status }: PaginationParams & { submission_status?: string }) => ({
                 url: '/api/student/assignment',
                 method: 'GET',
-                params: { submission_status, page, limit },
+                params: { page, limit, search, type, submission_status },
             }),
             providesTags: ['Assignment'],
         }),
@@ -32,21 +29,29 @@ export const assignmentApi = createApi({
 
         // Submit assignment 
         submitAssignment: builder.mutation({
-            query: (assignment_id: string) => ({
+            query: ({ assignment_id, answers }: { assignment_id: string; answers: { question_id: string; answer_text: string }[] }) => ({
                 url: `/api/student/assignment/${assignment_id}/submit`,
                 method: 'POST',
+                body: { answers },
             }),
+            invalidatesTags: ['Assignment'],
         }),
 
+        // get assignment submission status 
+        getAssignmentSubmissionStatus: builder.query({
+            query: (assignment_id: string) => ({
+                url: `/api/student/assignment/${assignment_id}/submission`,
+                method: 'GET',
+            }),
+            providesTags: ['Assignment'],
+        }),
 
-        // ****************quiz data get all quiz data ****************
-
-        // get all quizzes /api/student/assignment?submission_status=&page&limit
+        // get all quizzes 
         getAllQuizzes: builder.query({
-            query: ({ submission_status = '', page = DEFAULT_PAGINATION.page, limit = DEFAULT_PAGINATION.limit }) => ({
+            query: ({ page = DEFAULT_PAGINATION.page, limit = DEFAULT_PAGINATION.limit, search = DEFAULT_PAGINATION.search, type = DEFAULT_PAGINATION.type }: PaginationParams) => ({
                 url: '/api/student/quiz',
                 method: 'GET',
-                params: { submission_status, page, limit },
+                params: { page, limit, search, type },
             }),
             providesTags: ['Assignment'],
         }),
@@ -62,13 +67,22 @@ export const assignmentApi = createApi({
 
         // submit quiz 
         submitQuiz: builder.mutation({
-            query: (quiz_id: string) => ({
+            query: ({ quiz_id, answers }: { quiz_id: string; answers: { question_id: string; answer_id: string }[] }) => ({
                 url: `/api/student/quiz/${quiz_id}/submit`,
                 method: 'POST',
+                body: { answers },
             }),
+            invalidatesTags: ['Assignment'],
         }),
 
-        // 
+        // get quiz submission 
+        getQuizSubmissionStatus: builder.query({
+            query: (quiz_id: string) => ({
+                url: `/api/student/quiz/${quiz_id}/submission`,
+                method: 'GET',
+            }),
+            providesTags: ['Assignment'],
+        }),
     }),
 });
 
@@ -76,7 +90,9 @@ export const {
     useGetAllAssignmentsQuery,
     useGetAllQuizzesQuery,
     useGetSingleAssignmentQuery,
+    useGetAssignmentSubmissionStatusQuery,
     useGetSingleQuizQuery,
     useSubmitAssignmentMutation,
-    useSubmitQuizMutation
+    useSubmitQuizMutation,
+    useGetQuizSubmissionStatusQuery
 } = assignmentApi;

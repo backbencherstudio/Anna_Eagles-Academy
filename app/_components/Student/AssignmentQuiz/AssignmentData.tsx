@@ -1,152 +1,166 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useGetAllAssignmentsQuery } from '@/rtk/api/users/assignmentQuizApis'
 import { Assignment } from '@/rtk/slices/users/assignmentQuizSlice'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
+import { formatUTCDateToLocal } from '@/lib/calendarUtils'
+
 
 interface AssignmentDataProps {
     filter: 'Upcoming' | 'Finished' | 'All'
 }
 
 export default function AssignmentData({ filter }: AssignmentDataProps) {
-    // Map filter to submission_status parameter
-    const getSubmissionStatus = (filter: 'Upcoming' | 'Finished' | 'All') => {
-        switch (filter) {
-            case 'Upcoming':
-                return 'not_submitted'
-            case 'Finished':
-                return 'submitted'
-            default:
-                return ''
-        }
-    }
+    const router = useRouter()
+    const [loadingAssignmentId, setLoadingAssignmentId] = useState<string | null>(null)
 
     const { data: response, isLoading, error } = useGetAllAssignmentsQuery({
-        submission_status: getSubmissionStatus(filter),
+        submission_status: filter === 'Upcoming' ? 'not_submitted' : filter === 'Finished' ? 'submitted' : '',
         page: 1,
         limit: 10
     })
-    const router = useRouter()
 
-    // Extract assignments from API response
     const assignments = response?.data?.assignments || []
 
     const formatDate = (dateString: string) => {
-        const date = new Date(dateString)
-        return date.toLocaleDateString('en-US', {
+        return formatUTCDateToLocal(dateString, {
             year: 'numeric',
             month: 'short',
             day: 'numeric'
         })
     }
 
-    const getStatusColor = (publicationStatus: string, submissionStatus: string) => {
-        // Check submission status first, then publication status
-        if (submissionStatus === 'submitted') {
-            return 'bg-green-50 text-green-600 border-l-4 border-l-green-500'
-        }
-        
-        switch (publicationStatus) {
-            case 'PUBLISHED':
-                return 'bg-blue-50 text-blue-600 border-l-4 border-l-blue-500'
-            case 'DRAFT':
-                return 'bg-yellow-50 text-yellow-600 border-l-4 border-l-yellow-500'
-            case 'SCHEDULED':
-                return 'bg-purple-50 text-purple-600 border-l-4 border-l-purple-500'
-            default:
-                return 'bg-gray-50 text-gray-600 border-l-4 border-l-gray-500'
-        }
+    const isAssignmentLate = (dueAt: string) => new Date() > new Date(dueAt)
+
+    const handleAssignmentClick = (assignmentId: string) => {
+        setLoadingAssignmentId(assignmentId)
+        router.push(`/user/assignments/test_${assignmentId}`)
     }
 
-    const getStatusText = (publicationStatus: string, submissionStatus: string) => {
-        // Check submission status first, then publication status
-        if (submissionStatus === 'submitted') {
-            return 'Submitted'
-        }
-        
-        switch (publicationStatus) {
-            case 'PUBLISHED':
-                return 'Published'
-            case 'DRAFT':
-                return 'Draft'
-            case 'SCHEDULED':
-                return 'Scheduled'
-            default:
-                return 'Unknown'
-        }
+    const getAssignmentStatus = (assignment: Assignment) => {
+        const isLate = isAssignmentLate(assignment.due_at) || assignment.remaining_time === 'Expired'
+        const isSubmitted = assignment.submission_status?.is_submitted || false
+
+        if (isLate) return { text: 'Late', color: 'red' }
+        if (isSubmitted) return { text: 'Submitted', color: 'green' }
+        return { text: 'Running', color: 'green' }
     }
 
-    // No need for client-side filtering since API handles it
-    const filteredAssignments = assignments
+    const LoadingState = () => (
+        <div className="flex items-center justify-center py-6 sm:py-8 px-4">
+            <div className="text-gray-500 text-sm sm:text-base">Loading assignments...</div>
+        </div>
+    )
 
-    if (isLoading) {
+    const ErrorState = () => (
+        <div className="flex items-center justify-center py-6 sm:py-8 px-4">
+            <div className="text-red-500 text-sm sm:text-base">Error loading assignments</div>
+        </div>
+    )
+
+    const EmptyState = () => (
+        <div className="flex items-center justify-center py-6 sm:py-8 px-4">
+            <div className="text-gray-500 text-sm sm:text-base">No assignments found</div>
+        </div>
+    )
+
+    if (isLoading) return <LoadingState />
+    if (error) return <ErrorState />
+    if (!assignments.length) return <EmptyState />
+
+    const AssignmentCard = ({ assignment }: { assignment: Assignment }) => {
+        const status = getAssignmentStatus(assignment)
+        const isLate = isAssignmentLate(assignment.due_at)
+
         return (
-            <div className="flex items-center justify-center py-8">
-                <div className="text-gray-500">Loading assignments...</div>
-            </div>
-        )
-    }
+            <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 ">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-3 sm:gap-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                        <div className="flex items-center">
+                            <div className={`w-1 h-6 rounded-full mr-2 bg-${status.color}-500`}></div>
+                            <span className={`px-3 py-1 rounded text-xs font-medium bg-${status.color}-50 text-${status.color}-600`}>
+                                {status.text}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2 sm:gap-3">
+                            <span className="text-gray-500 text-sm hidden sm:block">•</span>
+                            <span className="text-gray-600 text-sm">{formatDate(assignment.published_at)}</span>
+                        </div>
+                    </div>
 
-    if (error) {
-        return (
-            <div className="flex items-center justify-center py-8">
-                <div className="text-red-500">Error loading assignments</div>
-            </div>
-        )
-    }
+                    <div className="text-left sm:text-right">
+                        {assignment.submission_status?.is_submitted ? (
+                            <>
+                                <div className="text-gray-600 text-sm mb-1">{(assignment.submission_status as any).status}</div>
+                                <div className="px-3 py-1 rounded text-sm font-medium inline-block bg-green-50 text-green-600">
+                                    {formatDate((assignment.submission_status as any).submitted_at)}
+                                </div>
 
-    if (!filteredAssignments.length) {
-        return (
-            <div className="flex items-center justify-center py-8">
-                <div className="text-gray-500">No assignments found</div>
+                                <div className="text-xs mt-1 text-gray-500">
+                                    Due: {formatDate(assignment.due_at)}
+                                </div>
+
+                                <div className="text-xs mt-1 text-gray-500">
+                                    Grade: {(assignment.submission_status as any).total_grade}/{assignment.total_marks}
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="text-gray-600 text-sm mb-1">
+                                    {assignment.remaining_time === 'Expired' ? 'Expired' : 'Deadline'}
+                                </div>
+                                <div className={`px-3 py-1 rounded text-sm font-medium inline-block ${isLate ? 'bg-red-50 text-red-600' : 'bg-orange-50 text-orange-600'}`}>
+                                    {formatDate(assignment.due_at)}
+                                </div>
+                                {assignment.remaining_time && (
+                                    <div className={`text-xs mt-1 ${isLate ? 'text-red-500 font-medium' : 'text-gray-500'}`}>
+                                        {assignment.remaining_time === 'Expired' ? 'Expired' : isLate ? 'Overdue' : `Remaining: ${assignment.remaining_time}`}
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </div>
+
+                {/* Content */}
+                <div className="mb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-3">
+                        <h3 className="text-lg sm:text-xl font-bold text-gray-900 break-words">{assignment.title}</h3>
+                        <div className="hidden sm:block w-px h-6 bg-gray-300"></div>
+                        <span className="text-blue-600 text-sm font-medium">{assignment.total_marks} Marks</span>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="text-gray-700 text-sm break-words">Series: {assignment.series.title}</p>
+                        <p className="text-gray-700 text-sm break-words">Course: {assignment.course.title}</p>
+                    </div>
+                </div>
+
+                {/* Action */}
+                <div className="flex justify-start">
+                    <Button
+                        className="bg-[#0F2598] cursor-pointer hover:bg-[#0F2598]/90 text-white px-6 sm:px-8 py-2 rounded-lg text-sm font-medium w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => handleAssignmentClick(assignment.id)}
+                        disabled={loadingAssignmentId === assignment.id}
+                    >
+                        {loadingAssignmentId === assignment.id ? (
+                            <div className="flex items-center gap-2">
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                Loading...
+                            </div>
+                        ) : (
+                            assignment.submission_status?.is_submitted ? 'View Assignment' : 'Start'
+                        )}
+                    </Button>
+                </div>
             </div>
         )
     }
 
     return (
-        <div className="space-y-4">
-            {filteredAssignments.map((assignment: Assignment) => (
-                <div key={assignment.id} className="bg-[#FEF9F2] rounded-lg p-3 sm:p-4">
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
-                        <div className="flex-1">
-                            <div className="flex flex-wrap items-center gap-2 mb-3">
-                                {/* Status Badge */}
-                                <span className={`px-2 sm:px-3 py-1 rounded border border-gray-200 text-xs font-medium ${getStatusColor(assignment.publication_status, filter === 'Finished' ? 'submitted' : 'not_submitted')}`}>
-                                    {getStatusText(assignment.publication_status, filter === 'Finished' ? 'submitted' : 'not_submitted')}
-                                </span>
-
-                                {/* Date */}
-                                <span className="text-gray-500 text-xs sm:text-sm">•</span>
-                                <span className="text-gray-400 text-xs sm:text-sm">{formatDate(assignment.published_at)}</span>
-                            </div>
-
-                            {/* Assignment Info */}
-                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
-                                <div className="flex-1">
-                                    <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-1">{assignment.title}</h3>
-                                    <p className="text-gray-400 text-sm mb-2">{assignment.description}</p>
-                                    <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                                        <span>Course: {assignment.course.title}</span>
-                                        <span>Series: {assignment.series.title}</span>
-                                        <span>Total Marks: {assignment.total_marks}</span>
-                                    </div>
-                                </div>
-
-                                {/* Action Button */}
-                                <div className="text-left sm:text-right flex-shrink-0">
-                                    <div className="mt-3 sm:mt-4">
-                                        <Button
-                                            className="bg-[#F1C27D] cursor-pointer hover:bg-[#F1C27D]/80 text-white px-6 sm:px-10 py-2 rounded-lg font-medium text-sm sm:text-base w-full sm:w-auto"
-                                            onClick={() => router.push(`/assignments/${assignment.id}`)}
-                                        >
-                                            View Assignment
-                                        </Button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <div className="space-y-3 sm:space-y-4">
+            {assignments.map((assignment: Assignment) => (
+                <AssignmentCard key={assignment.id} assignment={assignment} />
             ))}
         </div>
     )
