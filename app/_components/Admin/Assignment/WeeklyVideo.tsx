@@ -14,7 +14,7 @@ type VideoItem = {
 }
 
 export default function WeeklyVideo({ studentId }: { studentId: string }) {
-  const { data } = useGetSingleStudentFileDownloadQuery({ student_id: studentId, section_type: 'Weekly Video Diary' })
+  const { data } = useGetSingleStudentFileDownloadQuery({ student_id: studentId, section_type: 'weekly-video-diary' })
   const [open, setOpen] = useState(false)
   const [currentUrl, setCurrentUrl] = useState<string>('')
 
@@ -26,10 +26,10 @@ export default function WeeklyVideo({ studentId }: { studentId: string }) {
   const videos: VideoItem[] = useMemo(() => {
     const files: any[] = data?.data?.student_files ?? []
     return files
-      .filter(f => f.section_type === 'Weekly Video Diary')
+      .filter(f => f.section_type === 'weekly-video-diary')
       .map(f => ({
         id: f.id,
-        title: f.url?.split('/')?.pop() ?? 'Video Diary',
+        title: `${f.series?.title ?? 'Series'} - ${f.course?.title ?? 'Course'}`,
         weekLabel: f.week_number ? `Week ${f.week_number}` : 'Week',
         dateText: new Date(f.created_at).toLocaleDateString(),
         video_url: f.file_url,

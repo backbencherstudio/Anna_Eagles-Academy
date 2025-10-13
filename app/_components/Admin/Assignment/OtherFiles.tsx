@@ -12,14 +12,14 @@ type DocumentItem = {
 }
 
 export default function OtherFile({ studentId }: { studentId: string }) {
-  const { data } = useGetSingleStudentFileDownloadQuery({ student_id: studentId, section_type: 'Other File Submissions' })
+  const { data } = useGetSingleStudentFileDownloadQuery({ student_id: studentId, section_type: 'other-document' })
   const documents: DocumentItem[] = useMemo(() => {
     const files: any[] = data?.data?.student_files ?? []
     return files
-      .filter(f => f.section_type === 'Other File Submissions')
+      .filter(f => f.section_type === 'other-document')
       .map(f => ({
         id: f.id,
-        title: f.url?.split('/')?.pop() ?? 'Submission',
+        title: `${f.series?.title ?? 'Series'} - ${f.course?.title ?? 'Course'}`,
         uploadedDate: new Date(f.created_at).toLocaleDateString(),
         uploadedTime: new Date(f.created_at).toLocaleTimeString(),
         url: f.file_url,

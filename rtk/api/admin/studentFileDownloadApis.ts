@@ -17,6 +17,8 @@ export const studentFileDownloadApi = createApi({
             providesTags: ['StudentFileDownload'],
         }),
 
+     
+
         // get single student file download  
         getSingleStudentFileDownload: builder.query({
             query: ({ student_id, section_type }: { student_id: string, section_type: string }) => ({
@@ -27,8 +29,17 @@ export const studentFileDownloadApi = createApi({
             providesTags: ['StudentFileDownload'],
         }),
 
+        // get single student file download by student id
+        getSingleStudentFileDownloadByStudentId: builder.query({
+            query: (student_id: string) => ({
+                url: `/api/admin/student-files//${student_id}`,
+                method: 'GET',
+            }),
+            providesTags: ['StudentFileDownload'],
+        }),
+
     }),
 });
 
-export const { useGetAllStudentFileDownloadsQuery, useGetSingleStudentFileDownloadQuery } = studentFileDownloadApi;
+export const { useGetAllStudentFileDownloadsQuery, useGetSingleStudentFileDownloadQuery, useGetSingleStudentFileDownloadByStudentIdQuery } = studentFileDownloadApi;
 

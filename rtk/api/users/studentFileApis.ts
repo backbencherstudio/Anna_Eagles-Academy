@@ -15,7 +15,29 @@ export const studentFileApi = createApi({
                 method: 'POST',
                 body: file,
             }),
-            invalidatesTags: ['StudentFile'],
+            // Optimistically update the cached lists so UI doesn't hard-refetch
+            async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+                try {
+                    const res: any = await queryFulfilled
+                    const newItem = res?.data?.data
+                    const section = newItem?.section_type
+                    const argsList = [
+                        { section_type: '' },
+                        { section_type: section }
+                    ]
+                    argsList.forEach((args) => {
+                        dispatch(studentFileApi.util.updateQueryData('getAllStudentFiles', args as any, (draft: any) => {
+                            if (!draft?.data) return
+                            if (!draft.data.student_files) draft.data.student_files = []
+                            // Prepend newly created item
+                            draft.data.student_files.unshift(newItem)
+                            if (draft.data.pagination) {
+                                draft.data.pagination.total = (draft.data.pagination.total || 0) + 1
+                            }
+                        }))
+                    })
+                } catch { }
+            },
         }),
 
         // get all student files 
@@ -44,7 +66,26 @@ export const studentFileApi = createApi({
                 url: `/api/student/student-files/${file_id}`,
                 method: 'DELETE',
             }),
-            invalidatesTags: ['StudentFile'],
+            async onQueryStarted(file_id, { dispatch, queryFulfilled }) {
+                // Optimistically remove from caches for both filters
+                const removeFromDraft = (draft: any) => {
+                    if (!draft?.data?.student_files) return
+                    draft.data.student_files = draft.data.student_files.filter((f: any) => f.id !== file_id)
+                    if (draft.data.pagination) {
+                        draft.data.pagination.total = Math.max(0, (draft.data.pagination.total || 1) - 1)
+                    }
+                }
+                const patches = [
+                    dispatch(studentFileApi.util.updateQueryData('getAllStudentFiles', { section_type: '' } as any, removeFromDraft)),
+                    dispatch(studentFileApi.util.updateQueryData('getAllStudentFiles', { section_type: 'weekly-video-diary' } as any, removeFromDraft)),
+                    dispatch(studentFileApi.util.updateQueryData('getAllStudentFiles', { section_type: 'other-document' } as any, removeFromDraft)),
+                ]
+                try {
+                    await queryFulfilled
+                } catch {
+                   
+                }
+            },
         }),
     }),
 });

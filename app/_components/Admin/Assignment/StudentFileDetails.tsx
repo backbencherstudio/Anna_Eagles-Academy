@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import WeeklyVideo from './WeeklyVideo'
 import OtherFiles from './OtherFiles'
@@ -19,21 +19,16 @@ export default function StudentFileDetails({ studentId }: { studentId: string })
     const { data, isFetching } = useGetSingleStudentFileDownloadQuery({ student_id: studentId, section_type })
     const [studentName, setStudentName] = useState<string>('')
     const [loading, setLoading] = useState(true)
-    const [activeTab, setActiveTab] = useState<'video-diaries' | 'file-submissions'>(section_type === 'Other File Submissions' ? 'file-submissions' : 'video-diaries')
+    const [activeTab, setActiveTab] = useState<'video-diaries' | 'file-submissions'>(section_type === 'other-document' ? 'file-submissions' : 'video-diaries')
     const router = useRouter()
-    const searchParams = useSearchParams()
 
-    // Initialize tab from URL query parameter
+    // Ensure default tab and section_type on mount
     useEffect(() => {
-        const tabFromUrl = searchParams.get('tab')
-        if (tabFromUrl === 'video-diaries') {
+        if (!section_type) {
+            dispatch(setSectionType('weekly-video-diary'))
             setActiveTab('video-diaries')
-            dispatch(setSectionType('Weekly Video Diary'))
-        } else if (tabFromUrl === 'file-submissions') {
-            setActiveTab('file-submissions')
-            dispatch(setSectionType('Other File Submissions'))
         }
-    }, [searchParams, dispatch])
+    }, [section_type, dispatch])
 
     useEffect(() => {
         const files: any[] = data?.data?.student_files ?? []
@@ -51,10 +46,7 @@ export default function StudentFileDetails({ studentId }: { studentId: string })
     const handleTabChange = (value: string) => {
         const v = value === 'file-submissions' ? 'file-submissions' : 'video-diaries'
         setActiveTab(v)
-        dispatch(setSectionType(v === 'video-diaries' ? 'Weekly Video Diary' : 'Other File Submissions'))
-        const params = new URLSearchParams(searchParams.toString())
-        params.set('tab', v)
-        router.push(`?${params.toString()}`, { scroll: false })
+        dispatch(setSectionType(v === 'video-diaries' ? 'weekly-video-diary' : 'other-document'))
     }
 
     if (loading) {
