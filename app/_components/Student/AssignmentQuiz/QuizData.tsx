@@ -40,9 +40,10 @@ export default function QuizData({ filter }: QuizDataProps) {
     const getQuizStatus = (quiz: Quiz) => {
         const isLate = isQuizLate(quiz.due_at) || quiz.remaining_time === 'Expired'
         const isSubmitted = quiz.submission_status?.is_submitted || false
+        const backendStatus = (quiz.submission_status as any)?.status
 
+        if (isSubmitted && backendStatus) return { text: String(backendStatus).toUpperCase(), color: 'green' }
         if (isLate) return { text: 'Late', color: 'red' }
-        if (isSubmitted) return { text: 'Submitted', color: 'green' }
         return { text: 'Running', color: 'green' }
     }
 

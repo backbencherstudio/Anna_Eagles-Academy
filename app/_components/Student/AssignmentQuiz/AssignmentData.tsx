@@ -40,9 +40,10 @@ export default function AssignmentData({ filter }: AssignmentDataProps) {
     const getAssignmentStatus = (assignment: Assignment) => {
         const isLate = isAssignmentLate(assignment.due_at) || assignment.remaining_time === 'Expired'
         const isSubmitted = assignment.submission_status?.is_submitted || false
+        const backendStatus = (assignment.submission_status as any)?.status
 
+        if (isSubmitted && backendStatus) return { text: backendStatus, color: 'green' }
         if (isLate) return { text: 'Late', color: 'red' }
-        if (isSubmitted) return { text: 'Submitted', color: 'green' }
         return { text: 'Running', color: 'green' }
     }
 
