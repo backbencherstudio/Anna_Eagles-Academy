@@ -6,8 +6,12 @@ import LectureSlides from '@/app/_components/Student/Download_Materials/LectureS
 import VideoLectures from '@/app/_components/Student/Download_Materials/VideoLectures'
 import AudioLessons from '@/app/_components/Student/Download_Materials/AudioLessons'
 import OtherDocument from '@/app/_components/Student/Download_Materials/OtherDocument'
+import SeriesFilterStudentResauble from '@/components/Resuable/SeriesFilter/SeriesFilterStudentResauble'
+import { useAppDispatch } from '@/rtk/hooks'
+import { setLectureType, setSeriesId, setCourseId, type LectureType } from '@/rtk/slices/users/studentDownloadMetrialsSlice'
 
 export default function DownloadMaterials() {
+  const dispatch = useAppDispatch()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState('lecture-slides')
@@ -21,6 +25,7 @@ export default function DownloadMaterials() {
 
   const handleTabChange = (value: string) => {
     setActiveTab(value)
+    dispatch(setLectureType(value as LectureType))
     const params = new URLSearchParams(searchParams.toString())
     params.set('tab', value)
     router.push(`?${params.toString()}`, { scroll: false })
@@ -29,7 +34,7 @@ export default function DownloadMaterials() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl xl:text-2xl font-semibold">Official Course Materials</h1>
+        <h1 className="text-lg  font-semibold">Official Course Materials</h1>
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
@@ -61,19 +66,32 @@ export default function DownloadMaterials() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Tab Contents */}
-        <TabsContent value="lecture-slides">
-          <LectureSlides />
-        </TabsContent>
-        <TabsContent value="video-lectures">
-          <VideoLectures />
-        </TabsContent>
-        <TabsContent value="audio-lessons">
-          <AudioLessons />
-        </TabsContent>
-        <TabsContent value="other-document">
-          <OtherDocument />
-        </TabsContent>
+        <div>
+          <SeriesFilterStudentResauble
+            seriesLabel="Select Series"
+            courseLabel="Select Course"
+            seriesPlaceholder="Select series"
+            coursePlaceholder="Select course"
+            className="max-w-xl mx-auto mt-6"
+            onSeriesChange={(sid) => dispatch(setSeriesId(sid))}
+            onCourseChange={(cid) => dispatch(setCourseId(cid))}
+          />
+
+          {/* Tab Contents */}
+          <TabsContent value="lecture-slides">
+            <LectureSlides />
+          </TabsContent>
+          <TabsContent value="video-lectures">
+            <VideoLectures />
+          </TabsContent>
+          <TabsContent value="audio-lessons">
+            <AudioLessons />
+          </TabsContent>
+          <TabsContent value="other-document">
+            <OtherDocument />
+          </TabsContent>
+        </div>
+
       </Tabs>
     </div>
   )

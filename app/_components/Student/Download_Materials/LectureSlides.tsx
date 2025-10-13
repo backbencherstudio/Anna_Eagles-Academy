@@ -5,51 +5,18 @@ import { Button } from '@/components/ui/button'
 import { FileText, Eye, X, Maximize2, Minimize2 } from 'lucide-react'
 import FilesIcon from '@/components/Icons/DownloadMaterials/FilesIcon'
 import Image from 'next/image'
-import FilterDropdown from '@/components/Resuable/FilterDropdown'
+import { useAppSelector } from '@/rtk/hooks'
+import { useGetAllStudentDownloadMaterialsQuery } from '@/rtk/api/users/studentDownloadMetrialsApis'
 
 type LectureSlide = {
     id: string
     title: string
     description: string
-    week: string
-    type: 'powerpoint' | 'pdf' | 'document'
-    fileUrl?: string
     previewUrl?: string
     thumbnail?: string
 }
 
-const mockLectureSlides: LectureSlide[] = [
-    {
-        id: '1',
-        title: 'Week 1 - Introduction to Web Development',
-        thumbnail: '/images/Thumbnail.png',
-        description: 'Review the introductory concepts of this course. You can navigate through the slides below.',
-        week: 'Week 1',
-        type: 'powerpoint',
-        fileUrl: 'https://docs.google.com/presentation/d/1k8vcgt8tZyLTYxreB-ZZSLFBeE4BCjlRZ0pRGR4J7lo/edit?usp=sharing',
-        previewUrl: 'https://docs.google.com/presentation/d/1k8vcgt8tZyLTYxreB-ZZSLFBeE4BCjlRZ0pRGR4J7lo/edit?usp=sharing'
-    },
-    {
-        id: '2',
-        title: 'Week 2 - HTML Fundamentals',
-        thumbnail: '/images/Thumbnail.png',
-        description: 'Learn the basics of HTML structure and semantic elements. Complete guide for beginners.',
-        week: 'Week 2',
-        type: 'powerpoint',
-        fileUrl: 'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pptx-file.pptx',
-        previewUrl: 'https://view.officeapps.live.com/op/embed.aspx?src=https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pptx-file.pptx'
-    },
-    {
-        id: '3',
-        title: 'Week 3 - CSS Styling',
-        thumbnail: '/images/Thumbnail.png',
-        description: 'Master CSS properties, selectors, and responsive design principles.',
-        week: 'Week 3',
-        type: 'powerpoint',
-        fileUrl: 'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pptx-file.pptx',
-        previewUrl: 'https://view.officeapps.live.com/op/embed.aspx?src=https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pptx-file.pptx'
-    }
-]
+
 
 
 
@@ -57,8 +24,33 @@ export default function LectureSlides() {
     const [previewSlide, setPreviewSlide] = useState<LectureSlide | null>(null)
     const [previewError, setPreviewError] = useState(false)
     const [isFullscreen, setIsFullscreen] = useState(false)
-    const [series, setSeries] = useState<string>('')
-    const [courseType, setCourseType] = useState<string>('')
+
+    const filters = useAppSelector((state) => state.studentDownloadMetrials)
+    const { data, isLoading: isMaterialsLoading } = useGetAllStudentDownloadMaterialsQuery({
+        series_id: filters.series_id ?? '',
+        course_id: filters.course_id ?? '',
+        lecture_type: 'lecture-slides',
+        page: filters.page,
+        limit: filters.limit,
+    })
+
+    const slides: LectureSlide[] = React.useMemo(() => {
+        const materials = (data as any)?.data?.materials ?? []
+        const uniqueById = Array.from(
+            new Map(
+                materials
+                    .filter((m: any) => m.lecture_type === 'lecture-slides')
+                    .map((m: any) => [m.id, m])
+            ).values()
+        )
+        return uniqueById.map((m: any) => ({
+            id: m.id,
+            title: m.title,
+            description: m.description ?? '',
+            previewUrl: m.file_url,
+            thumbnail: '/images/Thumbnail.png',
+        }))
+    }, [data])
 
     const handlePreview = (slide: LectureSlide) => {
         if (slide.previewUrl) {
@@ -113,41 +105,16 @@ export default function LectureSlides() {
                     </div>
                     <h2 className="text-lg font-semibold text-gray-800">Files</h2>
                 </div>
-                {/* filter options */}
-                <div className='flex items-center gap-3'>
-                    <FilterDropdown
-                        options={[
-                            { label: 'Select Series', value: '' },
-                            { label: 'Series A', value: 'a' },
-                            { label: 'Series B', value: 'b' },
-                            { label: 'Series C', value: 'c' },
-                        ]}
-                        value={series}
-                        onChange={setSeries}
-                        placeholder="Select Series"
-                        className='w-48'
-                    />
-                    <FilterDropdown
-                        options={[
-                            { label: 'All Types', value: '' },
-                            { label: 'PowerPoint', value: 'powerpoint' },
-                            { label: 'PDF', value: 'pdf' },
-                            { label: 'Document', value: 'document' },
-                        ]}
-                        value={courseType}
-                        onChange={setCourseType}
-                        placeholder="Courses Type"
-                        className='w-48'
-                    />
-                </div>
+               
             </div>
 
             {/* Lecture Slides List */}
+            {isMaterialsLoading && (
+                <div className="text-sm text-gray-500">Loading lecture slides...</div>
+            )}
             <div className="space-y-4">
-                {mockLectureSlides
-                    .filter(slide => (courseType ? slide.type === courseType as any : true))
-                    .map((slide) => (
-                    <Card key={slide.id} className="rounded-xl border border-gray-200 transition-shadow">
+                {slides.map((slide, idx) => (
+                    <Card key={`${slide.id}-${idx}`} className="rounded-xl border border-gray-200 transition-shadow">
                         <CardContent className="p-6">
                             <div className="flex items-center gap-4">
                                 {/* File Icon */}
@@ -186,7 +153,7 @@ export default function LectureSlides() {
             </div>
 
             {/* Empty State (if no slides) */}
-            {mockLectureSlides.length === 0 && (
+            {(!isMaterialsLoading && slides.length === 0) && (
                 <div className="text-center py-12">
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
                         <FileText className="w-8 h-8 text-gray-400" />

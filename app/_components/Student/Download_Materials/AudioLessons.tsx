@@ -5,101 +5,91 @@ import AudioIcon from '@/components/Icons/DownloadMaterials/AudioIcon'
 import AutoPlayer from '@/components/Resuable/AutoPlayer'
 import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
 import { setCurrentAudio, playAudio, pauseAudio } from '@/rtk/slices/audioSlice'
-import FilterDropdown from '@/components/Resuable/FilterDropdown'
+import { useGetAllStudentDownloadMaterialsQuery } from '@/rtk/api/users/studentDownloadMetrialsApis'
+import { studentDownloadMaterialsApi } from '@/rtk/api/users/studentDownloadMetrialsApis'
+
 
 
 type AudioLesson = {
     id: string
     title: string
     description: string
-    week: string
     audio_url: string
 }
-
-const mockAudioLessons: AudioLesson[] = [
-    {
-        id: '1',
-        title: 'Lesson 1 - Key Concepts Explained',
-        description: 'Review the introductory concepts of this course. You can navigate through the slides below.',
-        week: 'Week 1',
-        audio_url: 'https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3'
-    },
-    {
-        id: '2',
-        title: 'Lesson 2 - Advanced Topics',
-        description: 'Deep dive into advanced concepts and practical applications for better understanding.',
-        week: 'Week 2',
-        audio_url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav'
-    },
-    {
-        id: '3',
-        title: 'Lesson 3 - Final Review',
-        description: 'Comprehensive review of all topics covered in this course module.',
-        week: 'Week 3',
-        audio_url: 'https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3'
-    }
-]
 
 export default function AudioLessons() {
     const dispatch = useAppDispatch()
     const { currentPlayingId, isPlaying } = useAppSelector((state) => state.audio)
-    const [series, setSeries] = React.useState<string>('')
-    const [weekFilter, setWeekFilter] = React.useState<string>('')
-    const handlePrimaryButtonClick = (lesson: AudioLesson) => {
+    const filters = useAppSelector((state) => state.studentDownloadMetrials)
+    const [pendingId, setPendingId] = React.useState<string | null>(null)
+    const [triggerGetSingle] = studentDownloadMaterialsApi.useLazyGetSingleStudentDownloadMaterialQuery()
+
+
+    // Trigger API fetch based on global filters
+    const { data, isLoading: isMaterialsLoading } = useGetAllStudentDownloadMaterialsQuery({
+        series_id: filters.series_id ?? '',
+        course_id: filters.course_id ?? '',
+        lecture_type: 'audio-lessons',
+        page: filters.page,
+        limit: filters.limit,
+    })
+
+    const apiLessons: AudioLesson[] = React.useMemo(() => {
+        const materials = (data as any)?.data?.materials ?? []
+        const uniqueById = Array.from(
+            new Map(
+                materials
+                    .filter((m: any) => m.lecture_type === 'audio-lessons')
+                    .map((m: any) => [m.id, m])
+            ).values()
+        )
+        return uniqueById.map((m: any) => ({
+            id: m.id,
+            title: m.title,
+            description: m.description ?? '',
+            audio_url: m.file_url,
+        }))
+    }, [data])
+    const handlePrimaryButtonClick = async (lesson: AudioLesson) => {
         const isCurrent = currentPlayingId === lesson.id
         if (!isCurrent) {
-            dispatch(setCurrentAudio({ id: lesson.id, url: lesson.audio_url }))
+            try {
+                setPendingId(lesson.id)
+                dispatch(pauseAudio())
+                const res: any = await triggerGetSingle(lesson.id).unwrap()
+                const url: string = res?.data?.file_url ?? lesson.audio_url
+                dispatch(setCurrentAudio({ id: lesson.id, url }))
+                dispatch(playAudio())
+            } catch {
+                dispatch(setCurrentAudio({ id: lesson.id, url: lesson.audio_url }))
+                dispatch(playAudio())
+            } finally {
+                setPendingId(null)
+            }
             return
         }
-        if (isPlaying) {
-            dispatch(pauseAudio())
-        } else {
-            dispatch(playAudio())
-        }
+        dispatch(isPlaying ? pauseAudio() : playAudio())
     }
 
 
     return (
         <div className="space-y-6 bg-white rounded-xl p-4">
-            {/* Files Section Header */}
+            {/* Header */}
             <div className='flex items-center justify-between'>
                 <div className="flex items-center gap-3">
                     <AudioIcon />
                     <h2 className="text-lg font-semibold text-gray-800">Audio Lessons</h2>
                 </div>
-                <div className='flex items-center gap-3'>
-                    <FilterDropdown
-                        options={[
-                            { label: 'Select Series', value: '' },
-                            { label: 'Series A', value: 'a' },
-                            { label: 'Series B', value: 'b' },
-                            { label: 'Series C', value: 'c' },
-                        ]}
-                        value={series}
-                        onChange={setSeries}
-                        placeholder="Select Series"
-                        className='w-48'
-                    />
-                    <FilterDropdown
-                        options={[
-                            { label: 'All Weeks', value: '' },
-                            { label: 'Week 1', value: 'Week 1' },
-                            { label: 'Week 2', value: 'Week 2' },
-                            { label: 'Week 3', value: 'Week 3' },
-                        ]}
-                        value={weekFilter}
-                        onChange={setWeekFilter}
-                        placeholder="Week"
-                        className='w-48'
-                    />
-                </div>
+
             </div>
 
-            {/* Audio Lessons Grid */}
+            {/* Grid */}
+            {isMaterialsLoading && (
+                <div className="text-sm text-gray-500">Loading audio lessons...</div>
+            )}
             <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-                {mockAudioLessons
-                    .filter(lesson => (weekFilter ? lesson.week === weekFilter : true))
-                    .map((lesson, index) => {
+                {apiLessons
+                    .map((lesson) => {
                         const isCurrentlyPlaying = currentPlayingId === lesson.id
 
                         return (
@@ -121,15 +111,20 @@ export default function AudioLessons() {
                                     </p>
                                 </div>
 
-                                {/* Action Button */}
+                                {/* Action */}
                                 <button
                                     onClick={() => handlePrimaryButtonClick(lesson)}
+                                    disabled={pendingId === lesson.id}
                                     className={`w-full cursor-pointer py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors text-sm sm:text-base ${isCurrentlyPlaying
-                                            ? (isPlaying ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-[#0F2598] text-white hover:bg-[#0F2598]/90')
-                                            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                                        ? (isPlaying ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-[#0F2598] text-white hover:bg-[#0F2598]/90')
+                                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
                                         }`}
                                 >
-                                    {isCurrentlyPlaying ? (isPlaying ? 'Pause Audio' : 'Play Audio') : 'Only listen'}
+                                    {pendingId === lesson.id
+                                        ? 'Loading...'
+                                        : isCurrentlyPlaying
+                                            ? (isPlaying ? 'Pause Audio' : 'Play Audio')
+                                            : 'Only listen'}
                                 </button>
                             </div>
                         );
@@ -137,8 +132,8 @@ export default function AudioLessons() {
             </div>
 
 
-            {/* Empty State */}
-            {mockAudioLessons.length === 0 && (
+            {/* Empty state */}
+            {(!isMaterialsLoading && apiLessons.length === 0) && (
                 <div className="text-center py-12">
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
                         <Headphones className="w-8 h-8 text-gray-400" />

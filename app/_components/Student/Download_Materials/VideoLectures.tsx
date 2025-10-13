@@ -2,60 +2,53 @@
 import React, { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Play, Download } from 'lucide-react'
 import Image from 'next/image'
 import VideoIcon from '@/components/Icons/DownloadMaterials/VideoIcon'
 import PlayIcon from '@/components/Icons/DownloadMaterials/PlayIcon'
 import VideoModal from '@/components/Resuable/VideoModal'
-import FilterDropdown from '@/components/Resuable/FilterDropdown'
+import { useAppSelector } from '@/rtk/hooks'
+import { useGetAllStudentDownloadMaterialsQuery } from '@/rtk/api/users/studentDownloadMetrialsApis'
 
 type VideoLecture = {
     id: string
     title: string
     description: string
-    week: string
-    duration: string
+    duration?: string
     thumbnail?: string
     video_url: string
 }
 
-const mockVideoLectures: VideoLecture[] = [
-    {
-        id: '1',
-        title: 'Lesson 1 - Key Concepts Explained',
-        description: 'Review the introductory concepts of this course. You can navigate through the slides below.',
-        week: 'Week 1',
-        duration: '12 mins',
-        video_url: 'https://www.w3schools.com/html/mov_bbb.mp4',
-        thumbnail: ''
-    },
-    {
-        id: '2',
-        title: 'Lesson 1 - Key Concepts Explained',
-        description: 'Review the introductory concepts of this course. You can navigate through the slides below.',
-        week: 'Week 1',
-        duration: '12 mins',
-        video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-        thumbnail: ''
-    },
-    {
-        id: '3',
-        title: 'Lesson 1 - Key Concepts Explained',
-        description: 'Review the introductory concepts of this course. You can navigate through the slides below.',
-        week: 'Week 1',
-        duration: '12 mins',
-        video_url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
-        thumbnail: ''
-    }
-]
-
-
-
 export default function VideoLectures() {
     const [open, setOpen] = useState(false)
     const [currentUrl, setCurrentUrl] = useState<string>('')
-    const [series, setSeries] = useState<string>('')
-    const [videoType, setVideoType] = useState<string>('')
+
+    const filters = useAppSelector((state) => state.studentDownloadMetrials)
+    const { data, isLoading: isMaterialsLoading } = useGetAllStudentDownloadMaterialsQuery({
+        series_id: filters.series_id ?? '',
+        course_id: filters.course_id ?? '',
+        lecture_type: 'video-lectures',
+        page: filters.page,
+        limit: filters.limit,
+    })
+
+    const apiVideos: VideoLecture[] = React.useMemo(() => {
+        const materials = (data as any)?.data?.materials ?? []
+        const uniqueById = Array.from(
+            new Map(
+                materials
+                    .filter((m: any) => m.lecture_type === 'video-lectures')
+                    .map((m: any) => [m.id, m])
+            ).values()
+        )
+        return uniqueById.map((m: any) => ({
+            id: m.id,
+            title: m.title,
+            description: m.description ?? '',
+            video_url: m.file_url,
+            thumbnail: '',
+            duration: undefined,
+        }))
+    }, [data])
 
     const handlePlayClick = (videoUrl: string) => {
         setCurrentUrl(videoUrl)
@@ -70,38 +63,15 @@ export default function VideoLectures() {
                     <VideoIcon />
                     <h2 className="text-lg font-semibold text-gray-800">Video Lectures</h2>
                 </div>
-                <div className='flex items-center gap-3'>
-                    <FilterDropdown
-                        options={[
-                            { label: 'Select Series', value: '' },
-                            { label: 'Series A', value: 'a' },
-                            { label: 'Series B', value: 'b' },
-                            { label: 'Series C', value: 'c' },
-                        ]}
-                        value={series}
-                        onChange={setSeries}
-                        placeholder="Select Series"
-                        className='w-48'
-                    />
-                    <FilterDropdown
-                        options={[
-                            { label: 'All Types', value: '' },
-                            { label: 'Short', value: 'short' },
-                            { label: 'Long', value: 'long' },
-                        ]}
-                        value={videoType}
-                        onChange={setVideoType}
-                        placeholder="Courses Type"
-                        className='w-48'
-                    />
-                </div>
+
             </div>
 
             {/* Video Lectures Grid */}
+            {isMaterialsLoading && (
+                <div className="text-sm text-gray-500">Loading video lectures...</div>
+            )}
             <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
-                {mockVideoLectures
-                    .filter(video => (videoType ? (videoType === 'short' ? true : true) : true))
-                    .map((video, index) => (
+                {apiVideos.map((video) => (
                     <Card key={video.id} className="rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
                         <CardContent className="p-0">
                             {/* Video Thumbnail */}
@@ -120,7 +90,7 @@ export default function VideoLectures() {
                                     )}
 
                                     {/* Play Button Overlay */}
-                                    <div 
+                                    <div
                                         className="absolute inset-0 hover:scale-110 transition-all duration-300 cursor-pointer flex items-center justify-center"
                                         onClick={() => handlePlayClick(video.video_url)}
                                     >
@@ -130,9 +100,11 @@ export default function VideoLectures() {
                                     </div>
 
                                     {/* Duration Badge */}
-                                    <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
-                                        {video.duration}
-                                    </div>
+                                    {video.duration && (
+                                        <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                                            {video.duration}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -147,10 +119,7 @@ export default function VideoLectures() {
 
                                 {/* Action Button */}
                                 <Button
-                                    className={`w-fit text-sm font-medium py-2 cursor-pointer ${index === 0
-                                        ? 'bg-[#0F2598] text-white hover:bg-[#0F2598]/90'
-                                        : 'bg-gray-500 text-white hover:bg-gray-600'
-                                        }`}
+                                    className="w-fit text-sm font-medium py-2 cursor-pointer bg-[#0F2598] text-white hover:bg-[#0F2598]/90"
                                     size="sm"
                                     onClick={() => handlePlayClick(video.video_url)}
                                 >
@@ -163,7 +132,7 @@ export default function VideoLectures() {
             </div>
 
             {/* Empty State */}
-            {mockVideoLectures.length === 0 && (
+            {(!isMaterialsLoading && apiVideos.length === 0) && (
                 <div className="text-center py-12">
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
                         <PlayIcon />

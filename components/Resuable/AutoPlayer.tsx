@@ -37,13 +37,15 @@ export default function AutoPlayer({
     currentTime, 
     duration: audioDuration, 
     volume, 
-    isMuted 
+    isMuted, 
+    audioUrl: globalAudioUrl 
   } = useAppSelector((state) => state.audio)
   
   const [animationTime, setAnimationTime] = useState(0)
   const [metaDuration, setMetaDuration] = useState<number>(0)
   const audioRef = useRef<HTMLAudioElement>(null)
   const animationRef = useRef<number | null>(null)
+  const [isUnsupported, setIsUnsupported] = useState<boolean>(false)
   
   const isCurrentlyPlaying = currentPlayingId === audioId
 
@@ -59,7 +61,9 @@ export default function AutoPlayer({
   useEffect(() => {
     if (isCurrentlyPlaying && audioRef.current) {
       if (isPlaying) {
-        audioRef.current.play().catch(console.error)
+        audioRef.current.play().catch(() => {
+          // Swallow AbortError/NotAllowedError; will retry on canplay/metadata
+        })
       } else {
         audioRef.current.pause()
       }
@@ -114,12 +118,15 @@ export default function AutoPlayer({
       setMetaDuration(d)
       if (isCurrentlyPlaying) {
         dispatch(setDuration(d))
+        if (isPlaying) {
+          audioRef.current.play().catch(() => {})
+        }
       }
     }
   }
 
   const handleAudioError = () => {
-    console.log('Audio error occurred')
+    setIsUnsupported(true)
     dispatch(setCurrentTime(0))
   }
 
@@ -155,6 +162,7 @@ export default function AutoPlayer({
         dispatch(playAudio())
       }
     } else {
+      setIsUnsupported(false)
       dispatch(setCurrentAudio({ id: audioId, url: audioUrl }))
     }
   }
@@ -163,6 +171,28 @@ export default function AutoPlayer({
     ? (audioDuration > 0 ? audioDuration : metaDuration)
     : metaDuration
   const progress = isCurrentlyPlaying && effectiveDuration > 0 ? (currentTime / effectiveDuration) * 100 : 0
+  const sourceUrl: string | null = isCurrentlyPlaying ? (globalAudioUrl ?? audioUrl) : null
+
+  const getMimeFromUrl = (url: string): string | undefined => {
+    const clean = url.split('?')[0].split('#')[0]
+    const ext = (clean.includes('.') ? clean.substring(clean.lastIndexOf('.') + 1) : '').toLowerCase()
+    switch (ext) {
+      case 'mp3':
+        return 'audio/mpeg'
+      case 'wav':
+        return 'audio/wav'
+      case 'm4a':
+      case 'mp4':
+        return 'audio/mp4'
+      case 'ogg':
+      case 'oga':
+        return 'audio/ogg'
+      case 'webm':
+        return 'audio/webm'
+      default:
+        return undefined
+    }
+  }
 
   return (
     <div className={`bg-gray-100 rounded-lg p-3 sm:p-4 md:p-6 mb-4 relative overflow-hidden ${className}`}>
@@ -287,10 +317,10 @@ export default function AutoPlayer({
         <span>{effectiveDuration > 0 ? formatTime(effectiveDuration) : (duration ?? '--:--')}</span>
       </div>
 
-      {/* Hidden Audio Element */}
+      {/* Hidden Audio Element with typed source */}
       <audio
         ref={audioRef}
-        src={audioUrl}
+        crossOrigin="anonymous"
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onError={handleAudioError}
@@ -310,9 +340,19 @@ export default function AutoPlayer({
             dispatch(playAudio())
           }
         }}
-        preload="metadata"
+        preload={isCurrentlyPlaying ? 'metadata' : 'none'}
         style={{ display: 'none' }}
-      />
+      >
+        {sourceUrl ? (
+          <source src={sourceUrl} type={getMimeFromUrl(sourceUrl)}/>
+        ) : null}
+      </audio>
+
+      {isCurrentlyPlaying && isUnsupported && (
+        <div className="mt-2 text-xs text-red-600">
+          Audio format not supported by the browser.
+        </div>
+      )}
     </div>
   )
 }

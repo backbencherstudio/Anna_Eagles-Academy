@@ -42,6 +42,8 @@ import { myCoursesApi } from '@/rtk/api/users/myCoursesApis'
 import myCoursesReducer from '@/rtk/slices/users/myCoursesSlice'
 import studentFileReducer from '@/rtk/slices/users/studentFileSlice'
 import { studentFileApi } from '@/rtk/api/users/studentFileApis'
+import studentDownloadMetrialsReducer from '@/rtk/slices/users/studentDownloadMetrialsSlice'
+import { studentDownloadMaterialsApi } from '@/rtk/api/users/studentDownloadMetrialsApis'
 
 import studentsQuestionReducer from '@/rtk/slices/admin/studentsQuestionSlice'
 import { studentsQuestionApi } from './api/admin/studentsQuestionApis'
@@ -111,6 +113,9 @@ export const store = configureStore({
     [filterSeriesListApi.reducerPath]: filterSeriesListApi.reducer,
     [studentFileApi.reducerPath]: studentFileApi.reducer,
     studentFile: studentFileReducer,
+    // student download materials
+    studentDownloadMetrials: studentDownloadMetrialsReducer,
+    [studentDownloadMaterialsApi.reducerPath]: studentDownloadMaterialsApi.reducer,
     
     
   },
@@ -174,6 +179,7 @@ export const store = configureStore({
       myCoursesApi.middleware,
       filterSeriesListApi.middleware,
       studentFileApi.middleware,
+      studentDownloadMaterialsApi.middleware,
     ),
   devTools: process.env.NODE_ENV !== 'production',
 })
