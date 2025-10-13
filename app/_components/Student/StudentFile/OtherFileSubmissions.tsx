@@ -3,32 +3,16 @@ import { Card, CardContent } from '@/components/ui/card'
 import { FileText, FolderLock } from 'lucide-react'
 import DocumentsIcon from '@/components/Icons/DocumentsIcon'
 
-type DocumentItem = {
+type StudentFileItem = {
   id: string
-  title: string
-  uploadedDate: string
-  uploadedTime: string
-  tag?: string
+  created_at: string
+  file_url: string
+  url?: string
+  course?: { title: string }
+  series?: { title: string }
 }
 
-const documents: DocumentItem[] = [
-  {
-    id: '1',
-    title: 'Biblical Studies Assignment.pdf',
-    uploadedDate: '08/01/2024',
-    uploadedTime: '11:59 PM',
-    tag: 'Assignment',
-  },
-  {
-    id: '2',
-    title: 'Prayer Journal.docx',
-    uploadedDate: '08/01/2024',
-    uploadedTime: '11:59 PM',
-    tag: 'Assignment',
-  },
-]
-
-export default function OtherFileSubmissions() {
+export default function OtherFileSubmissions({ items = [] as StudentFileItem[] }: { items?: StudentFileItem[] }) {
   return (
     <Card className="border rounded-xl border-[#ECEFF3]">
       <CardContent className="p-6">
@@ -41,7 +25,13 @@ export default function OtherFileSubmissions() {
 
           {/* List */}
           <div className="space-y-4">
-            {documents.map((doc) => (
+            {items.map((doc) => {
+              const fileName = doc.url || doc.file_url?.split('/').pop() || 'Document'
+              const composed = [doc.series?.title, doc.course?.title].filter(Boolean).join(' - ')
+              const title = composed || fileName
+              const uploadedDate = new Date(doc.created_at).toLocaleDateString()
+              const uploadedTime = new Date(doc.created_at).toLocaleTimeString()
+              return (
               <div
                 key={doc.id}
                 className="flex flex-col gap-3 rounded-xl border border-[#ECEFF3] bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
@@ -52,28 +42,28 @@ export default function OtherFileSubmissions() {
                     <DocumentsIcon  />
                   </div>
                   <div className="min-w-0 space-y-1">
-                    <p className="truncate text-sm font-medium sm:text-base">{doc.title}</p>
+                    <p className="truncate text-sm font-medium sm:text-base" title={title}>{title}</p>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                       <span>
-                        Uploaded: <span className="font-medium">{doc.uploadedDate}</span>
+                        Uploaded: <span className="font-medium">{uploadedDate}</span>
                       </span>
                       <span>
-                        Uploaded Time: <span className="font-medium">{doc.uploadedTime}</span>
+                        Uploaded Time: <span className="font-medium">{uploadedTime}</span>
                       </span>
                     </div>
                   </div>
                 </div>
 
                 {/* Right side: tag/badge */}
-                {doc.tag && (
+                {doc.course?.title && (
                   <div className="flex justify-start sm:justify-end">
                     <span className="inline-flex items-center rounded-full border px-3 py-1 text-xs">
-                      {doc.tag}
+                      {doc.course.title}
                     </span>
                   </div>
                 )}
               </div>
-            ))}
+              )})}
           </div>
         </div>
       </CardContent>

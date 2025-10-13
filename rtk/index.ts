@@ -40,6 +40,8 @@ import { assignmentApi as assignmentQuizApi } from '@/rtk/api/users/assignmentQu
 import assignmentQuizReducer from '@/rtk/slices/users/assignmentQuizSlice'
 import { myCoursesApi } from '@/rtk/api/users/myCoursesApis'
 import myCoursesReducer from '@/rtk/slices/users/myCoursesSlice'
+import studentFileReducer from '@/rtk/slices/users/studentFileSlice'
+import { studentFileApi } from '@/rtk/api/users/studentFileApis'
 
 import studentsQuestionReducer from '@/rtk/slices/admin/studentsQuestionSlice'
 import { studentsQuestionApi } from './api/admin/studentsQuestionApis'
@@ -47,6 +49,7 @@ import studentManagementReducer from '@/rtk/slices/admin/studentManagementSlice'
 import { studentManagementApi } from './api/admin/studentManagementApis'
 import mainDashboardReducer from '@/rtk/slices/admin/mainDashboardSlice'
 import { mainDashboardApi } from './api/admin/mainDashboardApis'
+import { filterSeriesListApi } from './api/users/filterSeriesList'
 
 
 export const store = configureStore({
@@ -105,7 +108,9 @@ export const store = configureStore({
     assignmentQuiz: assignmentQuizReducer,
     [myCoursesApi.reducerPath]: myCoursesApi.reducer,
     myCourses: myCoursesReducer,
-
+    [filterSeriesListApi.reducerPath]: filterSeriesListApi.reducer,
+    [studentFileApi.reducerPath]: studentFileApi.reducer,
+    studentFile: studentFileReducer,
     
     
   },
@@ -167,7 +172,10 @@ export const store = configureStore({
       paymentsApi.middleware,
       assignmentQuizApi.middleware,
       myCoursesApi.middleware,
+      filterSeriesListApi.middleware,
+      studentFileApi.middleware,
     ),
+  devTools: process.env.NODE_ENV !== 'production',
 })
 
 export type RootState = ReturnType<typeof store.getState>

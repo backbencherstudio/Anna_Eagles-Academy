@@ -16,6 +16,7 @@ export const assignmentApi = createApi({
                 params: { page, limit, search, type, submission_status },
             }),
             providesTags: ['Assignment'],
+            keepUnusedDataFor: 0,
         }),
 
         // Get single assignment 
@@ -25,6 +26,7 @@ export const assignmentApi = createApi({
                 method: 'GET',
             }),
             providesTags: ['Assignment'],
+            keepUnusedDataFor: 0,
         }),
 
         // Submit assignment 
@@ -44,6 +46,7 @@ export const assignmentApi = createApi({
                 method: 'GET',
             }),
             providesTags: ['Assignment'],
+            keepUnusedDataFor: 0,
         }),
 
         // get all quizzes 
@@ -54,6 +57,7 @@ export const assignmentApi = createApi({
                 params: { page, limit, search, type },
             }),
             providesTags: ['Assignment'],
+            keepUnusedDataFor: 0,
         }),
 
         // get single quiz 
@@ -63,6 +67,7 @@ export const assignmentApi = createApi({
                 method: 'GET',
             }),
             providesTags: ['Assignment'],
+            keepUnusedDataFor: 0,
         }),
 
         // submit quiz 
@@ -82,6 +87,7 @@ export const assignmentApi = createApi({
                 method: 'GET',
             }),
             providesTags: ['Assignment'],
+            keepUnusedDataFor: 0,
         }),
     }),
 });

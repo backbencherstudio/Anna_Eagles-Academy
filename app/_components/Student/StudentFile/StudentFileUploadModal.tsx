@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -16,30 +16,49 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
+import SeriesFilterStudentResauble from '@/components/Resuable/SeriesFilter/SeriesFilterStudentResauble'
+import { useCreateStudentFileMutation } from '@/rtk/api/users/studentFileApis'
+import { useDispatch } from 'react-redux'
+import { createStart, createSuccess, createFailure } from '@/rtk/slices/users/studentFileSlice'
+import toast from 'react-hot-toast'
+import { Loader2 } from 'lucide-react'
 
 interface StudentFileUploadModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-export default function StudentFileUploadModal({ 
-  open, 
-  onOpenChange 
+export default function StudentFileUploadModal({
+  open,
+  onOpenChange
 }: StudentFileUploadModalProps) {
+  const dispatch = useDispatch()
+  const [createStudentFile, { isLoading: isCreating }] = useCreateStudentFileMutation()
+  const [selectedSeries, setSelectedSeries] = useState('')
+  const [selectedCourse, setSelectedCourse] = useState('')
   const [fileType, setFileType] = useState('')
-  const [weekNumber, setWeekNumber] = useState(1)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [touched, setTouched] = useState({
+    selectedSeries: false,
+    selectedCourse: false,
     fileType: false,
-    weekNumber: false,
     selectedFile: false
   })
 
   // Validation: Check if all required fields are filled
-  const isFormValid = fileType && weekNumber > 0 && selectedFile
+  const isFormValid = selectedSeries && selectedCourse && fileType && selectedFile
 
-  // Check if field has been touched and is invalid
-  const showError = (field: keyof typeof touched) => touched[field] && !isFormValid
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!open) {
+      setSelectedSeries('')
+      setSelectedCourse('')
+      setFileType('')
+      setSelectedFile(null)
+      setTouched({ selectedSeries: false, selectedCourse: false, fileType: false, selectedFile: false })
+    }
+  }, [open])
+
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -54,87 +73,98 @@ export default function StudentFileUploadModal({
     setTouched(prev => ({ ...prev, fileType: true }))
   }
 
-  const handleWeekNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value) || 1
-    setWeekNumber(value)
-    setTouched(prev => ({ ...prev, weekNumber: true }))
+  const handleSeriesChange = (value: string) => {
+    setSelectedSeries(value)
+    setTouched(prev => ({ ...prev, selectedSeries: true }))
   }
 
-  const handleUploadToLocal = () => {
-    if (!isFormValid) {
-      // Mark all fields as touched to show validation errors
-      setTouched({ fileType: true, weekNumber: true, selectedFile: true })
-      return
-    }
-    
-    // Handle local storage upload
-    console.log('Uploading to local storage:', {
-      fileType,
-      weekNumber,
-      file: selectedFile
-    })
-    onOpenChange(false)
+  const handleCourseChange = (value: string) => {
+    setSelectedCourse(value)
+    setTouched(prev => ({ ...prev, selectedCourse: true }))
   }
 
-  const handleUploadToGoogleDrive = () => {
+  const handleUploadToLocal = async () => {
     if (!isFormValid) {
       // Mark all fields as touched to show validation errors
-      setTouched({ fileType: true, weekNumber: true, selectedFile: true })
+      setTouched({ selectedSeries: true, selectedCourse: true, fileType: true, selectedFile: true })
       return
     }
-    
-    // Handle Google Drive upload
-    console.log('Uploading to Google Drive:', {
-      fileType,
-      weekNumber,
-      file: selectedFile
-    })
-    onOpenChange(false)
+    try {
+      dispatch(createStart())
+      const form = new FormData()
+      form.append('series_id', selectedSeries)
+      form.append('course_id', selectedCourse)
+      form.append('section_type', fileType)
+      form.append('file', selectedFile as File)
+      const res: any = await createStudentFile(form).unwrap()
+      const successMsg = res?.message || res?.data?.message || 'File uploaded successfully'
+      dispatch(createSuccess(successMsg))
+      toast.success(successMsg)
+      onOpenChange(false)
+    } catch (err: any) {
+      const msg = err?.data?.message || 'Failed to upload file'
+      dispatch(createFailure(msg))
+      toast.error(msg)
+    }
   }
+
+  // const handleUploadToGoogleDrive = () => {
+  //   if (!isFormValid) {
+
+  //     setTouched({ selectedSeries: true, selectedCourse: true, fileType: true, selectedFile: true })
+  //     return
+  //   }
+
+  //   onOpenChange(false)
+  // }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="!max-w-2xl">
+      <DialogContent className="!max-w-xl">
         <DialogHeader>
           <DialogTitle>Upload Files</DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-6 py-4">
+          {/* Series & Course (dynamic from student API) */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Selected Series & Courses <span className="text-red-500">*</span></Label>
+            <SeriesFilterStudentResauble
+              className="w-full"
+              seriesPlaceholder="Selected Series"
+              coursePlaceholder="Selected Courses"
+              onSeriesChange={(v) => {
+                handleSeriesChange(v ?? '')
+              }}
+              onCourseChange={(v) => {
+                handleCourseChange(v ?? '')
+              }}
+            />
+            {touched.selectedSeries && !selectedSeries && (
+              <p className="text-xs text-red-500">Please select a series</p>
+            )}
+            {selectedSeries && touched.selectedCourse && !selectedCourse && (
+              <p className="text-xs text-red-500">Please select a course</p>
+            )}
+          </div>
+
           {/* File Type Selection */}
           <div className="space-y-2">
             <Label htmlFor="file-type" className="text-sm font-medium">
               File Type <span className="text-red-500">*</span>
             </Label>
-            <Select value={fileType}  onValueChange={handleFileTypeChange}>
+            <Select value={fileType} onValueChange={handleFileTypeChange}>
               <SelectTrigger className={`w-full ${touched.fileType && !fileType ? 'border-red-300' : ''} cursor-pointer`}>
                 <SelectValue placeholder="Select file type" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="weekly-video-diary" className='cursor-pointer'>Weekly Video Diary</SelectItem>
-                <SelectItem value="assignment-submission" className='cursor-pointer'>Assignment Submission</SelectItem>
+
                 <SelectItem value="other-document" className='cursor-pointer'>Other Document</SelectItem>
               </SelectContent>
             </Select>
             {touched.fileType && !fileType && (
               <p className="text-xs text-red-500">Please select a file type</p>
-            )}
-          </div>
-
-          {/* Week Number */}
-          <div className="space-y-2">
-            <Label htmlFor="week-number" className="text-sm font-medium">
-              Week Number <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="week-number"
-              type="number"
-              min="1"
-              value={weekNumber}
-              onChange={handleWeekNumberChange}
-              className={`w-full cursor-pointer ${touched.weekNumber && weekNumber <= 0 ? 'border-red-300' : ''}`}
-            />
-            {touched.weekNumber && weekNumber <= 0 && (
-              <p className="text-xs text-red-500">Please enter a valid week number</p>
             )}
           </div>
 
@@ -160,27 +190,31 @@ export default function StudentFileUploadModal({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 pt-4 w-fit">
+        <div className="flex flex-col sm:flex-row gap-3 pt-4 w-fit">
           <Button
             onClick={handleUploadToLocal}
-            disabled={!isFormValid}
-            className={`flex-1 text-base  ${
-              isFormValid 
-                ? 'bg-[#0F2598] text-white hover:bg-[#0F2598]/90 cursor-pointer' 
-                : 'bg-gray-400 text-gray-200  cursor-not-allowed'
-            }`}
+            disabled={!isFormValid || isCreating}
+            className={`flex-1 text-sm  ${isFormValid
+              ? 'bg-[#0F2598] text-white hover:bg-[#0F2598]/90 cursor-pointer'
+              : 'bg-gray-400 text-gray-200  cursor-not-allowed'
+              }`}
           >
-            Upload to Local Storage
+            {isCreating ? (
+              <span className="inline-flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" /> Uploading...
+              </span>
+            ) : (
+              'Upload to Local Storage'
+            )}
           </Button>
           <Button
-            onClick={handleUploadToGoogleDrive}
+            // onClick={handleUploadToGoogleDrive}
             disabled={!isFormValid}
             variant="outline"
-            className={`flex-1 text-base  ${
-              isFormValid 
-                ? 'border-[#0F2598] text-[#0F2598] hover:bg-[#0F2598]/5 cursor-pointer' 
-                : 'border-gray-400 text-gray-400 cursor-not-allowed'
-            }`}
+            className={`flex-1 text-sm  ${isFormValid
+              ? 'border-[#0F2598] text-[#0F2598] hover:bg-[#0F2598]/5 cursor-pointer'
+              : 'border-gray-400 text-gray-400 cursor-not-allowed'
+              }`}
           >
             Upload to Google Drive
           </Button>
