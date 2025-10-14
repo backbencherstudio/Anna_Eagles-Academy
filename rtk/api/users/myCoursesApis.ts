@@ -34,8 +34,17 @@ export const myCoursesApi = createApi({
             }),
             providesTags: ['MyCourses'],
         }),
+
+        // watched history
+        getWatchedHistory: builder.query({
+            query: () => ({
+                url: '/api/student/series/watched-lessons',
+                method: 'GET',
+            }),
+            providesTags: ['MyCourses'],
+        }),
     }),
 });
 
-export const { useGetEnrolledSeriesQuery, useGetSingleEnrolledSeriesQuery, useGetSingleLessonQuery, useLazyGetSingleLessonQuery } = myCoursesApi;
+export const { useGetEnrolledSeriesQuery, useGetSingleEnrolledSeriesQuery, useGetSingleLessonQuery, useLazyGetSingleLessonQuery, useGetWatchedHistoryQuery } = myCoursesApi;
 

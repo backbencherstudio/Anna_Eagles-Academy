@@ -24,7 +24,7 @@ export const allCourseListApi = createApi({
                 return key
             },
             providesTags: ['AllCourseList'],
-        
+
 
         }),
         // single course list 
@@ -33,6 +33,8 @@ export const allCourseListApi = createApi({
                 url: `/api/student/checkout/${course_id}/series-summary`,
                 method: 'GET',
             }),
+            providesTags: ['AllCourseList'],
+            keepUnusedDataFor: 0,
         }),
     }),
 });

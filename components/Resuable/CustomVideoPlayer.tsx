@@ -952,6 +952,7 @@ export default function CustomVideoPlayer({
                 onMouseLeave={handleMouseLeave}
                 tabIndex={0}
                 onKeyDown={handleKeyDown}
+                onContextMenu={(e) => e.preventDefault()}
 
             >
                 {videoData.video_url ? (
@@ -962,6 +963,13 @@ export default function CustomVideoPlayer({
                             src={videoData.video_url}
                             className={`w-full h-full object-cover ${isTheaterMode ? 'max-h-[80vh] w-auto mx-auto' : ''}`}
                             preload={preload}
+                            controls={false}
+                            playsInline
+                            draggable={false}
+                            controlsList="nodownload noplaybackrate"
+                            disablePictureInPicture
+                            onDragStart={(e) => e.preventDefault()}
+                            onContextMenu={(e) => e.preventDefault()}
                             onError={(e) => {
                                 setVideoError('Failed to load video');
                                 setIsLoading(false);
