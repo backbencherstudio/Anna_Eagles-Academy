@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
 import { setCurrentAudio, playAudio, pauseAudio } from '@/rtk/slices/audioSlice'
 import { useGetAllStudentDownloadMaterialsQuery } from '@/rtk/api/users/studentDownloadMetrialsApis'
 import { studentDownloadMaterialsApi } from '@/rtk/api/users/studentDownloadMetrialsApis'
+import { GridSkeletonLoader } from '@/components/Resuable/SkeletonLoader'
 
 
 
@@ -84,52 +85,53 @@ export default function AudioLessons() {
             </div>
 
             {/* Grid */}
-            {isMaterialsLoading && (
-                <div className="text-sm text-gray-500">Loading audio lessons...</div>
-            )}
-            <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-                {apiLessons
-                    .map((lesson) => {
-                        const isCurrentlyPlaying = currentPlayingId === lesson.id
+            {isMaterialsLoading ? (
+                <GridSkeletonLoader count={3} type="audio" />
+            ) : (
+                <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+                    {apiLessons
+                        .map((lesson) => {
+                            const isCurrentlyPlaying = currentPlayingId === lesson.id
 
-                        return (
-                            <div key={lesson.id} className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow">
-                                {/* Audio Player Area */}
-                                <AutoPlayer
-                                    audioUrl={lesson.audio_url}
-                                    title={lesson.title}
-                                    audioId={lesson.id}
-                                />
+                            return (
+                                <div key={lesson.id} className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow">
+                                    {/* Audio Player Area */}
+                                    <AutoPlayer
+                                        audioUrl={lesson.audio_url}
+                                        title={lesson.title}
+                                        audioId={lesson.id}
+                                    />
 
-                                {/* Lesson Details */}
-                                <div className="mb-3 sm:mb-4">
-                                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">
-                                        {lesson.title}
-                                    </h3>
-                                    <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                                        {lesson.description}
-                                    </p>
+                                    {/* Lesson Details */}
+                                    <div className="mb-3 sm:mb-4">
+                                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">
+                                            {lesson.title}
+                                        </h3>
+                                        <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                                            {lesson.description}
+                                        </p>
+                                    </div>
+
+                                    {/* Action */}
+                                    <button
+                                        onClick={() => handlePrimaryButtonClick(lesson)}
+                                        disabled={pendingId === lesson.id}
+                                        className={`w-full cursor-pointer py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors text-sm sm:text-base ${isCurrentlyPlaying
+                                            ? (isPlaying ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-[#0F2598] text-white hover:bg-[#0F2598]/90')
+                                            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                                            }`}
+                                    >
+                                        {pendingId === lesson.id
+                                            ? 'Loading...'
+                                            : isCurrentlyPlaying
+                                                ? (isPlaying ? 'Pause Audio' : 'Play Audio')
+                                                : 'Only listen'}
+                                    </button>
                                 </div>
-
-                                {/* Action */}
-                                <button
-                                    onClick={() => handlePrimaryButtonClick(lesson)}
-                                    disabled={pendingId === lesson.id}
-                                    className={`w-full cursor-pointer py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors text-sm sm:text-base ${isCurrentlyPlaying
-                                        ? (isPlaying ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-[#0F2598] text-white hover:bg-[#0F2598]/90')
-                                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                                        }`}
-                                >
-                                    {pendingId === lesson.id
-                                        ? 'Loading...'
-                                        : isCurrentlyPlaying
-                                            ? (isPlaying ? 'Pause Audio' : 'Play Audio')
-                                            : 'Only listen'}
-                                </button>
-                            </div>
-                        );
-                    })}
-            </div>
+                            );
+                        })}
+                </div>
+            )}
 
 
             {/* Empty state */}

@@ -66,13 +66,13 @@ export default function SeriesFilterStudentResauble({
     return (
         <div className={className}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 ">
                     <Select
                         value={selectedSeriesId ?? 'all'}
                         onValueChange={(v) => handleSeriesChange(v === 'all' ? undefined : v)}
                         disabled={isLoading}
                     >
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="w-full bg-white">
                             <SelectValue placeholder={isLoading ? 'Loading...' : seriesPlaceholder} />
                         </SelectTrigger>
                         <SelectContent>
@@ -98,7 +98,7 @@ export default function SeriesFilterStudentResauble({
                             onValueChange={(v) => handleCourseChange(v === 'all' ? undefined : v)}
                             disabled={isLoading || !selectedSeriesId}
                         >
-                            <SelectTrigger className="w-full">
+                            <SelectTrigger className="w-full bg-white">
                                 <SelectValue placeholder={selectedSeriesId ? coursePlaceholder : 'Select a series first'} />
                             </SelectTrigger>
                             <SelectContent>

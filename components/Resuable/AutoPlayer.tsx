@@ -3,16 +3,16 @@ import React, { useRef, useEffect, useState } from 'react'
 import { Play, Pause, Volume2, VolumeX } from 'lucide-react'
 import WaveAnimation from './WaveAnimation'
 import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
-import { 
-  setCurrentAudio, 
-  playAudio, 
-  pauseAudio, 
-  stopAudio, 
-  setCurrentTime, 
-  setDuration, 
-  setVolume, 
-  toggleMute, 
-  seekTo 
+import {
+  setCurrentAudio,
+  playAudio,
+  pauseAudio,
+  stopAudio,
+  setCurrentTime,
+  setDuration,
+  setVolume,
+  toggleMute,
+  seekTo
 } from '@/rtk/slices/audioSlice'
 
 interface AutoPlayerProps {
@@ -23,34 +23,33 @@ interface AutoPlayerProps {
   className?: string
 }
 
-export default function AutoPlayer({ 
-  audioUrl, 
-  title, 
-  duration, 
+export default function AutoPlayer({
+  audioUrl,
+  title,
+  duration,
   audioId,
   className = ""
 }: AutoPlayerProps) {
   const dispatch = useAppDispatch()
-  const { 
-    currentPlayingId, 
-    isPlaying, 
-    currentTime, 
-    duration: audioDuration, 
-    volume, 
-    isMuted, 
-    audioUrl: globalAudioUrl 
+  const {
+    currentPlayingId,
+    isPlaying,
+    currentTime,
+    duration: audioDuration,
+    volume,
+    isMuted,
+    audioUrl: globalAudioUrl
   } = useAppSelector((state) => state.audio)
-  
+
   const [animationTime, setAnimationTime] = useState(0)
   const [metaDuration, setMetaDuration] = useState<number>(0)
   const audioRef = useRef<HTMLAudioElement>(null)
   const animationRef = useRef<number | null>(null)
   const [isUnsupported, setIsUnsupported] = useState<boolean>(false)
-  
+
   const isCurrentlyPlaying = currentPlayingId === audioId
 
-  // When this player is no longer the current one, ensure it is paused.
-  // Do not auto-play when it becomes current; playback is controlled by isPlaying state.
+
   useEffect(() => {
     if (!isCurrentlyPlaying && audioRef.current) {
       audioRef.current.pause()
@@ -77,7 +76,7 @@ export default function AutoPlayer({
         animationRef.current = requestAnimationFrame(animate)
       }
     }
-    
+
     if (isPlaying && isCurrentlyPlaying) {
       animationRef.current = requestAnimationFrame(animate)
     } else {
@@ -85,7 +84,7 @@ export default function AutoPlayer({
         cancelAnimationFrame(animationRef.current)
       }
     }
-    
+
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current)
@@ -119,7 +118,7 @@ export default function AutoPlayer({
       if (isCurrentlyPlaying) {
         dispatch(setDuration(d))
         if (isPlaying) {
-          audioRef.current.play().catch(() => {})
+          audioRef.current.play().catch(() => { })
         }
       }
     }
@@ -243,10 +242,10 @@ export default function AutoPlayer({
           progress={progress}
           animationTime={animationTime}
         />
-        
+
         {/* Play Button */}
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
-          <button 
+          <button
             onClick={handlePlayPause}
             className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 bg-white rounded-full flex items-center justify-center transition-all cursor-pointer duration-200 hover:scale-105"
           >
@@ -260,7 +259,7 @@ export default function AutoPlayer({
           </button>
         </div>
       </div>
-      
+
       {/* Progress Bar */}
       <div className="mb-2 sm:mb-3">
         <input
@@ -270,9 +269,8 @@ export default function AutoPlayer({
           value={isCurrentlyPlaying ? progress : 0}
           onChange={handleSeek}
           disabled={!isCurrentlyPlaying}
-          className={`w-full h-1.5 sm:h-2 bg-gray-200 rounded-lg appearance-none slider ${
-            isCurrentlyPlaying ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'
-          }`}
+          className={`w-full h-1.5 sm:h-2 bg-gray-200 rounded-lg appearance-none slider ${isCurrentlyPlaying ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'
+            }`}
           style={{
             background: `linear-gradient(to right, #F1C27D 0%, #F1C27D ${progress}%, #E5E7EB ${progress}%, #E5E7EB 100%)`
           }}
@@ -310,7 +308,7 @@ export default function AutoPlayer({
           </div>
         </div>
       )}
-      
+
       {/* Time Display */}
       <div className="flex justify-between text-xs sm:text-sm text-gray-600">
         <span>{isCurrentlyPlaying ? formatTime(currentTime) : '0:00'}</span>
@@ -344,7 +342,7 @@ export default function AutoPlayer({
         style={{ display: 'none' }}
       >
         {sourceUrl ? (
-          <source src={sourceUrl} type={getMimeFromUrl(sourceUrl)}/>
+          <source src={sourceUrl} type={getMimeFromUrl(sourceUrl)} />
         ) : null}
       </audio>
 

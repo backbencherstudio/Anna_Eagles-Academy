@@ -8,6 +8,7 @@ import Image from 'next/image'
 import FilterDropdown from '@/components/Resuable/FilterDropdown'
 import { useAppSelector } from '@/rtk/hooks'
 import { useGetAllStudentDownloadMaterialsQuery } from '@/rtk/api/users/studentDownloadMetrialsApis'
+import { GridSkeletonLoader } from '@/components/Resuable/SkeletonLoader'
 
 type OtherDocument = {
   id: string
@@ -139,47 +140,48 @@ export default function OtherDocument() {
       </div>
 
       {/* Other Documents List */}
-      {isMaterialsLoading && (
-        <div className="text-sm text-gray-500">Loading documents...</div>
+      {isMaterialsLoading ? (
+        <GridSkeletonLoader count={4} type="document" />
+      ) : (
+        <div className="space-y-4">
+          {documents
+            .map((document, idx) => (
+              <Card key={`${document.id}-${idx}`} className="rounded-xl border border-gray-200 transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    {/* File Thumbnail */}
+                    <div className="flex-shrink-0">
+                      {getFileIconByUrl(document.url)}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-semibold text-gray-900 mb-1">
+                        {document.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 leading-relaxed">
+                        {document.description}
+                      </p>
+                    </div>
+
+                    {/* Action Button */}
+                    <div className="flex-shrink-0 flex flex-col items-end gap-1">
+                      <Button
+                        onClick={() => handleDownload(document)}
+                        className="bg-[#0F2598] cursor-pointer text-white hover:bg-[#0F2598]/90 text-sm font-medium px-4 py-2"
+                        size="sm"
+                      >
+                        Download
+                        <Download className="w-4 h-4" />
+                      </Button>
+                      <p className="text-xs text-gray-500">&nbsp;</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+        </div>
       )}
-      <div className="space-y-4">
-        {documents
-          .map((document, idx) => (
-            <Card key={`${document.id}-${idx}`} className="rounded-xl border border-gray-200 transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  {/* File Thumbnail */}
-                  <div className="flex-shrink-0">
-                    {getFileIconByUrl(document.url)}
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-base font-semibold text-gray-900 mb-1">
-                      {document.title}
-                    </h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">
-                      {document.description}
-                    </p>
-                  </div>
-
-                  {/* Action Button */}
-                  <div className="flex-shrink-0 flex flex-col items-end gap-1">
-                    <Button
-                      onClick={() => handleDownload(document)}
-                      className="bg-[#0F2598] cursor-pointer text-white hover:bg-[#0F2598]/90 text-sm font-medium px-4 py-2"
-                      size="sm"
-                    >
-                      Download
-                      <Download className="w-4 h-4" />
-                    </Button>
-                    <p className="text-xs text-gray-500">&nbsp;</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-      </div>
 
       {/* Empty State */}
       {(!isMaterialsLoading && documents.length === 0) && (

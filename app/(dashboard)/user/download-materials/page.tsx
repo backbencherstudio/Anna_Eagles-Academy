@@ -72,7 +72,7 @@ export default function DownloadMaterials() {
             courseLabel="Select Course"
             seriesPlaceholder="Select series"
             coursePlaceholder="Select course"
-            className="max-w-xl mx-auto mt-6"
+            className="max-w-xl ml-auto mt-6 "
             onSeriesChange={(sid) => dispatch(setSeriesId(sid))}
             onCourseChange={(cid) => dispatch(setCourseId(cid))}
           />

@@ -50,19 +50,28 @@ export default function VideoModal({
       >
         <DialogTitle className="sr-only">{title}</DialogTitle>
         <div className="w-full">
-          <div className="relative w-full aspect-video overflow-hidden rounded-lg bg-black">
+          <div
+            className="relative w-full aspect-video overflow-hidden rounded-lg bg-black select-none"
+            onContextMenu={(e) => e.preventDefault()}
+            onDragStart={(e) => e.preventDefault()}
+            style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+          >
             <video
               key={videoSrc}
               ref={videoRef}
               className="absolute inset-0 h-full w-full cursor-pointer"
               controls={controls}
+              controlsList="nodownload noremoteplayback"
               preload="metadata"
               poster={poster}
               autoPlay={autoPlay}
               muted={autoPlay}
               playsInline
               crossOrigin="anonymous"
+              disablePictureInPicture
               onLoadedMetadata={onLoadedMetadata}
+              onContextMenu={(e) => e.preventDefault()}
+              onDragStart={(e) => e.preventDefault()}
             >
               <source src={videoSrc} type="video/mp4" />
               Your browser does not support the video tag.
