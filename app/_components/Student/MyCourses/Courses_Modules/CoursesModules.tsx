@@ -1,12 +1,17 @@
 "use client"
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useSearchParams } from 'next/navigation';
 import CustomVideoPlayer from "@/components/Resuable/CustomVideoPlayer";
 import Modules_Sidebar from "./Modules_Sidebar";
 import ModulesSkeletonLoading from "./ModulesSkeletonLoading";
 import { useVideoProgress } from "@/hooks/useVideoProgress";
+import { useGetSingleEnrolledSeriesQuery } from "@/rtk/api/users/myCoursesApis";
 
-export default function CoursesModules() {
+interface CoursesModulesProps {
+  seriesId: string;
+}
+
+export default function CoursesModules({ seriesId }: CoursesModulesProps) {
   const [course, setCourse] = useState<any>(null);
   const [currentVideo, setCurrentVideo] = useState<any>(null);
   const [currentVideoIndex, setCurrentVideoIndex] = useState<{ moduleIndex: number; videoIndex: number }>({ moduleIndex: 0, videoIndex: 0 });
@@ -20,75 +25,132 @@ export default function CoursesModules() {
   // Use the video progress hook
   const { isVideoCompleted } = useVideoProgress();
 
-  async function fetchCourseData() {
+  // Fetch single enrolled series from API
+  const { data, isLoading, isError } = useGetSingleEnrolledSeriesQuery(seriesId, { skip: !seriesId });
+
+  // Helper: parse durations like "16m 30s" to seconds
+  const parseDurationToSeconds = useCallback((duration: string | null | undefined) => {
+    if (!duration) return 0;
     try {
-      const res = await fetch("/data/CourseData.json");
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      return res.json();
-    } catch (error) {
-      console.error("Error fetching course data:", error);
-      return null;
+      const minMatch = duration.match(/(\d+)\s*m/);
+      const secMatch = duration.match(/(\d+)\s*s/);
+      const hourMatch = duration.match(/(\d+)\s*h/);
+      const hours = hourMatch ? parseInt(hourMatch[1]) : 0;
+      const minutes = minMatch ? parseInt(minMatch[1]) : 0;
+      const seconds = secMatch ? parseInt(secMatch[1]) : 0;
+      return hours * 3600 + minutes * 60 + seconds;
+    } catch {
+      return 0;
     }
-  }
+  }, []);
+
+  // Map API response to local course/modules/videos structure
+  const mappedCourse = useMemo(() => {
+    const series = data?.data;
+    if (!series) return null;
+
+    const modules = Array.from(series.courses || [])
+      .slice()
+      .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))
+      .map((courseItem: any) => {
+        const baseVideos = Array.from(courseItem.lesson_files || [])
+          .slice()
+          .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))
+          .map((lf: any) => ({
+            video_id: lf.id,
+            video_title: lf.title,
+            video_url: lf.url || "",
+            duration: parseDurationToSeconds(lf.video_length),
+            // keep original length string for player overlay
+            video_duration: lf.video_length || ""
+          }));
+
+        const videos: any[] = [];
+
+        // Intro video first if present
+        if (courseItem.intro_video_url) {
+          videos.push({
+            video_id: `${courseItem.id}-intro`,
+            video_title: `${courseItem.title} • Intro`,
+            video_url: courseItem.intro_video_url,
+            duration: parseDurationToSeconds(courseItem.video_length),
+            video_duration: courseItem.video_length || ""
+          });
+        }
+
+        // Then all lesson files
+        videos.push(...baseVideos);
+
+        // End video last if present
+        if (courseItem.end_video_url) {
+          videos.push({
+            video_id: `${courseItem.id}-end`,
+            video_title: `${courseItem.title} • End`,
+            video_url: courseItem.end_video_url,
+            duration: parseDurationToSeconds(courseItem.video_length),
+            video_duration: courseItem.video_length || ""
+          });
+        }
+        return {
+          module_id: courseItem.id,
+          module_title: courseItem.title,
+          videos
+        };
+      });
+
+    return { modules };
+  }, [data, parseDurationToSeconds]);
 
   useEffect(() => {
-    fetchCourseData().then((data) => {
-      if (data && data.course) {
-        setCourse(data.course);
-      }
+    if (!mappedCourse) return;
+    setCourse(mappedCourse);
 
-      // Check for URL parameters to set initial video
-      const videoId = searchParams.get('video');
-      const moduleIndex = searchParams.get('module');
-      const videoIndex = searchParams.get('videoIndex');
+    // Check for URL parameters to set initial video
+    const videoId = searchParams.get('video');
+    const moduleIndex = searchParams.get('module');
+    const videoIndex = searchParams.get('videoIndex');
 
-      if (videoId && moduleIndex !== null && videoIndex !== null) {
-        // Set video based on URL parameters
-        const modIdx = parseInt(moduleIndex);
-        const vidIdx = parseInt(videoIndex);
+    if (videoId && moduleIndex !== null && videoIndex !== null) {
+      const modIdx = parseInt(moduleIndex);
+      const vidIdx = parseInt(videoIndex);
 
-        if (data.course.modules[modIdx] && data.course.modules[modIdx].videos[vidIdx]) {
-          const selectedVideo = data.course.modules[modIdx].videos[vidIdx];
-          setCurrentVideo({
-            ...selectedVideo,
-            module: data.course.modules[modIdx].module_title,
-          });
-          setCurrentVideoIndex({ moduleIndex: modIdx, videoIndex: vidIdx });
+      if (mappedCourse.modules[modIdx] && mappedCourse.modules[modIdx].videos[vidIdx]) {
+        const selectedVideo = mappedCourse.modules[modIdx].videos[vidIdx];
+        setCurrentVideo({
+          ...selectedVideo,
+          module: mappedCourse.modules[modIdx].module_title,
+        });
+        setCurrentVideoIndex({ moduleIndex: modIdx, videoIndex: vidIdx });
 
-          // Open the accordion for the selected video's module
-          const moduleId = data.course.modules[modIdx].module_id;
-          setOpenModules([moduleId]);
-        } else {
-          // Fallback to first video if parameters are invalid
-          const firstVideo = data.course.modules[0]?.videos[0];
+        const moduleId = mappedCourse.modules[modIdx].module_id;
+        setOpenModules([moduleId]);
+      } else {
+        const firstVideo = mappedCourse.modules[0]?.videos[0];
+        if (firstVideo) {
           setCurrentVideo({
             ...firstVideo,
-            module: data.course.modules[0]?.module_title,
+            module: mappedCourse.modules[0]?.module_title,
           });
           setCurrentVideoIndex({ moduleIndex: 0, videoIndex: 0 });
-
-          if (data.course.modules[0]?.module_id) {
-            setOpenModules([data.course.modules[0].module_id]);
-          }
         }
-      } else {
-        // Set first video as default
-        const firstVideo = data.course.modules[0]?.videos[0];
-        setCurrentVideo({
-          ...firstVideo,
-          module: data.course.modules[0]?.module_title,
-        });
-        setCurrentVideoIndex({ moduleIndex: 0, videoIndex: 0 });
-
-        // Open the accordion for the first module
-        if (data.course.modules[0]?.module_id) {
-          setOpenModules([data.course.modules[0].module_id]);
+        if (mappedCourse.modules[0]?.module_id) {
+          setOpenModules([mappedCourse.modules[0].module_id]);
         }
       }
-    });
-  }, [searchParams]);
+    } else {
+      const firstVideo = mappedCourse.modules[0]?.videos[0];
+      if (firstVideo) {
+        setCurrentVideo({
+          ...firstVideo,
+          module: mappedCourse.modules[0]?.module_title,
+        });
+        setCurrentVideoIndex({ moduleIndex: 0, videoIndex: 0 });
+      }
+      if (mappedCourse.modules[0]?.module_id) {
+        setOpenModules([mappedCourse.modules[0].module_id]);
+      }
+    }
+  }, [mappedCourse, searchParams]);
 
   // Check if a video is unlocked (previous video is completed)
   const isVideoUnlocked = useCallback((moduleIndex: number, videoIndex: number) => {
@@ -262,8 +324,16 @@ export default function CoursesModules() {
   }, [isTheaterMode]);
 
 
-  if (!course || !currentVideo) {
+  if (isLoading || !course || !currentVideo) {
     return <ModulesSkeletonLoading />;
+  }
+
+  if (isError) {
+    return (
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="bg-red-50 text-red-700 p-4 rounded-lg">Failed to load series.</div>
+      </div>
+    );
   }
 
   return (

@@ -95,8 +95,8 @@ export default function ProfileNav({ className = "" }: ProfileNavProps) {
                     <p className="text-sm font-medium text-[#111827]">{user?.name || 'User'}</p>
                     <div className="flex items-center gap-1 mt-1">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${user?.role === 'admin'
-                                ? 'bg-blue-100 text-blue-800'
-                                : 'text-white bg-[#22C55E]'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'text-white bg-[#22C55E]'
                             }`}>
                             {user?.role === 'admin' ? 'Admin' : 'Student'}
                         </span>

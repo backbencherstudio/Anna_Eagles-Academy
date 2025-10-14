@@ -15,6 +15,7 @@ export const myCoursesApi = createApi({
                 method: 'GET',
             }),
             providesTags: ['MyCourses'],
+            keepUnusedDataFor: 0,
         }),
 
         // get single enrolled series 
@@ -24,7 +25,19 @@ export const myCoursesApi = createApi({
                 method: 'GET',
             }),
             providesTags: ['MyCourses'],
+            keepUnusedDataFor: 0,
         }),
+
+        // get single enrolled course
+        getSingleEnrolledCourse: builder.query({
+            query: (course_id: string) => ({
+                url: `/api/student/series/courses/${course_id}`,
+                method: 'GET',
+            }),
+            providesTags: ['MyCourses'],
+            keepUnusedDataFor: 0,
+        }),
+
 
         // get single leson   
         getSingleLesson: builder.query({
@@ -33,6 +46,7 @@ export const myCoursesApi = createApi({
                 method: 'GET',
             }),
             providesTags: ['MyCourses'],
+            keepUnusedDataFor: 0,
         }),
 
         // watched history
@@ -42,6 +56,7 @@ export const myCoursesApi = createApi({
                 method: 'GET',
             }),
             providesTags: ['MyCourses'],
+            keepUnusedDataFor: 0,
         }),
     }),
 });
