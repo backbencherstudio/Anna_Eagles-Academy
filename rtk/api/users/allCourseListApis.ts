@@ -17,7 +17,14 @@ export const allCourseListApi = createApi({
                 method: 'GET',
                 params: { page, limit, search, type },
             }),
+            keepUnusedDataFor: 0,
+            serializeQueryArgs: ({ queryArgs, endpointName }) => {
+                const { page, limit, search = '', type = '' } = (queryArgs as PaginationParams) || {}
+                const key = `${endpointName}|p=${page}|l=${limit}|s=${String(search).trim().toLowerCase()}|t=${String(type).trim().toLowerCase()}`
+                return key
+            },
             providesTags: ['AllCourseList'],
+        
 
         }),
         // single course list 

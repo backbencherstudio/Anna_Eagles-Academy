@@ -18,11 +18,11 @@ export interface PaginationResponse {
 // Default pagination values
 export const DEFAULT_PAGINATION: PaginationParams = {
     page: 1,
-    limit: 1,
+    limit: 10,
     search: '',
     type: ''
 }
 
 // Common pagination options
-export const PAGINATION_LIMITS = [8, 12, 16, 24, 32]
-export const DEFAULT_LIMIT = 1
+export const PAGINATION_LIMITS = [ 10, 20, 30, 40, 50]
+export const DEFAULT_LIMIT = 10

@@ -36,6 +36,7 @@ interface Course {
         price: string
     }>
     thumbnail_url: string
+    is_enrolled?: boolean
 }
 
 export default function CourseListStudent() {
@@ -55,12 +56,12 @@ export default function CourseListStudent() {
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearchTerm(searchTerm)
-            setCurrentPage(1) // Reset to first page when searching
-        }, 500)
+            setCurrentPage(1)
+        }, 300)
         return () => clearTimeout(timer)
     }, [searchTerm])
 
-    // Only run API query after component is initialized
+
     const { data, isLoading, error } = useGetAllCourseListQuery({
         page: currentPage,
         limit: itemsPerPage,
@@ -81,23 +82,19 @@ export default function CourseListStudent() {
     }
 
     useEffect(() => {
-        // Read view mode from URL parameters
         const viewParam = searchParams.get('view')
         if (viewParam === 'grid' || viewParam === 'list') {
             setViewMode(viewParam)
         }
 
-        // Read course type from URL parameters
         const typeParam = searchParams.get('type')
         if (typeParam && courseTypes.includes(typeParam)) {
             setSelectedType(typeParam)
         }
 
-        // Initialize component after URL parameters are read
         setIsInitialized(true)
     }, [searchParams])
 
-    // Handler functions to avoid setState during render
     const handleViewModeChange = (mode: 'grid' | 'list') => {
         setViewMode(mode)
         const currentType = searchParams.get('type') || 'all'
@@ -108,7 +105,7 @@ export default function CourseListStudent() {
         setSelectedType(type)
         const currentView = searchParams.get('view') || 'grid'
         router.push(`?view=${currentView}&type=${type}`)
-        setCurrentPage(1) // Reset to first page when changing type
+        setCurrentPage(1)
     }
 
     const handlePageChange = (page: number) => {
@@ -117,14 +114,14 @@ export default function CourseListStudent() {
 
     const handleItemsPerPageChange = (itemsPerPage: number) => {
         setItemsPerPage(itemsPerPage)
-        setCurrentPage(1) // Reset to first page when changing items per page
+        setCurrentPage(1)
     }
 
     if (isLoading) {
         return (
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                    {[...Array(8)].map((_, i) => (
+                    {[...Array(4)].map((_, i) => (
                         <Card key={i} className="overflow-hidden animate-pulse">
                             <div className="h-48 sm:h-56 bg-gray-200"></div>
                             <CardContent className="p-4 space-y-3">
@@ -157,7 +154,7 @@ export default function CourseListStudent() {
                 <CardContent className="p-4 sm:p-6">
                     <div className="flex flex-col space-y-4 lg:space-y-0 lg:flex-row lg:items-center lg:space-x-4 w-full">
                         {/* Search */}
-                        <div className="relative flex-1 lg:w-9/12">
+                        <div className="relative flex-1 xl:w-7/12">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
                             <Input
                                 type="text"
@@ -169,7 +166,7 @@ export default function CourseListStudent() {
                         </div>
 
                         {/* Filters Row */}
-                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 lg:gap-2 lg:w-3/12">
+                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 lg:gap-2 xl:w-4/12">
                             {/* Course Type Filter */}
                             <div className="flex items-center gap-2 min-w-0 sm:min-w-[140px]">
                                 <SlidersHorizontal className="w-4 h-4 text-gray-400 flex-shrink-0" />
@@ -223,7 +220,7 @@ export default function CourseListStudent() {
             {courses.length > 0 ? (
                 <>
                     <div className={`${viewMode === 'grid'
-                        ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6'
+                        ? 'grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6'
                         : 'space-y-4'
                         }`}>
                         {courses.map((course: Course) => (

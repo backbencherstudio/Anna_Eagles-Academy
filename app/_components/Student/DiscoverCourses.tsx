@@ -253,10 +253,12 @@ export default function DiscoverCourses({ courseId, courseData }: DiscoverCourse
                                 <Search className="h-4 w-4 text-[#AD0AFD]" />
                                 <span className="text-[#AD0AFD] text-sm">{course?.course_type?.charAt(0).toUpperCase() + course?.course_type?.slice(1)}</span>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <Users className="h-4 w-4 text-[#1D1F2C]" />
-                                <span className="text-[#1D1F2C] text-sm">{course?.seats_left || 0} Seats Left</span>
-                            </div>
+                            {typeof course?.seats_left === 'number' && course.seats_left >= 0 && (
+                                <div className="flex items-center gap-3">
+                                    <Users className="h-4 w-4 text-[#1D1F2C]" />
+                                    <span className="text-[#1D1F2C] text-sm">{course.seats_left} Seats Left</span>
+                                </div>
+                            )}
                             <div className="flex items-center gap-3">
                                 <Calendar className="h-4 w-4 text-[#1D1F2C]" />
                                 <span className="text-[#1D1F2C] text-sm">Start: {course?.start_date ? new Date(course.start_date).toLocaleDateString() : 'N/A'} | End: {course?.end_date ? new Date(course.end_date).toLocaleDateString() : 'N/A'}</span>

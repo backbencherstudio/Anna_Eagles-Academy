@@ -29,6 +29,7 @@ interface CourseCardProps {
             price: string
         }>
         thumbnail_url: string
+        is_enrolled?: boolean
     }
     viewMode?: 'grid' | 'list'
 }
@@ -37,6 +38,8 @@ export default function CourseCardStudent({ course, viewMode = 'grid' }: CourseC
     const [imageError, setImageError] = useState(false)
     const [imageLoading, setImageLoading] = useState(true)
     const router = useRouter()
+
+    const hasSeats = course.available_site >= 0
 
     const handleImageError = () => {
         setImageError(true)
@@ -48,6 +51,10 @@ export default function CourseCardStudent({ course, viewMode = 'grid' }: CourseC
     }
 
     const handleViewDetails = () => {
+        if (course.is_enrolled) {
+            router.push(`/user/my-courses`)
+            return
+        }
         router.push(`/user/discover/${course.id}`)
     }
 
@@ -136,10 +143,12 @@ export default function CourseCardStudent({ course, viewMode = 'grid' }: CourseC
                                     <FileText className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600" />
                                     <span>{course.courses.length} Courses</span>
                                 </div>
-                                <div className="flex items-center gap-1">
-                                    <Users className="w-3 h-3 sm:w-4 sm:h-4 text-orange-600" />
-                                    <span>{course.available_site}</span>
-                                </div>
+                                {hasSeats && (
+                                    <div className="flex items-center gap-1">
+                                        <Users className="w-3 h-3 sm:w-4 sm:h-4 text-orange-600" />
+                                        <span>{course.available_site}</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -156,7 +165,11 @@ export default function CourseCardStudent({ course, viewMode = 'grid' }: CourseC
                                 className="bg-[#0F2598] cursor-pointer hover:bg-[#0F2598]/80 text-white px-4 lg:px-6 py-2 sm:py-2.5 text-xs  rounded-lg font-medium transition-colors duration-200 flex items-center gap-1 justify-center sm:justify-start"
                             >
                                 <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
-                                <span>View Details</span>
+                                {course.is_enrolled ? (
+                                    <span>Continue</span>
+                                ) : (
+                                    <span>View Details</span>
+                                )}
                             </button>
                         </div>
                     </div>
@@ -236,13 +249,15 @@ export default function CourseCardStudent({ course, viewMode = 'grid' }: CourseC
                         <span className="text-gray-700">{course.courses.length}</span>
                     </div>
 
-                    <div className="flex items-center justify-between">
-                        <span className="flex items-center gap-1">
-                            <Users className="w-4 h-4" />
-                            Seats:
-                        </span>
-                        <span className="text-gray-700">{course.available_site}</span>
-                    </div>
+                    {hasSeats && (
+                        <div className="flex items-center justify-between">
+                            <span className="flex items-center gap-1">
+                                <Users className="w-4 h-4" />
+                                Seats:
+                            </span>
+                            <span className="text-gray-700">{course.available_site}</span>
+                        </div>
+                    )}
 
                     <div className="flex items-center justify-between">
                         <span className="flex items-center gap-1">
@@ -268,8 +283,14 @@ export default function CourseCardStudent({ course, viewMode = 'grid' }: CourseC
                         className="bg-[#0F2598] cursor-pointer hover:bg-[#0F2598]/80 text-white px-3 sm:px-4 py-2 rounded-lg text-xs  transition-colors duration-200 flex items-center gap-1 sm:gap-2 flex-shrink-0"
                     >
                         <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
-                        <span className="hidden sm:inline">View Details</span>
-                        <span className="sm:hidden">View</span>
+                        {course.is_enrolled ? (
+                            <span>Continue</span>
+                        ) : (
+                            <>
+                                <span className="hidden sm:inline">View Details</span>
+                                <span className="sm:hidden">View</span>
+                            </>
+                        )}
                     </button>
                 </div>
             </div>
