@@ -142,7 +142,7 @@ export const store = configureStore({
           'courseManagement/createCourseAsync/fulfilled',
           'courseManagement/createCourseAsync/rejected'
         ],
-        ignoredActionsPaths: ['payload.value', 'payload.file', 'payload.lessons'],
+        ignoredActionsPaths: ['payload.value', 'payload.file', 'payload.lessons', 'payload.onError'],
         ignoredPaths: [
           'courseManagement.courseForm.thumbnail',
           'courseManagement.courseForm.courses',
@@ -151,7 +151,8 @@ export const store = configureStore({
           'courseManagement.moduleEndVideos',
           'courseManagement.moduleLessons',
           'assignmentManagement.formData.submissionDeadline',
-          'assignmentManagement.essays'
+          'assignmentManagement.essays',
+          'myCourses.currentVideoData.onError'
         ],
       },
     }).concat(

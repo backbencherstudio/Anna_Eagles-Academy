@@ -140,6 +140,7 @@ export default function CustomVideoPlayer({
     const [playbackSpeed, setPlaybackSpeed] = useState(1);
     const [isPictureInPicture, setIsPictureInPicture] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
+    const shakaPlayerRef = useRef<any | null>(null);
     const isMountedRef = useRef(true);
 
     // Network and buffering states
@@ -274,6 +275,90 @@ export default function CustomVideoPlayer({
             window.removeEventListener('offline', handleOffline);
         };
     }, [videoError]);
+
+    // Decide whether to use Shaka (manifests) or native (progressive URLs like MP4)
+    const isManifestUrl = useMemo(() => {
+        const lowerUrl = (videoData?.video_url || '').toLowerCase();
+        return lowerUrl.endsWith('.mpd') || lowerUrl.includes('.m3u8');
+    }, [videoData?.video_url]);
+
+    // Initialize / destroy Shaka Player for manifest URLs
+    useEffect(() => {
+        let destroyed = false;
+
+        async function initShaka() {
+            if (!isManifestUrl) {
+                // Ensure any previous player is destroyed when switching away from manifest
+                if (shakaPlayerRef.current && typeof shakaPlayerRef.current.destroy === 'function') {
+                    try { await shakaPlayerRef.current.destroy(); } catch { }
+                }
+                shakaPlayerRef.current = null;
+                return;
+            }
+
+            try {
+                if (!videoRef.current) return;
+
+                setIsLoading(true);
+                setIsBuffering(false);
+                setVideoError(null);
+
+                const shaka: any = (await import('shaka-player/dist/shaka-player.compiled.js')) as any;
+                shaka.polyfill.installAll();
+
+                if (!shaka.Player.isBrowserSupported()) {
+                    setVideoError('This browser is not supported by Shaka Player.');
+                    setIsLoading(false);
+                    return;
+                }
+
+                const player = new shaka.Player(videoRef.current);
+                shakaPlayerRef.current = player;
+
+                player.addEventListener('error', (event: any) => {
+                    const err = event?.detail;
+                    setVideoError(`Playback error: ${err?.message || 'Unknown error'}`);
+                    setIsLoading(false);
+                    setIsBuffering(false);
+                    setPlaying(false);
+                });
+
+                await player.load(videoData.video_url);
+
+                // Autoplay behavior for Shaka as well
+                if (autoPlay && videoRef.current && videoRef.current.paused) {
+                    await videoRef.current.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
+                }
+
+                if (!destroyed) {
+                    setIsLoading(false);
+                    setIsBuffering(false);
+                }
+            } catch (err: any) {
+                // eslint-disable-next-line no-console
+                console.error('Shaka init/load error', err);
+                setVideoError(err?.message || 'Failed to load the video');
+                setIsLoading(false);
+                setIsBuffering(false);
+                setPlaying(false);
+            }
+        }
+
+        initShaka();
+
+        return () => {
+            destroyed = true;
+            if (shakaPlayerRef.current && typeof shakaPlayerRef.current.destroy === 'function') {
+                shakaPlayerRef.current.destroy().catch(() => { });
+            }
+            shakaPlayerRef.current = null;
+            if (videoRef.current) {
+                // Clear native src to avoid conflicts when switching between types
+                videoRef.current.removeAttribute('src');
+                videoRef.current.load?.();
+            }
+        };
+    }, [isManifestUrl, videoData.video_url, autoPlay]);
 
 
     useEffect(() => {
@@ -910,7 +995,7 @@ export default function CustomVideoPlayer({
             if (progress.percentage < 95) {
                 setSavedProgress(progress.currentTime);
                 setHasRestoredProgress(true);
-                
+
                 // Set the video time after metadata is loaded
                 const setVideoTime = () => {
                     if (videoRef.current && videoRef.current.readyState >= 1) {
@@ -960,7 +1045,7 @@ export default function CustomVideoPlayer({
                         <video
                             key={`video-${videoData.video_id}`}
                             ref={videoRef}
-                            src={videoData.video_url}
+                            src={isManifestUrl ? undefined : videoData.video_url}
                             className={`w-full h-full object-cover ${isTheaterMode ? 'max-h-[80vh] w-auto mx-auto' : ''}`}
                             preload={preload}
                             controls={false}
@@ -968,10 +1053,32 @@ export default function CustomVideoPlayer({
                             draggable={false}
                             controlsList="nodownload noplaybackrate"
                             disablePictureInPicture
+                            crossOrigin="anonymous"
                             onDragStart={(e) => e.preventDefault()}
                             onContextMenu={(e) => e.preventDefault()}
                             onError={(e) => {
-                                setVideoError('Failed to load video');
+                                const target = e.target as HTMLVideoElement;
+                                const error = target.error;
+
+                                let errorMessage = 'Failed to load video';
+                                if (error) {
+                                    switch (error.code) {
+                                        case 1:
+                                            errorMessage = 'Video loading aborted';
+                                            break;
+                                        case 2:
+                                            errorMessage = 'Network error - Check CORS settings';
+                                            break;
+                                        case 3:
+                                            errorMessage = 'Video decoding error';
+                                            break;
+                                        case 4:
+                                            errorMessage = 'Video format not supported';
+                                            break;
+                                    }
+                                }
+
+                                setVideoError(errorMessage);
                                 setIsLoading(false);
                                 setIsBuffering(false);
                                 setPlaying(false);

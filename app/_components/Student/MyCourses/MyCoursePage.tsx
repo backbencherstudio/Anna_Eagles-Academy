@@ -36,6 +36,11 @@ export default function MyCoursePage() {
         return <MyCoursePageSkeleton />;
     }
 
+    // handle course id wise paly video
+    const handleViewVideo = (id: string) => {
+        router.push(`/user/courses-modules/${id}`);
+    }
+
     return (
         <div className="">
             <ContinueWatching />
@@ -50,7 +55,7 @@ export default function MyCoursePage() {
                             <div
                                 key={series.id}
                                 className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-[#F8F9FA] rounded-xl p-4 cursor-pointer hover:bg-[#F0F1F2] transition-colors"
-                                onClick={() => router.push(`/user/courses-modules/${series.id}`)}
+                                onClick={() => handleViewVideo(series.id)}
                             >
                                 <div className="flex gap-4 flex-1 min-w-0">
                                     {/* Thumbnail Image */}

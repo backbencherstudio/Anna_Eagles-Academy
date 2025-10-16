@@ -57,10 +57,9 @@ export const myCoursesApi = createApi({
             }),
             providesTags: ['MyCourses'],
             keepUnusedDataFor: 0,
-           
+
         }),
     }),
 });
 
-export const { useGetEnrolledSeriesQuery, useGetSingleEnrolledSeriesQuery, useGetSingleLessonQuery, useLazyGetSingleLessonQuery, useGetWatchedHistoryQuery } = myCoursesApi;
-
+export const { useGetEnrolledSeriesQuery, useGetSingleEnrolledSeriesQuery, useGetSingleEnrolledCourseQuery, useLazyGetSingleEnrolledCourseQuery, useGetSingleLessonQuery, useGetWatchedHistoryQuery } = myCoursesApi;

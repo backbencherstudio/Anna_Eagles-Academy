@@ -9,6 +9,7 @@ import useEmblaCarousel from 'embla-carousel-react';
 
 interface VideoDisplayData {
     id: string;
+    seriesId: string;
     videoTitle: string;
     thumbnail: string;
     watchedStr: string;
@@ -104,6 +105,7 @@ export default function ContinueWatching() {
 
         return {
             id: item.lesson.id,
+            seriesId: item.series.id,
             videoTitle: item.lesson.title,
             thumbnail: item.series.thumbnail,
             watchedStr: formatTime(watchedSeconds),
@@ -167,8 +169,10 @@ export default function ContinueWatching() {
 
     // id wise view 
 
-    const handleViewVideo = (id: string) => {
-        router.push(`/user/courses-modules/${id}`);
+    const handleViewVideo = (seriesId: string, lessonId: string) => {
+        const params = new URLSearchParams();
+        params.set('lessonId', lessonId);
+        router.push(`/user/courses-modules/${seriesId}?${params.toString()}`);
     }
 
     return (
@@ -208,7 +212,7 @@ export default function ContinueWatching() {
                         >
                             <div
                                 className="w-full bg-[#F8F9FA] rounded-xl shadow-sm group transition cursor-pointer hover:shadow-md"
-                                onClick={() => handleViewVideo(vid.id)}
+                                onClick={() => handleViewVideo(vid.seriesId, vid.id)}
                             >
                                 <div className="relative w-full h-36 rounded-xl overflow-hidden">
                                     <Image

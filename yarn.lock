@@ -2403,6 +2403,7 @@ __metadata:
     react-player: "npm:^3.3.1"
     react-redux: "npm:^9.2.0"
     recharts: "npm:^3.1.0"
+    shaka-player: "npm:^4.16.5"
     stripe: "npm:^19.1.0"
     tailwind-merge: "npm:^3.3.1"
     tailwindcss: "npm:^4"
@@ -5875,6 +5876,13 @@ __metadata:
   version: 1.0.5
   resolution: "setimmediate@npm:1.0.5"
   checksum: 10c0/5bae81bfdbfbd0ce992893286d49c9693c82b1bcc00dcaaf3a09c8f428fdeacf4190c013598b81875dfac2b08a572422db7df779a99332d0fce186d15a3e4d49
+  languageName: node
+  linkType: hard
+
+"shaka-player@npm:^4.16.5":
+  version: 4.16.5
+  resolution: "shaka-player@npm:4.16.5"
+  checksum: 10c0/289e701beef52f18fb63f9eaad27fca042b05fdf8a4487fc4576f3868d1902f0015f13dcd1fb9bde660d1ee9cc88d682b66d300194aec6c1cccf83873ef2ae8d
   languageName: node
   linkType: hard
 

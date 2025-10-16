@@ -2,8 +2,9 @@ import React from 'react'
 import CoursesModules from '@/app/_components/Student/MyCourses/Courses_Modules/CoursesModules'
 
 
-export default function CoursesModulesPage({ params }: { params: { id: string } }) {
+export default async function CoursesModulesPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   return (
-    <CoursesModules seriesId={params.id} />
+    <CoursesModules seriesId={id} />
   )
 }

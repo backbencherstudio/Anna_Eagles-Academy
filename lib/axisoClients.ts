@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { authApi } from '@/rtk/api/authApi';
 import { startUpload, setUploadProgress, finishUpload, errorUpload } from '@/rtk/slices/admin/uploadProgressSlice';
 
 const axiosClient = axios.create({
@@ -94,6 +95,12 @@ export const createBaseQuery = () => {
 
       return { data: response.data };
     } catch (error: any) {
+      const status = error.response?.status;
+      if (status === 401) {
+        try {
+          api?.dispatch?.(authApi.endpoints.logout.initiate());
+        } catch (_) {}
+      }
       // mark error only if was uploading
       try {
         const isMultipart = typeof FormData !== 'undefined' && (args.data instanceof FormData);
@@ -103,7 +110,7 @@ export const createBaseQuery = () => {
       } catch (_) {}
       return {
         error: {
-          status: error.response?.status,
+          status,
           data: error.response?.data || error.message,
         },
       };
@@ -137,9 +144,15 @@ export const createAuthBaseQuery = () => {
 
       return { data: response.data };
     } catch (error: any) {
+      const status = error.response?.status || 500;
+      if (status === 401) {
+        try {
+          api?.dispatch?.(authApi.endpoints.logout.initiate());
+        } catch (_) {}
+      }
       return {
         error: {
-          status: error.response?.status || 500,
+          status,
           data: error.response?.data || error.message || 'An error occurred',
         },
       };
