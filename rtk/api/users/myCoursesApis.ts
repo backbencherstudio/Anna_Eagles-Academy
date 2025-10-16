@@ -57,6 +57,7 @@ export const myCoursesApi = createApi({
             }),
             providesTags: ['MyCourses'],
             keepUnusedDataFor: 0,
+           
         }),
     }),
 });

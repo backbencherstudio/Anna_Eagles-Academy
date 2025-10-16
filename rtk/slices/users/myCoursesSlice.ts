@@ -25,20 +25,46 @@ export interface EnrolledSeriesSummary {
     coursesCount: number;
     quizzesCount: number;
     assignmentsCount: number;
+    thumbnailUrl: string | null;
 }
 
 export interface WatchedHistoryItem {
-    lessonId: string;
-    lessonTitle: string;
-    videoLength: string | null;
-    timeSpent: number | null;
-    progressPercentage: number;
-    completionPercentage: number;
-    lastPosition: number | null;
-    seriesId: string;
-    seriesTitle: string;
-    seriesThumbnail: string | null;
-    viewedAt: string | null;
+    lesson: {
+        id: string;
+        title: string;
+        position: number;
+        video_length: string;
+        file_url: string;
+        doc_url: string | null;
+    };
+    course: {
+        id: string;
+        title: string;
+        position: number;
+    };
+    series: {
+        id: string;
+        title: string;
+        slug: string;
+        thumbnail: string;
+    };
+    enrollment: {
+        id: string;
+        enrolled_at: string;
+        status: string;
+        progress_percentage: number;
+        last_accessed_at: string;
+    };
+    progress: {
+        id: string;
+        is_completed: boolean;
+        is_viewed: boolean;
+        completed_at: string | null;
+        viewed_at: string | null;
+        time_spent: number | null;
+        last_position: number | null;
+        completion_percentage: number;
+    };
 }
 
 interface MyCoursesState {

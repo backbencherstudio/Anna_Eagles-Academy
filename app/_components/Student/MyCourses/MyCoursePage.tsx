@@ -7,6 +7,7 @@ import { BookOpenIcon, PlayCircleIcon } from 'lucide-react';
 import { useGetEnrolledSeriesQuery } from '@/rtk/api/users/myCoursesApis';
 import { useAppDispatch, useAppSelector } from '@/rtk/hooks';
 import { setEnrolledSeries, type EnrolledSeriesSummary } from '@/rtk/slices/users/myCoursesSlice';
+import Image from 'next/image';
 
 export default function MyCoursePage() {
     const router = useRouter();
@@ -26,6 +27,7 @@ export default function MyCoursePage() {
             coursesCount: s._count?.courses ?? 0,
             quizzesCount: s._count?.quizzes ?? 0,
             assignmentsCount: s._count?.assignments ?? 0,
+            thumbnailUrl: s.thumbnail_url ?? null,
         }));
         dispatch(setEnrolledSeries(mapped));
     }, [data, dispatch]);
@@ -50,18 +52,38 @@ export default function MyCoursePage() {
                                 className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-[#F8F9FA] rounded-xl p-4 cursor-pointer hover:bg-[#F0F1F2] transition-colors"
                                 onClick={() => router.push(`/user/courses-modules/${series.id}`)}
                             >
-                                <div className="flex-1 min-w-0">
-                                    <div className="font-medium text-base mb-1 truncate">{series.title}</div>
-                                    <div className="flex items-center gap-6 text-xs text-gray-500 mb-2">
-                                        <span>Duration <span className="font-semibold text-gray-700 ml-1">{series.duration ?? '—'}</span></span>
-                                        <span className="hidden md:inline">|</span>
-                                        <span>Progress <span className="font-semibold text-gray-700 ml-1">{progress}%</span></span>
+                                <div className="flex gap-4 flex-1 min-w-0">
+                                    {/* Thumbnail Image */}
+                                    <div className="flex-shrink-0">
+                                        {series.thumbnailUrl ? (
+                                            <Image
+                                                width={500}
+                                                height={200}
+                                                src={series.thumbnailUrl}
+                                                alt={series.title}
+                                                className="w-40 h-20 rounded-lg object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-16 h-16 rounded-lg bg-gray-200 flex items-center justify-center">
+                                                <BookOpenIcon className="w-8 h-8 text-gray-400" />
+                                            </div>
+                                        )}
                                     </div>
-                                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
-                                        <div
-                                            className="h-2 bg-yellow-400 rounded-full transition-all"
-                                            style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
-                                        ></div>
+
+                                    {/* Content */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="font-medium text-base mb-1 truncate">{series.title}</div>
+                                        <div className="flex items-center gap-6 text-xs text-gray-500 mb-2">
+                                            <span>Duration <span className="font-semibold text-gray-700 ml-1">{series.duration ?? '—'}</span></span>
+                                            <span className="hidden md:inline">|</span>
+                                            <span>Progress <span className="font-semibold text-gray-700 ml-1">{progress}%</span></span>
+                                        </div>
+                                        <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
+                                            <div
+                                                className="h-2 bg-yellow-400 rounded-full transition-all"
+                                                style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
+                                            ></div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-6 min-w-[100px] justify-end">
