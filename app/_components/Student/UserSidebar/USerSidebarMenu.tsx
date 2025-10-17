@@ -25,34 +25,35 @@ import StudentFileIcon from '@/components/Icons/CustomIcon/DectiveIcon/StudentFi
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import React from 'react'
+import { useAppSelector } from '@/rtk/hooks'
 
 export const MENU_CONFIG = {
     user: [
         {
             header: 'GENERAL',
             items: [
-                { title: 'Dashboard', icon: DashboardIcon, activeIcon: DashboardIconAc, href: '/user/dashboard', role: 'user' },
-                { title: 'Calander', icon: CalanderIcon, activeIcon: CalanderIconAt, href: '/user/schedule' },
+                { title: 'Dashboard', icon: DashboardIcon, activeIcon: DashboardIconAc, href: '/user/dashboard', role: ['user', 'student'] },
+                { title: 'Calander', icon: CalanderIcon, activeIcon: CalanderIconAt, href: '/user/schedule', role: 'student' },
             ],
         },
         {
             header: 'COURSES',
             items: [
-                { title: 'Discover', icon: DiscoverIcon, activeIcon: DiscoverIconAc, href: '/user/discover', role: 'user' },
-                { title: 'My Courses', icon: MyCourseIcon, activeIcon: MyCourseIconAc, href: '/user/my-courses', role: 'user' },
-                { title: 'Assignments', icon: AssignmentIcon, activeIcon: AssignmentIconAc, href: '/user/assignments', role: 'user' },
-                { title: 'Student Files', icon: StudentFileIcon, activeIcon: StudentFileIconAc, href: '/user/student-files', role: 'user' },
-                { title: 'Download Materials', icon: DownloadMaterialsIcon, activeIcon: DownloadMaterialsIconAc, href: '/user/download-materials', role: 'user' },
-                { title: 'Contact Teacher', icon: ContactTeacherIcon, activeIcon: ContactTeacherIconAc, href: '/user/contact-teacher', role: 'user' },
-                { title: 'Diploma', icon: DiplomaIcon, activeIcon: DiplomaIconAc, href: '/user/diploma', role: 'user' },
-                { title: 'Donations', icon: DonationIcon, activeIcon: DonationIconAc, href: '/user/donations', role: 'user' },
+                { title: 'Discover', icon: DiscoverIcon, activeIcon: DiscoverIconAc, href: '/user/discover', type: ['user', 'student'] },
+                { title: 'My Courses', icon: MyCourseIcon, activeIcon: MyCourseIconAc, href: '/user/my-courses', role: 'student' },
+                { title: 'Assignments', icon: AssignmentIcon, activeIcon: AssignmentIconAc, href: '/user/assignments', role: 'student' },
+                { title: 'Student Files', icon: StudentFileIcon, activeIcon: StudentFileIconAc, href: '/user/student-files', role: 'student' },
+                { title: 'Download Materials', icon: DownloadMaterialsIcon, activeIcon: DownloadMaterialsIconAc, href: '/user/download-materials', role: 'student' },
+                { title: 'Contact Teacher', icon: ContactTeacherIcon, activeIcon: ContactTeacherIconAc, href: '/user/contact-teacher', role: ['user', 'student'] },
+                { title: 'Diploma', icon: DiplomaIcon, activeIcon: DiplomaIconAc, href: '/user/diploma', role: 'student' },
+                { title: 'Donations', icon: DonationIcon, activeIcon: DonationIconAc, href: '/user/donations', role: ['user', 'student'] },
             ],
         },
         {
             header: 'OTHER',
             items: [
-                { title: 'Setting', icon: SettingsIcon, activeIcon: SettingsIconAc, href: '/user/setting/profile', role: 'user' },
-                { title: 'Privacy Policy', icon: PolicyIcon, activeIcon: PolicyIconAc, href: '/user/privacy-policy', role: 'user' },
+                { title: 'Setting', icon: SettingsIcon, activeIcon: SettingsIconAc, href: '/user/setting/profile', role: ['user', 'student'] },
+                { title: 'Privacy Policy', icon: PolicyIcon, activeIcon: PolicyIconAc, href: '/user/privacy-policy', role: ['user', 'student'] },
             ],
         },
     ],
@@ -142,12 +143,30 @@ function NavLink({ item, isCollapsed, onMobileMenuClose }: {
     )
 }
 
-export default function USerSidebarMenu({ role, isCollapsed, onMobileMenuClose }: SideBarMenuProps) {
-    const menuSections = MENU_CONFIG[role as 'user'] || []
+export default function USerSidebarMenu({ role: _role, isCollapsed, onMobileMenuClose }: SideBarMenuProps) {
+    const { user: userData } = useAppSelector((state) => state.auth)
+    const userType = (userData?.type || (userData as any)?.role || 'user') as 'user' | 'student' | 'admin'
+
+    const menuSections = MENU_CONFIG['user'] || []
+
+    const getAllowedRoles = (item: any): string[] => {
+        if (Array.isArray(item.role)) return item.role
+        if (item.role) return [item.role]
+        if (Array.isArray(item.type)) return item.type
+        if (item.type) return [item.type]
+        return ['user', 'student']
+    }
+
+    const filteredSections = menuSections
+        .map((section: any) => {
+            const filteredItems = (section.items || []).filter((item: any) => getAllowedRoles(item).includes(userType))
+            return { ...section, items: filteredItems }
+        })
+        .filter((section: any) => (section.items || []).length > 0)
 
     return (
         <nav className={`px-3 space-y-2 ${isCollapsed ? 'px-2' : ''}`}>
-            {menuSections.map((section: any, sIdx: number) => (
+            {filteredSections.map((section: any, sIdx: number) => (
                 <div key={sIdx} className="mb-5">
                     <div className={`text-xs font-semibold uppercase tracking-wider mb-1 ${isCollapsed ? 'hidden' : 'text-gray-400'}`}>
                         {section.header}

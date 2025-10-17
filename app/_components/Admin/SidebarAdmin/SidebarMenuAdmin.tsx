@@ -26,6 +26,7 @@ import { usePathname } from 'next/navigation'
 import React, { useState, useMemo } from 'react'
 import { FiSettings } from 'react-icons/fi'
 import { MdKeyboardArrowDown } from 'react-icons/md'
+import { useAppSelector } from '@/rtk/hooks'
 
 
 
@@ -308,8 +309,42 @@ function NavLink({ item, isCollapsed, onMobileMenuClose, isDropdownOpen, onToggl
 
 
 
-export default function SideBarMenuAdmin({ role, isCollapsed, onMobileMenuClose }: SideBarMenuProps) {
-    const menuSections = useMemo(() => MENU_CONFIG[role] || [], [role])
+export default function SideBarMenuAdmin({ role: _role, isCollapsed, onMobileMenuClose }: SideBarMenuProps) {
+    const { user: userData } = useAppSelector((state) => state.auth)
+    const userType = (userData?.type || (userData as any)?.role || 'user') as 'user' | 'student' | 'admin'
+
+    // Only render for admin users
+    if (userType !== 'admin') {
+        return null
+    }
+
+    const getAllowedRoles = (item: any): string[] => {
+        if (Array.isArray(item.role)) return item.role
+        if (item.role) return [item.role]
+        if (Array.isArray(item.type)) return item.type
+        if (item.type) return [item.type]
+        return ['admin']
+    }
+
+    const rawSections = useMemo(() => MENU_CONFIG['admin'] || [], [])
+
+    // Filter items and sub-items by role, and drop empty sections
+    const menuSections = useMemo(() => {
+        return (rawSections as any[])
+            .map((section: any) => {
+                const filteredItems = (section.items || []).map((item: any) => {
+                    if (item.hasDropdown && Array.isArray(item.subItems)) {
+                        const filteredSubItems = item.subItems.filter((subItem: any) => getAllowedRoles(subItem).includes(userType))
+                        if (filteredSubItems.length === 0) return null
+                        return { ...item, subItems: filteredSubItems }
+                    }
+                    return getAllowedRoles(item).includes(userType) ? item : null
+                }).filter(Boolean)
+
+                return { ...section, items: filteredItems }
+            })
+            .filter((section: any) => (section.items || []).length > 0)
+    }, [rawSections, userType])
     const [openDropdowns, setOpenDropdowns] = useState<{ [key: string]: boolean }>({})
     const pathname = usePathname()
 

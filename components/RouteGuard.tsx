@@ -9,7 +9,7 @@ import LoadingOverlay from './Resuable/LoadingOverlay';
 
 interface RouteGuardProps {
   children: React.ReactNode;
-  allowedRoles?: ('user' | 'admin')[];
+  allowedRoles?: ('user' | 'admin' | 'student')[];
   requireAuth?: boolean;
 }
 
@@ -28,7 +28,7 @@ const getCookie = (name: string): string | null => {
 
 export default function RouteGuard({
   children,
-  allowedRoles = ['user', 'admin'],
+  allowedRoles = ['user', 'admin', 'student'],
   requireAuth = true
 }: RouteGuardProps) {
   const dispatch = useAppDispatch();

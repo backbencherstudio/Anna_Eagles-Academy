@@ -44,7 +44,6 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
     const scripture = Array.isArray(scriptureList) && scriptureList.length > 0 ? scriptureList[0] : null;
 
     const titleMap = {
-        // common
         'dashboard': 'Hi, ' + userData?.name,
         // admin
         'calendar': 'Calendar',

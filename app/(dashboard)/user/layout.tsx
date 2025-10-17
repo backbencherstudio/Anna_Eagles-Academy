@@ -5,7 +5,7 @@ import { UserMainLayout } from '@/app/_components/Student/UserSidebar/UserMainLa
 
 export default function LayoutUser({ children }: { children: React.ReactNode }) {
   return (
-    <RouteGuard allowedRoles={['user']} requireAuth={true}>
+    <RouteGuard allowedRoles={['user', 'student']} requireAuth={true}>
       <UserMainLayout>
         {children}
       </UserMainLayout>
