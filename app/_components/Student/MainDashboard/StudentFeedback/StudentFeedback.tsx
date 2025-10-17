@@ -5,6 +5,7 @@ import Image from 'next/image'
 import WriteReviewModal from './WriteReviewModal'
 import { useGetAllFeedbackQuery } from '@/rtk/api/users/shareFeedBackApis'
 import VideoModal from '@/components/Resuable/VideoModal'
+import { ClockIcon } from 'lucide-react'
 
 type TabKey = 'series' | 'course'
 
@@ -103,7 +104,7 @@ export default function StudentFeedback() {
                 {!isLoading && !isFetching && feedbacks.map((item: any) => (
                     <div key={item.id} className="rounded-2xl border border-[#ECEFF3] p-4 shadow-sm">
                         {/* Video Area (same visual style as VideoCard, fixed height) */}
-                        <div className="relative h-28 w-full overflow-hidden rounded-xl bg-black">
+                        <div className="relative h-36 w-full overflow-hidden rounded-xl bg-black">
                             {Boolean(item.file_download_url || item.file_url) && (
                                 <video
                                     key={item.file_download_url || item.file_url}
@@ -170,8 +171,8 @@ export default function StudentFeedback() {
                         <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
                             <div className="flex items-center gap-2">
                                 <span className="inline-flex items-center gap-1">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4"><path d="M12 8a.75.75 0 01.75.75v3.19l2.28 2.28a.75.75 0 11-1.06 1.06l-2.47-2.47A.75.75 0 0111.25 12V8.75A.75.75 0 0112 8z" /><path fillRule="evenodd" d="M12 1.5a9.75 9.75 0 100 19.5 9.75 9.75 0 000-19.5zM3 12a9 9 0 1118 0A9 9 0 013 12z" clipRule="evenodd" /></svg>
-                                    {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    <ClockIcon className="h-4 w-4" />
+                                    {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
                                 </span>
                             </div>
                             <span>{new Date(item.created_at).toLocaleDateString()}</span>

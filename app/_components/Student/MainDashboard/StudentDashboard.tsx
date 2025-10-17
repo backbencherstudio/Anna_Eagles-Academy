@@ -34,7 +34,7 @@ export default function StudentDashboard() {
     return (
         <>
             <CourseAnnouncement announcements={dashboardData?.data?.teacher_sections?.announcement || []} />
-            <WatchWelcomeVideo encouragement={dashboardData?.data?.teacher_sections?.encouragement || []} />
+            <WatchWelcomeVideo  />
 
             {isStudent && (
                 <>
@@ -70,7 +70,7 @@ export default function StudentDashboard() {
                         <div className='w-full lg:w-5/12 mt-2'>
                             {/* <CalanderPage scheduleData={scheduleData} /> */}
                             <StudentFeedback />
-                            <TeacherVideo />
+                            <TeacherVideo encouragement={dashboardData?.data?.teacher_sections?.encouragement || []}/>
                         </div>
                     </div>
                 </>)}
