@@ -8,7 +8,7 @@ import AddEventModal from '@/app/_components/Admin/Calendar/AddEventModal'
 import EventDetailModal from '@/app/_components/Admin/Calendar/EventDetailModal'
 import ButtonSpring from '@/components/Resuable/ButtonSpring'
 import SchedulePage from '@/components/Shared/Calander/SchedulePage'
-import { useGetAllCalendarSchedulesQuery } from '@/rtk/api/admin/calendarSehedulesApis'
+import { useGetAllCalendarSchedulesQuery, useGetSingleCalendarScheduleQuery } from '@/rtk/api/admin/calendarSehedulesApis'
 import { transformCalendarEventToScheduleItem } from '@/lib/calendarUtils'
 
 interface ScheduleItem {
@@ -32,11 +32,20 @@ export default function CalendarPageAdmin() {
     const [scheduleData, setScheduleData] = useState<ScheduleItem[]>([]);
     const [selectedEvent, setSelectedEvent] = useState<any>(null);
     const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+    const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
     // Fetch calendar schedules from API - fetch all events initially
     const { data: apiData, isLoading, error } = useGetAllCalendarSchedulesQuery({
-        date: '' // Empty string to fetch all events
+        date: ''
     });
+
+    // Fetch single calendar schedule details when event is selected
+    const { data: singleEventData, isLoading: isLoadingSingleEvent } = useGetSingleCalendarScheduleQuery(
+        selectedEventId || '',
+        {
+            skip: !selectedEventId
+        }
+    );
 
     const handleOpenModal = () => {
         setOpening(true)
@@ -56,18 +65,20 @@ export default function CalendarPageAdmin() {
 
     const handleEventClick = (event: any) => {
         setSelectedEvent(event);
+        setSelectedEventId(event.id?.toString() || null);
         setIsEventModalOpen(true);
     }
 
     const handleCloseEventModal = () => {
         setIsEventModalOpen(false);
         setSelectedEvent(null);
+        setSelectedEventId(null);
     }
 
     // Transform API data when it changes
     useEffect(() => {
         if (apiData?.data?.events) {
-            const transformedEvents = apiData.data.events.map((event: any, index: number) => 
+            const transformedEvents = apiData.data.events.map((event: any, index: number) =>
                 transformCalendarEventToScheduleItem(event, index)
             );
             setScheduleData(transformedEvents);
@@ -115,9 +126,9 @@ export default function CalendarPageAdmin() {
 
             {/* schedule calander left side */}
             <div className='lg:col-span-2 flex flex-col'>
-                <CalanderAdmin 
-                    scheduleData={scheduleData} 
-                    selectedDate={selectedDate} 
+                <CalanderAdmin
+                    scheduleData={scheduleData}
+                    selectedDate={selectedDate}
                     onDateChange={handleDateChange}
                     onEventClick={handleEventClick}
                 />
@@ -157,11 +168,12 @@ export default function CalendarPageAdmin() {
             </div>
 
             {/* Event Detail Modal */}
-            {isEventModalOpen && selectedEvent && (
+            {isEventModalOpen && (singleEventData?.data || selectedEvent) && (
                 <EventDetailModal
-                    event={selectedEvent}
+                    event={singleEventData?.data || selectedEvent}
                     isOpen={isEventModalOpen}
                     onClose={handleCloseEventModal}
+                    isLoading={isLoadingSingleEvent}
                 />
             )}
         </div>

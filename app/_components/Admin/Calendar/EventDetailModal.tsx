@@ -10,6 +10,7 @@ interface EventDetailModalProps {
     event: CalendarEvent;
     isOpen: boolean;
     onClose: () => void;
+    isLoading?: boolean;
 }
 
 const TYPE_CONFIG = {
@@ -35,7 +36,20 @@ const STATUS_STYLE: Record<string, string> = {
     IN_PROGRESS: 'bg-amber-50 text-amber-700 border-amber-100',
 };
 
-export default function EventDetailModal({ event, isOpen, onClose }: EventDetailModalProps) {
+// Shimmer loading component
+const ShimmerBox = ({ className = '' }: { className?: string }) => (
+    <div className={`animate-pulse bg-gray-200 rounded ${className}`}></div>
+);
+
+const ShimmerText = ({ lines = 1, className = '' }: { lines?: number; className?: string }) => (
+    <div className={`space-y-2 ${className}`}>
+        {Array.from({ length: lines }).map((_, i) => (
+            <ShimmerBox key={i} className="h-4 w-full" />
+        ))}
+    </div>
+);
+
+export default function EventDetailModal({ event, isOpen, onClose, isLoading = false }: EventDetailModalProps) {
     const typeConfig = TYPE_CONFIG[event.type] || TYPE_CONFIG.GENERAL;
     const statusLabel = STATUS_LABEL[event.status] || STATUS_LABEL.SCHEDULED;
 
@@ -103,17 +117,32 @@ export default function EventDetailModal({ event, isOpen, onClose }: EventDetail
                     <div className="flex items-start gap-3">
                         <typeConfig.icon className="h-5 w-5 text-gray-600" />
                         <div className="flex-1 min-w-0">
-                            <h2 className="text-xl font-semibold text-gray-900 truncate" title={event.title}>{event.title}</h2>
+                            {isLoading ? (
+                                <ShimmerBox className="h-6 w-3/4 mb-2" />
+                            ) : (
+                                <h2 className="text-xl font-semibold text-gray-900 truncate" title={event.title}>{event.title}</h2>
+                            )}
                             <div className="mt-2 flex flex-wrap items-center gap-2">
-                                <Badge className="border-gray-200 bg-white text-gray-700">{typeConfig.label}</Badge>
-                                <Badge className={STATUS_STYLE[event.status] || 'border-gray-200 bg-white text-gray-700'}>{statusLabel}</Badge>
-                                <Badge className="border-purple-100 bg-purple-50 text-purple-700">{durationLabel}</Badge>
-                                <Badge className="border-gray-200 bg-white text-gray-700">{viewerTz} (Local)</Badge>
-                                {eventTz !== viewerTz && (
-                                    <Badge className="border-gray-200 bg-white text-gray-700">{eventTz} (Event)</Badge>
-                                )}
-                                {isUpcoming && (
-                                    <Badge className="border-emerald-100 bg-emerald-50 text-emerald-700">Starts in {timeUntilLabel}</Badge>
+                                {isLoading ? (
+                                    <>
+                                        <ShimmerBox className="h-6 w-16" />
+                                        <ShimmerBox className="h-6 w-20" />
+                                        <ShimmerBox className="h-6 w-12" />
+                                        <ShimmerBox className="h-6 w-24" />
+                                    </>
+                                ) : (
+                                    <>
+                                        <Badge className="border-gray-200 bg-white text-gray-700">{typeConfig.label}</Badge>
+                                        <Badge className={STATUS_STYLE[event.status] || 'border-gray-200 bg-white text-gray-700'}>{statusLabel}</Badge>
+                                        <Badge className="border-purple-100 bg-purple-50 text-purple-700">{durationLabel}</Badge>
+                                        <Badge className="border-gray-200 bg-white text-gray-700">{viewerTz} (Local)</Badge>
+                                        {eventTz !== viewerTz && (
+                                            <Badge className="border-gray-200 bg-white text-gray-700">{eventTz} (Event)</Badge>
+                                        )}
+                                        {isUpcoming && (
+                                            <Badge className="border-emerald-100 bg-emerald-50 text-emerald-700">Starts in {timeUntilLabel}</Badge>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         </div>
@@ -123,25 +152,55 @@ export default function EventDetailModal({ event, isOpen, onClose }: EventDetail
                 {/* Body */}
                 <div className="px-6 py-5 space-y-6">
                     {/* Description */}
-                    {event.description && (
+                    {isLoading ? (
                         <div>
-                            <h3 className="text-sm font-medium text-gray-900 mb-2">Description</h3>
-                            <p className="text-sm text-gray-700 leading-6">{event.description}</p>
+                            <ShimmerBox className="h-4 w-24 mb-2" />
+                            <ShimmerText lines={3} />
                         </div>
+                    ) : (
+                        event.description && (
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-900 mb-2">Description</h3>
+                                <p className="text-sm text-gray-700 leading-6">{event.description}</p>
+                            </div>
+                        )
                     )}
 
                     {/* Schedule */}
                     <div>
                         <h3 className="text-sm font-medium text-gray-900 mb-3">Schedule</h3>
                         <p className="text-xs text-gray-500 mb-2">Times shown in your local timezone ({viewerTz})</p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="rounded-lg border border-gray-200 p-3">
-                                <InfoRow icon={<CalendarIcon className="h-4 w-4" />} label="Start" value={<span>{startDateStr} • {startTimeStr}</span>} />
+                        {isLoading ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="rounded-lg border border-gray-200 p-3">
+                                    <div className="flex items-start gap-3">
+                                        <ShimmerBox className="h-4 w-4 mt-0.5" />
+                                        <div className="flex-1">
+                                            <ShimmerBox className="h-3 w-12 mb-1" />
+                                            <ShimmerBox className="h-4 w-32" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="rounded-lg border border-gray-200 p-3">
+                                    <div className="flex items-start gap-3">
+                                        <ShimmerBox className="h-4 w-4 mt-0.5" />
+                                        <div className="flex-1">
+                                            <ShimmerBox className="h-3 w-12 mb-1" />
+                                            <ShimmerBox className="h-4 w-32" />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="rounded-lg border border-gray-200 p-3">
-                                <InfoRow icon={<Clock className="h-4 w-4" />} label="End" value={<span>{endDateStr} • {endTimeStr}</span>} />
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="rounded-lg border border-gray-200 p-3">
+                                    <InfoRow icon={<CalendarIcon className="h-4 w-4" />} label="Start" value={<span>{startDateStr} • {startTimeStr}</span>} />
+                                </div>
+                                <div className="rounded-lg border border-gray-200 p-3">
+                                    <InfoRow icon={<Clock className="h-4 w-4" />} label="End" value={<span>{endDateStr} • {endTimeStr}</span>} />
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     {/* Class Link */}
@@ -187,42 +246,65 @@ export default function EventDetailModal({ event, isOpen, onClose }: EventDetail
                     {/* Related Information */}
                     <div>
                         <h3 className="text-sm font-medium text-gray-900 mb-3">Related</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {event.user && (
+                        {isLoading ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="rounded-lg border border-gray-200 p-3">
-                                    <InfoRow icon={<User className="h-4 w-4" />} label="Instructor" value={
-                                        <span>
-                                            {event.user.first_name} {event.user.last_name}
-                                            <span className="block text-xs text-gray-500">{event.user.email}</span>
-                                        </span>
-                                    } />
+                                    <div className="flex items-start gap-3">
+                                        <ShimmerBox className="h-4 w-4 mt-0.5" />
+                                        <div className="flex-1">
+                                            <ShimmerBox className="h-3 w-16 mb-1" />
+                                            <ShimmerBox className="h-4 w-24" />
+                                        </div>
+                                    </div>
                                 </div>
-                            )}
+                                <div className="rounded-lg border border-gray-200 p-3">
+                                    <div className="flex items-start gap-3">
+                                        <ShimmerBox className="h-4 w-4 mt-0.5" />
+                                        <div className="flex-1">
+                                            <ShimmerBox className="h-3 w-16 mb-1" />
+                                            <ShimmerBox className="h-4 w-24" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {event.user && (
+                                    <div className="rounded-lg border border-gray-200 p-3">
+                                        <InfoRow icon={<User className="h-4 w-4" />} label="Instructor" value={
+                                            <span>
+                                                {event.user.first_name} {event.user.last_name}
+                                                <span className="block text-xs text-gray-500">{event.user.email}</span>
+                                            </span>
+                                        } />
+                                    </div>
+                                )}
 
-                            {event.course && (
-                                <div className="rounded-lg border border-gray-200 p-3">
-                                    <InfoRow icon={<BookOpen className="h-4 w-4" />} label="Course" value={event.course.title} />
-                                </div>
-                            )}
+                                {event.course && (
+                                    <div className="rounded-lg border border-gray-200 p-3">
+                                        <InfoRow icon={<BookOpen className="h-4 w-4" />} label="Course" value={event.course.title} />
+                                    </div>
+                                )}
 
-                            {event.series && (
-                                <div className="rounded-lg border border-gray-200 p-3">
-                                    <InfoRow icon={<BookOpen className="h-4 w-4" />} label="Series" value={event.series.title} />
-                                </div>
-                            )}
+                                {event.series && (
+                                    <div className="rounded-lg border border-gray-200 p-3">
+                                        <InfoRow icon={<BookOpen className="h-4 w-4" />} label="Series" value={event.series.title} />
+                                    </div>
+                                )}
 
-                            {event.quiz && (
-                                <div className="rounded-lg border border-gray-200 p-3">
-                                    <InfoRow icon={<HelpCircle className="h-4 w-4" />} label="Quiz" value={event.quiz.title} />
-                                </div>
-                            )}
+                                {event.quiz && (
+                                    <div className="rounded-lg border border-gray-200 p-3">
+                                        <InfoRow icon={<HelpCircle className="h-4 w-4" />} label="Quiz" value={event.quiz.title} />
+                                    </div>
+                                )}
 
-                            {event.assignment && (
-                                <div className="rounded-lg border border-gray-200 p-3">
-                                    <InfoRow icon={<FileText className="h-4 w-4" />} label="Assignment" value={event.assignment.title} />
-                                </div>
-                            )}
-                        </div>
+                                {event.assignment && (
+                                    <div className="rounded-lg border border-gray-200 p-3">
+                                        <InfoRow icon={<FileText className="h-4 w-4" />} label="Assignment" value={event.assignment.title} />
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     {/* Metadata */}

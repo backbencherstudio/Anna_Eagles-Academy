@@ -8,12 +8,15 @@ type ScheduleItem = {
     subject?: string;
     date: string;
     time?: string;
+    originalEvent?: any;
+    uniqueId?: string;
 };
 
-export default function CalanderStudent({ scheduleData, selectedDate, onDateChange }: {
+export default function CalanderStudent({ scheduleData, selectedDate, onDateChange, onEventClick }: {
     scheduleData: ScheduleItem[];
     selectedDate: Date;
     onDateChange: (date: Date) => void;
+    onEventClick?: (event: any) => void;
 }) {
     const [loading, setLoading] = useState(false);
 
@@ -27,6 +30,11 @@ export default function CalanderStudent({ scheduleData, selectedDate, onDateChan
     }
 
     return (
-        <ScheduleStudy scheduleData={scheduleData} selectedDate={selectedDate} onDateChange={onDateChange} />
+        <ScheduleStudy
+            scheduleData={scheduleData}
+            selectedDate={selectedDate}
+            onDateChange={onDateChange}
+            onEventClick={onEventClick}
+        />
     )
 }

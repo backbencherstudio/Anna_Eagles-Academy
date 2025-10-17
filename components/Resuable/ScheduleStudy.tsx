@@ -348,7 +348,7 @@ export default function ScheduleStudy({ scheduleData, selectedDate: externalSele
                     <h3 className="text-sm font-semibold text-yellow-800 mb-3">
                         Events not in time slots ({unmappedEvents.length})
                     </h3>
-                                    <div className="space-y-2">
+                    <div className="space-y-2">
                         {unmappedEvents.map((event, index) => (
                             <div
                                 key={index}
@@ -360,7 +360,7 @@ export default function ScheduleStudy({ scheduleData, selectedDate: externalSele
                                         width: 12,
                                         height: 12,
                                         borderRadius: 3,
-                                                        background: getEventColor(event),
+                                        background: getEventColor(event),
                                         display: 'inline-block',
                                     }}
                                 />

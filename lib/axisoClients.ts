@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { authApi } from '@/rtk/api/authApi';
 import { startUpload, setUploadProgress, finishUpload, errorUpload } from '@/rtk/slices/admin/uploadProgressSlice';
+import { handleLogout } from './logoutUtils';
 
 const axiosClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_ENDPOINT,
@@ -97,9 +97,7 @@ export const createBaseQuery = () => {
     } catch (error: any) {
       const status = error.response?.status;
       if (status === 401) {
-        try {
-          api?.dispatch?.(authApi.endpoints.logout.initiate());
-        } catch (_) {}
+        handleLogout(api);
       }
       // mark error only if was uploading
       try {
@@ -146,9 +144,7 @@ export const createAuthBaseQuery = () => {
     } catch (error: any) {
       const status = error.response?.status || 500;
       if (status === 401) {
-        try {
-          api?.dispatch?.(authApi.endpoints.logout.initiate());
-        } catch (_) {}
+        handleLogout(api);
       }
       return {
         error: {

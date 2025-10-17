@@ -54,6 +54,7 @@ import { studentManagementApi } from './api/admin/studentManagementApis'
 import mainDashboardReducer from '@/rtk/slices/admin/mainDashboardSlice'
 import { mainDashboardApi } from './api/admin/mainDashboardApis'
 import { filterSeriesListApi } from './api/users/filterSeriesList'
+import { scheduleApi } from './api/users/scheduleApis'
 
 
 export const store = configureStore({
@@ -121,7 +122,7 @@ export const store = configureStore({
     // contact teacher
     contactTeacher: contactTeacherReducer,
     [contactTeacherApi.reducerPath]: contactTeacherApi.reducer,
-    
+    [scheduleApi.reducerPath]: scheduleApi.reducer,
     
   },
 
@@ -187,6 +188,7 @@ export const store = configureStore({
       studentFileApi.middleware,
       studentDownloadMaterialsApi.middleware,
       contactTeacherApi.middleware,
+      scheduleApi.middleware,
     ),
   devTools: process.env.NODE_ENV !== 'production',
 })
