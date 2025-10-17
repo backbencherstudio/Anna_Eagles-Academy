@@ -1,16 +1,20 @@
 'use client'
-import React from 'react'
+import React, { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Calendar as CalendarIcon, Clock, User, BookOpen, FileText, HelpCircle, ClipboardList, ExternalLink, Users } from 'lucide-react'
+import { Calendar as CalendarIcon, Clock, User, BookOpen, FileText, HelpCircle, ClipboardList, ExternalLink, Users, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import toast from 'react-hot-toast'
 import { CalendarEvent } from '@/rtk/slices/admin/calendarSehedulesSlice'
+import ConfirmDialog from '@/components/Resuable/ConfirmDialog'
 
 interface EventDetailModalProps {
     event: CalendarEvent;
     isOpen: boolean;
     onClose: () => void;
     isLoading?: boolean;
+    onDelete?: (eventId: string) => void;
+    isDeleting?: boolean;
+    showDeleteButton?: boolean;
 }
 
 const TYPE_CONFIG = {
@@ -49,9 +53,27 @@ const ShimmerText = ({ lines = 1, className = '' }: { lines?: number; className?
     </div>
 );
 
-export default function EventDetailModal({ event, isOpen, onClose, isLoading = false }: EventDetailModalProps) {
+export default function EventDetailModal({
+    event,
+    isOpen,
+    onClose,
+    isLoading = false,
+    onDelete,
+    isDeleting = false,
+    showDeleteButton = false
+}: EventDetailModalProps) {
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
     const typeConfig = TYPE_CONFIG[event.type] || TYPE_CONFIG.GENERAL;
     const statusLabel = STATUS_LABEL[event.status] || STATUS_LABEL.SCHEDULED;
+
+    // Check if event can be deleted based on type
+    const canDeleteEvent = (eventType: string) => {
+        const deletableTypes = ['MEETING', 'GENERAL', 'LECTURE'];
+        return deletableTypes.includes(eventType);
+    };
+
+    const isDeletable = canDeleteEvent(event.type);
 
     // Local timezone formatting
     const viewerTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -101,6 +123,17 @@ export default function EventDetailModal({ event, isOpen, onClose, isLoading = f
         </div>
     );
 
+    const handleDeleteClick = () => {
+        setShowDeleteConfirm(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (onDelete && event.id) {
+            await onDelete(event.id.toString());
+        }
+    };
+
+
     const Badge = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
         <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${className}`}>{children}</span>
     );
@@ -135,13 +168,13 @@ export default function EventDetailModal({ event, isOpen, onClose, isLoading = f
                                         <Badge className="border-gray-200 bg-white text-gray-700">{typeConfig.label}</Badge>
                                         <Badge className={STATUS_STYLE[event.status] || 'border-gray-200 bg-white text-gray-700'}>{statusLabel}</Badge>
                                         <Badge className="border-purple-100 bg-purple-50 text-purple-700">{durationLabel}</Badge>
-                                        <Badge className="border-gray-200 bg-white text-gray-700">{viewerTz} (Local)</Badge>
+                                        {/* <Badge className="border-gray-200 bg-white text-gray-700">{viewerTz} (Local)</Badge> */}
                                         {eventTz !== viewerTz && (
                                             <Badge className="border-gray-200 bg-white text-gray-700">{eventTz} (Event)</Badge>
                                         )}
-                                        {isUpcoming && (
+                                        {/* {isUpcoming && (
                                             <Badge className="border-emerald-100 bg-emerald-50 text-emerald-700">Starts in {timeUntilLabel}</Badge>
-                                        )}
+                                        )} */}
                                     </>
                                 )}
                             </div>
@@ -227,7 +260,7 @@ export default function EventDetailModal({ event, isOpen, onClose, isLoading = f
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    className="h-8 px-3"
+                                    className="h-8 px-3 cursor-pointer"
                                     onClick={async () => {
                                         try {
                                             await navigator.clipboard.writeText(event.class_link || '');
@@ -319,7 +352,59 @@ export default function EventDetailModal({ event, isOpen, onClose, isLoading = f
                         </div>
                     )}
                 </div>
+
+                {/* Delete Button - Only show for admin and deletable event types */}
+                {showDeleteButton && onDelete && isDeletable && (
+                    <div className="px-6 py-4 border-t border-gray-100 bg-red-50">
+                        <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={handleDeleteClick}
+                            disabled={isDeleting}
+                            className="w-full cursor-pointer"
+                        >
+                            {isDeleting ? (
+                                <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    Deleting...
+                                </>
+                            ) : (
+                                <>
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Delete Event
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                )}
+
+                {/* Non-deletable event info */}
+                {showDeleteButton && !isDeletable && (
+                    <div className="px-6 py-4 border-t border-gray-100 bg-yellow-50">
+                        <div className="flex items-center gap-2 text-sm text-yellow-700">
+                            <div className="w-4 h-4 rounded-full bg-yellow-200 flex items-center justify-center">
+                                <span className="text-xs">!</span>
+                            </div>
+                            <span>
+                                This {event.type.toLowerCase()} event cannot be deleted. Only Meeting, General, and Lecture events can be deleted.
+                            </span>
+                        </div>
+                    </div>
+                )}
             </DialogContent>
+
+            {/* Delete Confirmation Dialog */}
+            <ConfirmDialog
+                open={showDeleteConfirm}
+                onOpenChange={setShowDeleteConfirm}
+                title="Delete Event"
+                description={`Are you sure you want to delete "${event.title}"? This action cannot be undone.`}
+                confirmText="Delete Event"
+                cancelText="Cancel"
+                onConfirm={handleConfirmDelete}
+                confirmVariant="destructive"
+                isLoading={isDeleting}
+            />
         </Dialog>
     )
 }

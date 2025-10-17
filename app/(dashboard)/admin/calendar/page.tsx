@@ -8,8 +8,9 @@ import AddEventModal from '@/app/_components/Admin/Calendar/AddEventModal'
 import EventDetailModal from '@/app/_components/Admin/Calendar/EventDetailModal'
 import ButtonSpring from '@/components/Resuable/ButtonSpring'
 import SchedulePage from '@/components/Shared/Calander/SchedulePage'
-import { useGetAllCalendarSchedulesQuery, useGetSingleCalendarScheduleQuery } from '@/rtk/api/admin/calendarSehedulesApis'
+import { useGetAllCalendarSchedulesQuery, useGetSingleCalendarScheduleQuery, useDeleteCalendarScheduleMutation } from '@/rtk/api/admin/calendarSehedulesApis'
 import { transformCalendarEventToScheduleItem } from '@/lib/calendarUtils'
+import CalendarLoadingShimmer from '@/components/Resuable/CalendarLoadingShimmer'
 
 interface ScheduleItem {
     id: number;
@@ -47,6 +48,9 @@ export default function CalendarPageAdmin() {
         }
     );
 
+    // Delete calendar schedule mutation
+    const [deleteCalendarSchedule, { isLoading: isDeleting }] = useDeleteCalendarScheduleMutation();
+
     const handleOpenModal = () => {
         setOpening(true)
         setTimeout(() => {
@@ -75,6 +79,16 @@ export default function CalendarPageAdmin() {
         setSelectedEventId(null);
     }
 
+    const handleDeleteEvent = async (eventId: string) => {
+        try {
+            await deleteCalendarSchedule(eventId).unwrap();
+            // Close modal after successful deletion
+            handleCloseEventModal();
+        } catch (error) {
+            console.error('Failed to delete event:', error);
+        }
+    }
+
     // Transform API data when it changes
     useEffect(() => {
         if (apiData?.data?.events) {
@@ -87,20 +101,7 @@ export default function CalendarPageAdmin() {
 
     // Loading state
     if (isLoading) {
-        return (
-            <div className='w-full grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch'>
-                <div className='lg:col-span-2 flex flex-col'>
-                    <div className="bg-white rounded-2xl p-6 shadow-sm flex items-center justify-center h-full">
-                        <div className="text-gray-500">Loading calendar data...</div>
-                    </div>
-                </div>
-                <div className='lg:col-span-1 flex flex-col'>
-                    <div className="bg-white rounded-2xl p-6 shadow-sm flex items-center justify-center h-full">
-                        <div className="text-gray-500">Loading...</div>
-                    </div>
-                </div>
-            </div>
-        );
+        return <CalendarLoadingShimmer />
     }
 
     // Error state
@@ -174,6 +175,9 @@ export default function CalendarPageAdmin() {
                     isOpen={isEventModalOpen}
                     onClose={handleCloseEventModal}
                     isLoading={isLoadingSingleEvent}
+                    onDelete={handleDeleteEvent}
+                    isDeleting={isDeleting}
+                    showDeleteButton={true}
                 />
             )}
         </div>

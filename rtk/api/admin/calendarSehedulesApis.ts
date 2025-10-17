@@ -28,6 +28,15 @@ export const calendarSchedulesApi = createApi({
             }),
             providesTags: ['CalendarSchedules'],
         }),
+
+        // delete calendar schedule
+        deleteCalendarSchedule: builder.mutation({
+            query: (id: string) => ({
+                url: `/api/admin/schedule-event/${id}`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: ['CalendarSchedules'],
+        }),
     }),
 });
-export const { useGetAllCalendarSchedulesQuery, useGetSingleCalendarScheduleQuery } = calendarSchedulesApi;
+export const { useGetAllCalendarSchedulesQuery, useGetSingleCalendarScheduleQuery, useDeleteCalendarScheduleMutation } = calendarSchedulesApi;

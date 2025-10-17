@@ -5,6 +5,7 @@ import SchedulePage from '@/components/Shared/Calander/SchedulePage'
 import { transformCalendarEventToScheduleItem } from '@/lib/calendarUtils'
 import { useGetAllStudentScheduleQuery, useGetSingleStudentScheduleQuery } from '@/rtk/api/users/scheduleApis'
 import EventDetailModal from '@/app/_components/Admin/Calendar/EventDetailModal'
+import { SimpleCalendarLoadingShimmer } from '@/components/Resuable/CalendarLoadingShimmer'
 
 type ScheduleItem = {
     id: number;
@@ -67,20 +68,7 @@ export default function CalendarStudentPage() {
 
     // Loading state
     if (isLoading) {
-        return (
-            <div className='w-full grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch'>
-                <div className='lg:col-span-2 flex flex-col'>
-                    <div className="bg-white rounded-2xl p-6 shadow-sm flex items-center justify-center h-full">
-                        <div className="text-gray-500">Loading calendar data...</div>
-                    </div>
-                </div>
-                <div className='lg:col-span-1 flex flex-col'>
-                    <div className="bg-white rounded-2xl p-6 shadow-sm flex items-center justify-center h-full">
-                        <div className="text-gray-500">Loading calendar data...</div>
-                    </div>
-                </div>
-            </div>
-        );
+        return <SimpleCalendarLoadingShimmer />
     }
     return (
         <div className='w-full  flex flex-col gap-10 lg:flex-row '>
