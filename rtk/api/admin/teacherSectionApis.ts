@@ -1,11 +1,11 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
-import { createAuthBaseQuery } from '@/lib/axisoClients';
+import { createBaseQuery } from '@/lib/axisoClients';
 
 
 // Teacher Section APIs
 export const teacherSectionApi = createApi({
     reducerPath: 'teacherSectionApi',
-    baseQuery: createAuthBaseQuery(),
+    baseQuery: createBaseQuery(),
     tagTypes: ['TeacherSection'],
     endpoints: (builder) => ({
 
@@ -14,7 +14,7 @@ export const teacherSectionApi = createApi({
             query: (teacherSection) => ({
                 url: '/api/admin/teacher-section',
                 method: 'POST',
-                body: teacherSection,
+                data: teacherSection,
             }),
             invalidatesTags: ['TeacherSection'],
         }),
@@ -42,9 +42,9 @@ export const teacherSectionApi = createApi({
         // update 
         updateTeacherSection: builder.mutation({
             query: (teacherSection) => ({
-                url: `/api/admin/teacher-section/${teacherSection.id}`,
+                url: `/api/admin/teacher-section/${teacherSection.get('id')}`,
                 method: 'PATCH',
-                body: teacherSection,
+                data: teacherSection,
             }),
             invalidatesTags: ['TeacherSection'],
         }),

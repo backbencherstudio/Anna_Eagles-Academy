@@ -6,30 +6,23 @@ import { X, Volume2 } from 'lucide-react'
 import AnnouncementIcon from '@/components/Icons/CustomIcon/AnnouncementIcon'
 
 interface Announcement {
-    id: number
+    id: string
     title: string
-    message: string
+    description: string
+    section_type: string
+    created_at: string
+    updated_at: string
+    release_date: string
+    is_released: boolean
+    status: string
+    release_status: string
 }
 
-const announcements: Announcement[] = [
-    {
-        id: 1,
-        title: "New Course Available",
-        message: 'Join our new "Advanced Biblical Studies" course starting next Monday!'
-    },
-    {
-        id: 2,
-        title: "Special Offer",
-        message: 'Get 20% off on all premium courses this month only!'
-    },
-    {
-        id: 3,
-        title: "Live Session",
-        message: 'Join our live Q&A session with expert instructors tomorrow at 2 PM.'
-    }
-]
+interface CourseAnnouncementProps {
+    announcements: Announcement[]
+}
 
-export default function CourseAnnouncement() {
+export default function CourseAnnouncement({ announcements }: CourseAnnouncementProps) {
     const [isVisible, setIsVisible] = useState(true)
     const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true })
     const [selectedIndex, setSelectedIndex] = useState(0)
@@ -50,7 +43,7 @@ export default function CourseAnnouncement() {
         emblaApi.on('select', onSelect)
     }, [emblaApi, onSelect])
 
-    if (!isVisible) return null
+    if (!isVisible || !announcements || announcements.length === 0) return null
 
     return (
         <div className="relative bg-[#0F25980D] border border-[#C4CEFF] rounded-lg shadow-sm px-5 py-3 mb-4">
@@ -69,7 +62,7 @@ export default function CourseAnnouncement() {
                                 <div key={announcement.id} className="embla__slide cursor-pointer flex-shrink-0 w-full">
                                     <div className="flex items-center ju">
                                         <span className="text-gray-700  text-xs sm:text-base leading-relaxed ">
-                                            <span className="font-semibold">{announcement.title}:</span> {announcement.message}
+                                            <span className="font-semibold">{announcement.title}:</span> {announcement.description}
                                         </span>
                                     </div>
                                 </div>

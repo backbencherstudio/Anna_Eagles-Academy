@@ -9,6 +9,7 @@ import Language from './Laguage';
 import ProfileNav from './ProfileNav';
 import { useNotificationCount } from '@/hooks/useNotificationCount';
 import { useAppSelector } from '@/rtk/hooks';
+import { useGetDashboardDataQuery } from '@/rtk/api/users/dashboardDataApis';
 
 interface NavbarProps {
     onMobileMenuToggle: () => void;
@@ -20,7 +21,8 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const currentNotificationCount = useNotificationCount();
     const searchParams = useSearchParams();
-    
+    const { data: dashboardData } = useGetDashboardDataQuery({});
+
     // Get user data from Redux store
     const { user: userData, isAuthenticated } = useAppSelector((state) => state.auth);
 
@@ -34,6 +36,12 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
     const pathname = usePathname();
     const pathSegments = pathname.split('/').filter(segment => segment !== '');
     const currentPath = pathSegments[pathSegments.length - 1] || 'dashboard';
+
+    // scripture quote data (show only if exists)
+    const scriptureList = dashboardData?.data?.teacher_sections?.scripture as
+        | { title?: string; description?: string }[]
+        | undefined;
+    const scripture = Array.isArray(scriptureList) && scriptureList.length > 0 ? scriptureList[0] : null;
 
     const titleMap = {
         // common
@@ -203,13 +211,15 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
 
                 {/* Quote chip (poem section) */}
                 {
-                    pathname === '/user/dashboard' && isAuthenticated && userData?.role === 'user' && (
+                    pathname === '/user/dashboard' && isAuthenticated && userData?.role !== 'admin' && scripture && (
                         <div className="hidden xl:flex items-center justify-center">
-                            <div className="max-w-[860px] w-full bg-[#F1C27D1A] px-4 sm:px-6 py-3 sm:py-4 rounded-tl-[48px] rounded-br-[48px] rounded-tr-[10px] rounded-bl-[10px]">
+                            <div className="max-w-[460px] w-full bg-[#F1C27D1A] px-4 sm:px-6 py-3 sm:py-4 rounded-tl-[48px] rounded-br-[48px] rounded-tr-[10px] rounded-bl-[10px]">
                                 <p className="text-[#0F172A] italic text-[13px] leading-relaxed text-center font-medium">
-                                    "For I know the plans I have for you, declares the Lord, plans to <br /> prosper you and not to harm you, to give you hope and a future."
+                                    {scripture?.description}
                                 </p>
-                                <p className="text-center text-[#E2A93B] text-[12px] sm:text-[14px] font-semibold mt-1">— Jeremiah 29:11</p>
+                                <p className="text-center text-[#E2A93B] text-[12px] sm:text-[14px] font-semibold mt-1">—
+                                    {scripture?.title}
+                                </p>
                             </div>
                         </div>
                     )

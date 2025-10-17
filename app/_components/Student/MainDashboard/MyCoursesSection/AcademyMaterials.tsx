@@ -21,8 +21,8 @@ export default function AcademyMaterials() {
                 <div className="aspect-video relative">
                     {/* Play Button Overlay */}
                     <div className="absolute inset-0 flex items-center justify-center">
-                        <button className="w-16 cursor-pointer h-16 sm:w-20 sm:h-20 bg-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
-                            <Play className="w-6 h-6 sm:w-8 sm:h-8 text-black fill-black ml-1" />
+                        <button className="w-16 cursor-pointer h-16  bg-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+                            <Play className="w-6 h-6 text-black fill-black ml-1" />
                         </button>
                     </div>
                 </div>

@@ -283,12 +283,12 @@ export default function TeacherSectionPage() {
             {isOpeningModal ? (
               <>
                 <ButtonSpring color="#fff" loading={isOpeningModal} />
-                Opening...
+                Creating...
               </>
             ) : (
               <>
-                <Upload className="h-4 w-4 mr-2" />
-                Upload Video
+                <Upload className="h-4 w-4" />
+                Create 
               </>
             )}
           </Button>

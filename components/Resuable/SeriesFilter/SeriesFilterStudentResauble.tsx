@@ -14,6 +14,7 @@ type SeriesFilterStudentReusableProps = {
     onSeriesChange?: (seriesId: string | undefined) => void
     onCourseChange?: (courseId: string | undefined) => void
     hideCourse?: boolean
+    showCourse?: boolean
 }
 
 export default function SeriesFilterStudentResauble({
@@ -27,11 +28,13 @@ export default function SeriesFilterStudentResauble({
     onSeriesChange,
     onCourseChange,
     hideCourse,
+    showCourse = true,
 }: SeriesFilterStudentReusableProps) {
     const { data, isLoading, isError } = useGetSeriesWithCoursesQuery()
 
     const [selectedSeriesId, setSelectedSeriesId] = React.useState<string | undefined>(defaultSeriesId)
     const [selectedCourseId, setSelectedCourseId] = React.useState<string | undefined>(defaultCourseId)
+    const showCourseFinal = showCourse && !hideCourse
 
     const seriesList: SeriesWithCourses[] = React.useMemo(() => data?.data ?? [], [data?.data])
     const selectedSeries = React.useMemo(
@@ -65,7 +68,7 @@ export default function SeriesFilterStudentResauble({
 
     return (
         <div className={className}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
+            <div className={`grid grid-cols-1 ${showCourseFinal ? 'md:grid-cols-2' : 'md:grid-cols-1'} gap-3 items-end`}>
                 <div className="flex flex-col gap-1 ">
                     <Select
                         value={selectedSeriesId ?? 'all'}
@@ -91,7 +94,7 @@ export default function SeriesFilterStudentResauble({
                     </Select>
                 </div>
 
-                {!hideCourse && (
+                {showCourseFinal && (
                     <div className="flex flex-col gap-1">
                         <Select
                             value={selectedCourseId ?? 'all'}

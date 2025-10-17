@@ -46,7 +46,7 @@ import studentDownloadMetrialsReducer from '@/rtk/slices/users/studentDownloadMe
 import { studentDownloadMaterialsApi } from '@/rtk/api/users/studentDownloadMetrialsApis'
 import contactTeacherReducer from '@/rtk/slices/users/contactTeacherSlice'
 import { contactTeacherApi } from '@/rtk/api/users/contactTeacherApis'
-
+import { shareFeedBackApi } from '@/rtk/api/users/shareFeedBackApis'
 import studentsQuestionReducer from '@/rtk/slices/admin/studentsQuestionSlice'
 import { studentsQuestionApi } from './api/admin/studentsQuestionApis'
 import studentManagementReducer from '@/rtk/slices/admin/studentManagementSlice'
@@ -55,6 +55,8 @@ import mainDashboardReducer from '@/rtk/slices/admin/mainDashboardSlice'
 import { mainDashboardApi } from './api/admin/mainDashboardApis'
 import { filterSeriesListApi } from './api/users/filterSeriesList'
 import { scheduleApi } from './api/users/scheduleApis'
+import { dashboardDataApi } from './api/users/dashboardDataApis'
+import shareFeedbackReducer from '@/rtk/slices/users/shareFeedBackSlice'
 
 
 export const store = configureStore({
@@ -119,10 +121,14 @@ export const store = configureStore({
     // student download materials
     studentDownloadMetrials: studentDownloadMetrialsReducer,
     [studentDownloadMaterialsApi.reducerPath]: studentDownloadMaterialsApi.reducer,
-    // contact teacher
+  
     contactTeacher: contactTeacherReducer,
     [contactTeacherApi.reducerPath]: contactTeacherApi.reducer,
     [scheduleApi.reducerPath]: scheduleApi.reducer,
+    [dashboardDataApi.reducerPath]: dashboardDataApi.reducer,
+    [shareFeedBackApi.reducerPath]: shareFeedBackApi.reducer,
+    shareFeedback: shareFeedbackReducer,
+    
     
   },
 
@@ -189,6 +195,8 @@ export const store = configureStore({
       studentDownloadMaterialsApi.middleware,
       contactTeacherApi.middleware,
       scheduleApi.middleware,
+      dashboardDataApi.middleware,
+      shareFeedBackApi.middleware,
     ),
   devTools: process.env.NODE_ENV !== 'production',
 })

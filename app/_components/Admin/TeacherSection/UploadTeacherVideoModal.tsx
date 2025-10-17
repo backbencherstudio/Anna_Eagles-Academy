@@ -54,13 +54,13 @@ export default function UploadTeacherVideoModal({
     const dispatch = useAppDispatch()
     const [createTeacherSection, { isLoading: isCreating }] = useCreateTeacherSectionMutation()
     const [updateTeacherSection, { isLoading: isUpdating }] = useUpdateTeacherSectionMutation()
-    
+
     // Fetch single data for edit/view mode
     const { data: singleData, isLoading: isLoadingSingle } = useGetSingleTeacherSectionQuery(
         editData?.id || viewData?.id || '',
         { skip: !editData?.id && !viewData?.id }
     )
-    
+
     const isLoading = isCreating || isUpdating || isLoadingSingle
     const isEditMode = !!editData
     const isViewMode = !!viewData || readOnly
@@ -86,7 +86,7 @@ export default function UploadTeacherVideoModal({
                 setType(convertSectionType(data.section_type))
                 setTitle(data.title)
                 setDescription(data.description || '')
-                
+
                 if (data.release_date) {
                     const date = new Date(data.release_date)
                     setReleaseDate(date)
@@ -99,7 +99,7 @@ export default function UploadTeacherVideoModal({
             setType(convertSectionType(data.section_type))
             setTitle(data.title)
             setDescription(data.description || '')
-            
+
             if (data.release_date) {
                 const date = new Date(data.release_date)
                 setReleaseDate(date)
@@ -107,6 +107,17 @@ export default function UploadTeacherVideoModal({
             }
         }
     }, [editData, viewData, singleData])
+
+    React.useEffect(() => {
+        if (open && !editData && !viewData && !readOnly) {
+            setTitle('')
+            setDescription('')
+            setReleaseDate(undefined)
+            setReleaseTime('')
+            setFile(null)
+            setType(defaultType || 'Encouragement')
+        }
+    }, [open, editData, viewData, readOnly, defaultType])
 
     /**
      * Reset form and close modal
@@ -117,6 +128,7 @@ export default function UploadTeacherVideoModal({
         setReleaseDate(undefined)
         setReleaseTime('')
         setFile(null)
+        setType(defaultType || 'Encouragement')
         onOpenChange(false)
     }
 
@@ -132,7 +144,7 @@ export default function UploadTeacherVideoModal({
 
     /**
      * Build payload for API call
-     * Converts date/time to ISO format and prepares data structure
+     * Converts date/time to ISO format and prepares FormData structure
      * Handles both create and update modes
      */
     const buildPayload = () => {
@@ -142,28 +154,27 @@ export default function UploadTeacherVideoModal({
             releaseDateTime = dateTime.toISOString()
         }
 
-        const basePayload = {
-            section_type: type.toUpperCase(),
-            title,
-            description,
-            release_date: releaseDateTime,
+        // Create FormData for file upload
+        const formData = new FormData()
+
+        // Add basic fields
+        formData.append('section_type', type.toUpperCase())
+        formData.append('title', title)
+        formData.append('description', description)
+        formData.append('release_date', releaseDateTime)
+
+        // Add file if present
+        if (file) {
+            formData.append('file', file)
         }
 
-        // For edit mode, include ID and handle file
+        // For edit mode, include ID
         if (isEditMode && (editData || singleData?.data)) {
             const data = editData || singleData?.data
-            return {
-                id: data.id,
-                ...basePayload,
-                file: file || null
-            }
+            formData.append('id', data.id)
         }
 
-        // For create mode
-        return {
-            ...basePayload,
-            file: file || null
-        }
+        return formData
     }
 
 
@@ -178,7 +189,7 @@ export default function UploadTeacherVideoModal({
 
             const payload = buildPayload()
             let result
-            
+
             if (isEditMode) {
                 result = await updateTeacherSection(payload).unwrap()
                 dispatch(setSuccess({
@@ -241,14 +252,14 @@ export default function UploadTeacherVideoModal({
             <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto p-6">
                 <DialogHeader>
                     <DialogTitle>
-                        {isViewMode ? 'View Teacher Section' : 
-                         isEditMode ? 'Edit Teacher Section' : 
-                         'Upload Teacher Video'}
+                        {isViewMode ? 'View Teacher Section' :
+                            isEditMode ? 'Edit Teacher Section' :
+                                'Upload Teacher Video'}
                     </DialogTitle>
                     <DialogDescription>
                         {isViewMode ? 'View teacher section details' :
-                         isEditMode ? 'Edit teacher section information' :
-                         'Upload a new video message for students'}
+                            isEditMode ? 'Edit teacher section information' :
+                                'Upload a new video message for students'}
                     </DialogDescription>
                 </DialogHeader>
 

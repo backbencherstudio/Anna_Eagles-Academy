@@ -6,7 +6,25 @@ import { Play } from 'lucide-react'
 import ButtonSpring from '@/components/Resuable/ButtonSpring'
 import VideoModal from '@/components/Resuable/VideoModal'
 
-export default function WatchWelcomeVideo() {
+interface Encouragement {
+    id: string
+    title: string
+    description: string
+    section_type: string
+    created_at: string
+    updated_at: string
+    release_date: string
+    is_released: boolean
+    status: string
+    release_status: string
+    file_url?: string | null
+}
+
+interface WatchWelcomeVideoProps {
+    encouragement: Encouragement[]
+}
+
+export default function WatchWelcomeVideo({ encouragement }: WatchWelcomeVideoProps) {
     const [open, setOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -26,17 +44,23 @@ export default function WatchWelcomeVideo() {
         }
     }, [])
 
-    const sampleVideoUrl = 'https://www.w3schools.com/html/mov_bbb.mp4'
+    // Get the first encouragement item with a video file or use default values
+    const encouragementData = encouragement && encouragement.length > 0
+        ? encouragement.find(item => item.file_url) || encouragement[0]
+        : null
+
+    // Use the actual video URL from the data
+    const videoUrl = encouragementData?.file_url || ''
 
     return (
-        <div className="w-full bg-[#0F2598] rounded-xl px-5 py-4  flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 mb-4">
+        <div className="w-full bg-[#0F2598] rounded-xl px-5 py-4  flex flex-col sm:flex-row md:flex-col lg:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 mb-4">
             {/* Left side - Text content */}
             <div className="flex-1 space-y-2">
                 <h2 className="text-white text-lg sm:text-lg lg:text-xl font-semibold leading-tight font-spline-sans">
-                    Welcome to Your Learning Journey!
+                    {encouragementData?.title || "Welcome to Your Learning Journey!"}
                 </h2>
                 <p className="text-gray-300 text-sm sm:text-base leading-relaxed font-spline-sans">
-                    Join our new "Advanced Biblical Studies" course starting next Monday!
+                    {encouragementData?.description || "Right now not available, please check back later!"}
                 </p>
             </div>
 
@@ -60,9 +84,9 @@ export default function WatchWelcomeVideo() {
             <VideoModal
                 open={open}
                 onOpenChange={(v) => { setOpen(v); if (!v) setLoading(false) }}
-                videoSrc={sampleVideoUrl}
-                title="Welcome Video"
-                autoPlay
+                videoSrc={videoUrl}
+                title={encouragementData?.title || "Welcome Video"}
+                autoPlay={!!videoUrl}
                 onLoadedMetadata={() => setLoading(false)}
             />
         </div>

@@ -1,15 +1,21 @@
 import React from 'react'
 import { BookOpen, PlayCircle, Globe2, GraduationCap, Timer } from 'lucide-react'
 
-const CARD_DATA = {
-    series: 'The Kingdom of God is Spirit',
-    currentCourse: 'The Kingdom Principles',
-    language: 'English',
-    totalCourses: 5,
-    duration: '6hr 10min 2sec',
+interface SeriesCount { courses?: number }
+interface EnrolledSeries {
+    title?: string
+    duration?: string | null
+    _count?: SeriesCount
 }
 
-export default function CurrentCourseCard() {
+interface CurrentCourseCardProps {
+    series?: EnrolledSeries | null
+}
+
+export default function CurrentCourseCard({ series }: CurrentCourseCardProps) {
+    const seriesTitle = series?.title || '—'
+    const seriesDuration = series?.duration || '—'
+    const totalCourses = (series?._count?.courses ?? 0).toString().padStart(2, '0')
     return (
         <>
             {/* Current Course Card */}
@@ -21,7 +27,7 @@ export default function CurrentCourseCard() {
                             <span className="text-[#E2A93B]"><BookOpen className="h-5 w-5" /></span>
                             <div className="flex flex-col gap-1">
                                 <p className="text-sm text-[#4A4C56] font-medium">Series</p>
-                                <h3 className="text-base lg:text-lg font-semibold text-[#0F2598]">{CARD_DATA.series}</h3>
+                                <h3 className="text-base lg:text-lg font-semibold text-[#0F2598]">{seriesTitle}</h3>
                             </div>
                         </div>
 
@@ -29,17 +35,10 @@ export default function CurrentCourseCard() {
                             <span className="text-[#E2A93B]"><PlayCircle className="h-5 w-5" /></span>
                             <div className="flex flex-col gap-1">
                                 <p className="text-sm text-[#4A4C56] font-medium">Current course</p>
-                                <p className="text-base lg:text-lg font-semibold text-[#161721]">{CARD_DATA.currentCourse}</p>
+                                <p className="text-base lg:text-lg font-semibold text-[#161721]">—</p>
                             </div>
                         </div>
 
-                        <div className="flex items-start gap-3">
-                            <span className="text-[#E2A93B]"><Globe2 className="h-5 w-5" /></span>
-                            <div className="flex flex-col gap-1">
-                                <p className="text-sm text-[#4A4C56] font-medium">language</p>
-                                <p className="text-base lg:text-lg font-semibold text-[#161721]">{CARD_DATA.language}</p>
-                            </div>
-                        </div>
                     </div>
 
                     {/* Right column */}
@@ -48,7 +47,7 @@ export default function CurrentCourseCard() {
                             <span className="text-[#E2A93B]"><GraduationCap className="h-5 w-5" /></span>
                             <div className="flex flex-col gap-1">
                                 <p className="text-sm text-[#4A4C56] font-medium">Course</p>
-                                <p className="text-base lg:text-lg font-semibold text-[#161721]">Total-{CARD_DATA.totalCourses.toString().padStart(2, '0')}</p>
+                                <p className="text-base lg:text-lg font-semibold text-[#161721]">Total-{totalCourses}</p>
                             </div>
                         </div>
 
@@ -57,7 +56,7 @@ export default function CurrentCourseCard() {
                             <div className="flex flex-col gap-1">
                                 <p className="text-sm text-[#4A4C56] font-medium">Duration</p>
                                 <div className="rounded-xl bg-[#E9F8EF] px-3 py-1">
-                                    <span className="text-sm font-medium text-[#12B76A] ">{CARD_DATA.duration}</span>
+                                    <span className="text-sm font-medium text-[#12B76A] ">{seriesDuration}</span>
                                 </div>
                             </div>
                         </div>
@@ -66,7 +65,7 @@ export default function CurrentCourseCard() {
             </div>
 
             {/* course video */}
-            <div className="">
+            {/* <div className="">
                 <div className="relative w-full overflow-hidden rounded-2xl bg-black">
                     <div className="aspect-video">
                         <video
@@ -77,7 +76,7 @@ export default function CurrentCourseCard() {
                         />
                     </div>
                 </div>
-            </div>
+            </div> */}
 
             {/* progress bar  */}
         </>

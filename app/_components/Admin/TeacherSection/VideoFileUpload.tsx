@@ -1,5 +1,5 @@
 import React from 'react'
-import { UploadCloud, X, Play } from 'lucide-react'
+import { UploadCloud, X } from 'lucide-react'
 
 interface VideoFileUploadProps {
   file: File | null
@@ -13,7 +13,6 @@ interface VideoFileUploadProps {
 export default function VideoFileUpload({ file, onFileChange, accept = 'video/*', inputId, existingFileUrl, disabled = false }: VideoFileUploadProps) {
   const generatedId = React.useId()
   const id = inputId ?? `video-input-${generatedId}`
-  const [showPreview, setShowPreview] = React.useState(false)
 
   const onDrop = React.useCallback((event: React.DragEvent<HTMLLabelElement>) => {
     event.preventDefault()
@@ -37,51 +36,15 @@ export default function VideoFileUpload({ file, onFileChange, accept = 'video/*'
       {/* Existing File Display */}
       {existingFileUrl && !file && (
         <div className="border border-green-200 rounded-md p-2 bg-green-50">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                <UploadCloud className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-green-800">Current Video File</p>
-                <p className="text-xs text-green-600 truncate max-w-[200px]">{existingFileUrl.split('/').pop()}</p>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+              <UploadCloud className="h-5 w-5 text-green-600" />
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setShowPreview(!showPreview)}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-green-600 cursor-pointer shadow hover:bg-green-700 text-white"
-                aria-label="Preview video"
-              >
-                <Play className="h-4 w-4" />
-              </button>
-              {/* {!disabled && (
-                <button
-                  type="button"
-                  onClick={onDeleteFile}
-                  className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white cursor-pointer shadow hover:text-red-600 text-red-600 hover:bg-red-50"
-                  aria-label="Remove file"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )} */}
+            <div>
+              <p className="text-sm font-medium text-green-800">Current Video File</p>
+              <p className="text-xs text-green-600 truncate max-w-[200px]">{existingFileUrl.split('/').pop()}</p>
             </div>
           </div>
-
-          {/* Video Preview */}
-          {showPreview && (
-            <div className="mt-3">
-              <video
-                src={existingFileUrl}
-                controls
-                className="w-full max-w-md max-h-64 rounded-md"
-                preload="metadata"
-              >
-                Your browser does not support the video tag.
-              </video>
-            </div>
-          )}
         </div>
       )}
 
@@ -99,7 +62,11 @@ export default function VideoFileUpload({ file, onFileChange, accept = 'video/*'
             {disabled ? 'File upload disabled' : 'Click to upload or drag and drop your video file'}
           </div>
           <p className="text-[#777980] text-xs">MP4 AVI MOV up to 500MB</p>
-          {file && <p className="text-[#0F2598] text-xs font-medium">Selected: {file.name}</p>}
+          {file && (
+            <div className="mt-2">
+              <p className="text-[#0F2598] text-xs font-medium">Selected: {file.name}</p>
+            </div>
+          )}
         </label>
         {file && !disabled && (
           <button

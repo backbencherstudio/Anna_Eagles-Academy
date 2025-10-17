@@ -16,6 +16,7 @@ type VideoCardProps = {
     onDelete?: () => void
     isDeleting?: boolean
     deleteButtonText?: string
+    className?: string
 }
 
 export default function VideoCard({
@@ -29,10 +30,11 @@ export default function VideoCard({
     showDeleteButton = false,
     onDelete,
     isDeleting = false,
-    deleteButtonText = "Delete"
+    deleteButtonText = "Delete",
+    className,
 }: VideoCardProps) {
     return (
-        <Card className="rounded-2xl border border-[#ECEFF3] shadow-none">
+        <Card className={`rounded-2xl border border-[#ECEFF3] shadow-none ${className ?? ''}`}>
             <div className="p-4">
                 <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black">
                     <video
