@@ -40,6 +40,7 @@ import { assignmentApi as assignmentQuizApi } from '@/rtk/api/users/assignmentQu
 import assignmentQuizReducer from '@/rtk/slices/users/assignmentQuizSlice'
 import { myCoursesApi } from '@/rtk/api/users/myCoursesApis'
 import myCoursesReducer from '@/rtk/slices/users/myCoursesSlice'
+import videoProgressReducer from '@/rtk/slices/users/videoProgressSlice'
 import studentFileReducer from '@/rtk/slices/users/studentFileSlice'
 import { studentFileApi } from '@/rtk/api/users/studentFileApis'
 import studentDownloadMetrialsReducer from '@/rtk/slices/users/studentDownloadMetrialsSlice'
@@ -115,6 +116,7 @@ export const store = configureStore({
     assignmentQuiz: assignmentQuizReducer,
     [myCoursesApi.reducerPath]: myCoursesApi.reducer,
     myCourses: myCoursesReducer,
+    videoProgress: videoProgressReducer,
     [filterSeriesListApi.reducerPath]: filterSeriesListApi.reducer,
     [studentFileApi.reducerPath]: studentFileApi.reducer,
     studentFile: studentFileReducer,

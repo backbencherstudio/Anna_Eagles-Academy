@@ -1,4 +1,8 @@
 import { useCallback, useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useSetVideoProgressMutation } from '@/rtk/api/users/myCoursesApis';
+import { setVideoProgress, setSavingProgress, setProgressError, clearProgressError, clearVideoProgress, clearAllProgress } from '@/rtk/slices/users/videoProgressSlice';
+import { RootState } from '@/rtk';
 
 // Video progress interface
 export interface VideoProgress {
@@ -10,48 +14,70 @@ export interface VideoProgress {
 
 // Hook for managing video progress
 export const useVideoProgress = () => {
-  // Save video progress to localStorage
-  const saveVideoProgress = useCallback((videoId: string, currentTime: number, duration: number) => {
+  const dispatch = useDispatch();
+  const [setVideoProgressMutation] = useSetVideoProgressMutation();
+  
+  // Get progress data from Redux store
+  const progressData = useSelector((state: RootState) => state.videoProgress.progressData);
+  const isSaving = useSelector((state: RootState) => state.videoProgress.isSaving);
+  const lastSaved = useSelector((state: RootState) => state.videoProgress.lastSaved);
+  const error = useSelector((state: RootState) => state.videoProgress.error);
+
+  // Save video progress to backend API
+  const saveVideoProgress = useCallback(async (lessonId: string, currentTime: number, duration: number) => {
     if (duration > 0 && currentTime > 0) {
-      const progress: VideoProgress = {
-        currentTime,
-        duration,
-        timestamp: Date.now(),
-        percentage: (currentTime / duration) * 100
-      };
+      const completionPercentage = Math.round((currentTime / duration) * 100);
       
+      const progressData = {
+        lesson_id: lessonId,
+        time_spent: Math.round(currentTime),
+        last_position: Math.round(currentTime),
+        completion_percentage: completionPercentage,
+      };
+
       try {
-        localStorage.setItem(`video_progress_${videoId}`, JSON.stringify(progress));
-        return progress;
-      } catch (error) {
+        dispatch(setSavingProgress(true));
+        dispatch(clearProgressError());
+        
+        // Update local Redux state immediately for UI responsiveness
+        dispatch(setVideoProgress(progressData));
+        
+        // Send to backend API
+        await setVideoProgressMutation({
+          lesson_id: lessonId,
+          progress: completionPercentage
+        }).unwrap();
+        
+        dispatch(setSavingProgress(false));
+        return progressData;
+      } catch (error: any) {
         console.error('Error saving video progress:', error);
+        dispatch(setProgressError(error?.message || 'Failed to save progress'));
+        dispatch(setSavingProgress(false));
         return null;
       }
     }
     return null;
-  }, []);
+  }, [dispatch, setVideoProgressMutation]);
 
-  // Load video progress from localStorage
-  const loadVideoProgress = useCallback((videoId: string): VideoProgress | null => {
-    try {
-      const saved = localStorage.getItem(`video_progress_${videoId}`);
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (error) {
-      console.error('Error loading video progress:', error);
+  // Load video progress from Redux store
+  const loadVideoProgress = useCallback((lessonId: string): VideoProgress | null => {
+    const saved = progressData[lessonId];
+    if (saved) {
+      return {
+        currentTime: saved.last_position,
+        duration: saved.time_spent + (saved.last_position - saved.time_spent), // Estimate duration
+        timestamp: lastSaved[lessonId] || Date.now(),
+        percentage: saved.completion_percentage
+      };
     }
     return null;
-  }, []);
+  }, [progressData, lastSaved]);
 
   // Clear video progress
-  const clearVideoProgress = useCallback((videoId: string) => {
-    try {
-      localStorage.removeItem(`video_progress_${videoId}`);
-    } catch (error) {
-      console.error('Error clearing video progress:', error);
-    }
-  }, []);
+  const clearVideoProgressData = useCallback((lessonId: string) => {
+    dispatch(clearVideoProgress(lessonId));
+  }, [dispatch]);
 
   // Get all video progress for a course
   const getAllVideoProgress = useCallback((course: any) => {
@@ -118,8 +144,8 @@ export const useVideoProgress = () => {
   }, []);
 
   // Check if video is completed (95% or more watched)
-  const isVideoCompleted = useCallback((videoId: string): boolean => {
-    const progress = loadVideoProgress(videoId);
+  const isVideoCompleted = useCallback((lessonId: string): boolean => {
+    const progress = loadVideoProgress(lessonId);
     return progress ? progress.percentage >= 95 : false;
   }, [loadVideoProgress]);
 
@@ -163,12 +189,17 @@ export const useVideoProgress = () => {
   return {
     saveVideoProgress,
     loadVideoProgress,
-    clearVideoProgress,
+    clearVideoProgress: clearVideoProgressData,
     getAllVideoProgress,
     getContinueWatchingVideos,
     findVideoPosition,
     isVideoCompleted,
     getCourseCompletion,
     throttledSaveProgress,
+    // Redux state
+    progressData,
+    isSaving,
+    error,
+    lastSaved,
   };
 }; 

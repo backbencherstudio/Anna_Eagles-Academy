@@ -49,6 +49,18 @@ export const myCoursesApi = createApi({
             keepUnusedDataFor: 0,
         }),
 
+
+        // video progress set /api/student/series/lessons/cmguc9esb000aws90b43qqjhw/progress
+        setVideoProgress: builder.mutation({
+            query: ({ lesson_id, progress }: { lesson_id: string, progress: number }) => ({
+                url: `/api/student/series/lessons/${lesson_id}/progress`,
+                method: 'POST',
+                body: { progress },
+            }),
+            // providesTags: ['MyCourses'],
+            // keepUnusedDataFor: 0,
+        }),
+
         // watched history
         getWatchedHistory: builder.query({
             query: () => ({
@@ -62,4 +74,14 @@ export const myCoursesApi = createApi({
     }),
 });
 
-export const { useGetEnrolledSeriesQuery, useGetSingleEnrolledSeriesQuery, useGetSingleEnrolledCourseQuery, useLazyGetSingleEnrolledCourseQuery, useGetSingleLessonQuery, useGetWatchedHistoryQuery } = myCoursesApi;
+export const {
+    useGetEnrolledSeriesQuery,
+    useGetSingleEnrolledSeriesQuery,
+    useLazyGetSingleEnrolledSeriesQuery,
+    useGetSingleEnrolledCourseQuery,
+    useLazyGetSingleEnrolledCourseQuery,
+    useGetSingleLessonQuery,
+    useLazyGetSingleLessonQuery,
+    useGetWatchedHistoryQuery,
+    useSetVideoProgressMutation
+} = myCoursesApi;

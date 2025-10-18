@@ -974,16 +974,16 @@ export default function CustomVideoPlayer({
 
     // Save progress using throttled function (max once every 3 seconds)
     useEffect(() => {
-        if (!videoData?.video_id || !duration || !currentTime) return;
+        if (!videoData?.video_id || !duration || !currentTime || !playing) return;
 
         const interval = setInterval(() => {
-            if (currentTime > 0 && duration > 0) {
+            if (currentTime > 0 && duration > 0 && playing) {
                 throttledSaveProgress(videoData.video_id, currentTime, duration);
             }
-        }, 3000); // Check every 3 seconds, but throttle ensures max once per 3 seconds
+        }, 5000); // Check every 5 seconds, but throttle ensures max once per 5 seconds
 
         return () => clearInterval(interval);
-    }, [videoData?.video_id, currentTime, duration]);
+    }, [videoData?.video_id, currentTime, duration, throttledSaveProgress, playing]);
 
     // Restore video progress when video loads
     useEffect(() => {
@@ -1015,7 +1015,7 @@ export default function CustomVideoPlayer({
                 videoRef.current.addEventListener('loadedmetadata', handleMetadataLoaded);
             }
         }
-    }, [videoData?.video_id, hasRestoredProgress]);
+    }, [videoData?.video_id, hasRestoredProgress, loadVideoProgress]);
 
     if (!videoData) {
         return (
