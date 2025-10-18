@@ -26,6 +26,7 @@ import {
 } from '@/rtk/slices/users/contactTeacherSlice'
 import { useContactTeacherMutation } from '@/rtk/api/users/contactTeacherApis'
 
+
 import 'react-phone-number-input/style.css'
 
 // Constants
@@ -88,10 +89,15 @@ export default function ContactTeacherPage() {
   // Effects
   useEffect(() => {
     if (isAuthenticated && user && !form.email) {
+      // Normalize phone number to E.164 format for react-phone-number-input
+      const normalizedPhone = user.phone_number 
+        ? (user.phone_number.startsWith('+') ? user.phone_number : `+${user.phone_number}`)
+        : ''
+      
       dispatch(populateWithUserData({
         name: user.name,
         email: user.email,
-        phone: user.phone_number || ''
+        phone: normalizedPhone
       }))
     }
   }, [isAuthenticated, user, form.email, dispatch])
