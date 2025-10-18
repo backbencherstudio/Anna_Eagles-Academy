@@ -25,12 +25,12 @@ export default function SettingsSidebarUser() {
             role: 'user'
         },
 
-        {
-            label: 'Notification',
-            icon: <BellIcon size={20} />,
-            href: '/user/setting/notification',
-            role: 'user'
-        },
+        // {
+        //     label: 'Notification',
+        //     icon: <BellIcon size={20} />,
+        //     href: '/user/setting/notification',
+        //     role: 'user'
+        // },
         {
             label: 'Payment Details',
             icon: <CreditCardIcon size={20} />,

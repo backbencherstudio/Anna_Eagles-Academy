@@ -10,6 +10,9 @@ export interface AuthState {
   error: string | null;
   isInitialized: boolean;
   lastAuthCheck: number | null;
+  changePasswordLoading: boolean;
+  changePasswordError: string | null;
+  changePasswordSuccess: string | null;
 }
 
 // Normalize user data from API response
@@ -20,10 +23,12 @@ function normalizeUserData(input: any): User {
     email: input?.email || 'unknown@example.com',
     role: (input?.type === 'admin' || input?.role === 'admin') ? 'admin' : 'user',
     avatar: input?.avatar || input?.profileImage || undefined,
+    avatar_url: input?.avatar_url || undefined,
     createdAt: input?.created_at || input?.createdAt || new Date().toISOString(),
     updatedAt: input?.updated_at || input?.updatedAt || new Date().toISOString(),
     date_of_birth: input?.date_of_birth || undefined,
     phone_number: input?.phone_number || undefined,
+    whatsapp_number: input?.whatsapp_number || undefined,
     gender: input?.gender || undefined,
     address: input?.address || undefined,
     type: input?.type || undefined,
@@ -41,6 +46,13 @@ function resetAuthState(state: AuthState) {
   state.lastAuthCheck = null;
 }
 
+// Reset change password state
+function resetChangePasswordState(state: AuthState) {
+  state.changePasswordLoading = false;
+  state.changePasswordError = null;
+  state.changePasswordSuccess = null;
+}
+
 // Initial state
 const initialState: AuthState = {
   user: null,
@@ -50,6 +62,9 @@ const initialState: AuthState = {
   error: null,
   isInitialized: false,
   lastAuthCheck: null,
+  changePasswordLoading: false,
+  changePasswordError: null,
+  changePasswordSuccess: null,
 };
 
 // Auth slice
@@ -60,33 +75,8 @@ const authSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
-    setToken: (state, action: PayloadAction<string>) => {
-      state.token = action.payload;
-      state.isAuthenticated = true;
-    },
     clearAuth: (state) => {
       resetAuthState(state);
-    },
-    setUser: (state, action: PayloadAction<User>) => {
-      state.user = action.payload;
-      state.isAuthenticated = true;
-      state.isInitialized = true;
-      state.lastAuthCheck = Date.now();
-    },
-    initializeAuth: (state) => {
-      if (state.token && !state.user) {
-        const basicUser = {
-          id: 'temp-user',
-          name: 'User',
-          email: 'user@example.com',
-          role: 'user' as const,
-          type: 'user'
-        };
-        state.user = normalizeUserData(basicUser);
-        state.isAuthenticated = true;
-        state.isInitialized = true;
-        state.lastAuthCheck = Date.now();
-      }
     },
     initializeFromToken: (state, action: PayloadAction<string>) => {
       state.token = action.payload;
@@ -102,11 +92,13 @@ const authSlice = createSlice({
       state.isInitialized = true;
       state.lastAuthCheck = Date.now();
     },
-    setLoading: (state, action: PayloadAction<boolean>) => {
-      state.isLoading = action.payload;
+    updateUserProfile: (state, action: PayloadAction<Partial<User>>) => {
+      if (state.user) {
+        state.user = { ...state.user, ...action.payload };
+      }
     },
-    setError: (state, action: PayloadAction<string | null>) => {
-      state.error = action.payload;
+    clearChangePasswordState: (state) => {
+      resetChangePasswordState(state);
     },
   },
   extraReducers: (builder) => {
@@ -238,9 +230,50 @@ const authSlice = createSlice({
           state.isLoading = false;
           state.error = action.error?.message || 'Logout failed';
         }
+      )
+
+      // Change password cases
+      .addMatcher(
+        authApi.endpoints.changePassword.matchPending,
+        (state) => {
+          state.changePasswordLoading = true;
+          state.changePasswordError = null;
+          state.changePasswordSuccess = null;
+        }
+      )
+      .addMatcher(
+        authApi.endpoints.changePassword.matchFulfilled,
+        (state, action) => {
+          state.changePasswordLoading = false;
+          const response = action.payload;
+          
+          if (response.success) {
+            state.changePasswordSuccess = response.message || 'Password updated successfully';
+            state.changePasswordError = null;
+          } else {
+            state.changePasswordError = response.message || 'Failed to change password';
+            state.changePasswordSuccess = null;
+          }
+        }
+      )
+      .addMatcher(
+        authApi.endpoints.changePassword.matchRejected,
+        (state, action) => {
+          state.changePasswordLoading = false;
+          state.changePasswordSuccess = null;
+          
+          let errorMessage = 'Failed to change password';
+          if (action.payload?.data?.message) {
+            errorMessage = action.payload.data.message;
+          } else if (action.error?.message) {
+            errorMessage = action.error.message;
+          }
+          
+          state.changePasswordError = errorMessage;
+        }
       );
   },
 });
 
-export const { clearError, setToken, clearAuth, setUser, setLoading, setError, initializeAuth, initializeFromToken } = authSlice.actions;
+export const { clearError, clearAuth, initializeFromToken, updateUserProfile, clearChangePasswordState } = authSlice.actions;
 export default authSlice.reducer;

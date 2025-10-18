@@ -7,7 +7,6 @@ import { FiLogOut } from 'react-icons/fi';
 import LoadingOverlay from '@/components/Resuable/LoadingOverlay';
 import Logo from '@/components/Icons/Logo';
 import USerSidebarMenu from './USerSidebarMenu';
-import { useAppDispatch } from '@/rtk/hooks';
 import { useLogoutMutation } from '@/rtk/api/authApi';
 
 // Menu configuration and item rendering are encapsulated in SideBarMenu
@@ -19,7 +18,6 @@ interface SidebarProps {
 
 export default function UserSidebar({ isMobileMenuOpen, onMobileMenuClose }: SidebarProps) {
   const router = useRouter();
-  const dispatch = useAppDispatch();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [logout, { isLoading }] = useLogoutMutation();
   const data = {

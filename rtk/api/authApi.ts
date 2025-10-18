@@ -8,10 +8,12 @@ export interface User {
   email: string;
   role: 'user' | 'admin';
   avatar?: string;
+  avatar_url?: string;
   createdAt?: string;
   updatedAt?: string;
   date_of_birth?: string;
   phone_number?: string;
+  whatsapp_number?: string;
   gender?: string;
   address?: string;
   type?: string;
@@ -33,6 +35,18 @@ export interface ForgotPasswordRequest {
   email: string;
 }
 
+export interface UpdateProfileRequest {
+  name?: string;
+  date_of_birth?: string;
+  phone_number?: string;
+  whatsapp_number?: string;
+  gender?: string;
+  address?: string;
+  avatar?: string;
+  image?: File;
+}
+
+
 export interface AuthResponse {
   success: boolean;
   message: string;
@@ -40,7 +54,7 @@ export interface AuthResponse {
     token: string;
     type: string;
   };
-  type: 'admin' | 'user';
+  type: '';
   user?: User;
 }
 
@@ -113,7 +127,7 @@ export const authApi = createApi({
         url: '/api/auth/me',
         method: 'GET',
       }),
-      providesTags: ['User'],
+      // providesTags: ['User'],
     }),
 
     // Forgot password endpoint
@@ -125,7 +139,28 @@ export const authApi = createApi({
       }),
     }),
 
-    // Logout (client-side only)
+
+    // Update profile
+    updateProfile: builder.mutation<{ message: string, user: User }, UpdateProfileRequest | FormData>({
+      query: (data) => ({
+        url: '/api/auth/update',
+        method: 'PATCH',
+        body: data,
+      }),
+
+    }),
+
+    // change password
+    changePassword: builder.mutation<{ success: boolean, message: string }, { old_password: string, new_password: string }>({
+      query: (data) => ({
+        url: '/api/auth/change-password',
+        method: 'POST',
+        body: data,
+      }),
+   
+    }),
+
+    // Logout 
     logout: builder.mutation<{ success: boolean }, void>({
       queryFn: () => {
         clearToken();
@@ -141,5 +176,7 @@ export const {
   useRegisterMutation,
   useCheckAuthQuery,
   useForgotPasswordMutation,
+  useUpdateProfileMutation,
   useLogoutMutation,
+  useChangePasswordMutation,
 } = authApi;

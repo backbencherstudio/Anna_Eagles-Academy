@@ -1,21 +1,23 @@
 'use client'
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+// import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
+// import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Download, MoreVertical, Trash2 } from 'lucide-react';
-import Image from 'next/image';
+// import { Separator } from '@/components/ui/separator';
+// import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+// import { Download, MoreVertical, Trash2 } from 'lucide-react';
+// import Image from 'next/image';
+import { useAppSelector } from '@/rtk/hooks';
+import { Download } from 'lucide-react';
 
-interface PaymentMethod {
-    id: string;
-    type: 'mastercard' | 'visa';
-    cardNumber: string;
-    expiryDate: string;
-    isSelected: boolean;
-}
+// interface PaymentMethod {
+//     id: string;
+//     type: 'mastercard' | 'visa';
+//     cardNumber: string;
+//     expiryDate: string;
+//     isSelected: boolean;
+// }
 
 interface Invoice {
     id: string;
@@ -24,24 +26,25 @@ interface Invoice {
 }
 
 export default function PaymentPage() {
-    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('card1');
-    const [emailAddress, setEmailAddress] = useState('robertjohnson@gmail.com');
-    const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
-        {
-            id: 'card1',
-            type: 'mastercard',
-            cardNumber: '•••• •••• •••• 1573',
-            expiryDate: 'Expiry 05/27',
-            isSelected: true
-        },
-        {
-            id: 'card2',
-            type: 'visa',
-            cardNumber: '•••• •••• •••• 7228',
-            expiryDate: 'Expiry 10/26',
-            isSelected: false
-        }
-    ]);
+    // const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('card1');
+    const user = useAppSelector((state) => state.auth.user)
+    const [emailAddress, setEmailAddress] = useState(user?.email || '');
+    // const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
+    //     {
+    //         id: 'card1',
+    //         type: 'mastercard',
+    //         cardNumber: '•••• •••• •••• 1573',
+    //         expiryDate: 'Expiry 05/27',
+    //         isSelected: true
+    //     },
+    //     {
+    //         id: 'card2',
+    //         type: 'visa',
+    //         cardNumber: '•••• •••• •••• 7228',
+    //         expiryDate: 'Expiry 10/26',
+    //         isSelected: false
+    //     }
+    // ]);
 
     const invoices: Invoice[] = [
         {
@@ -56,43 +59,43 @@ export default function PaymentPage() {
         }
     ];
 
-    const handlePaymentMethodChange = (methodId: string) => {
-        setSelectedPaymentMethod(methodId);
-        setPaymentMethods(prev =>
-            prev.map(method => ({
-                ...method,
-                isSelected: method.id === methodId
-            }))
-        );
-    };
+    // const handlePaymentMethodChange = (methodId: string) => {
+    //     setSelectedPaymentMethod(methodId);
+    //     setPaymentMethods(prev =>
+    //         prev.map(method => ({
+    //             ...method,
+    //             isSelected: method.id === methodId
+    //         }))
+    //     );
+    // };
 
     const handleEmailChange = (email: string) => {
         setEmailAddress(email);
     };
 
-    const handleDeletePaymentMethod = (methodId: string) => {
-        setPaymentMethods(prev => prev.filter(method => method.id !== methodId));
+    // const handleDeletePaymentMethod = (methodId: string) => {
+    //     setPaymentMethods(prev => prev.filter(method => method.id !== methodId));
 
-        // If the deleted method was selected, select the first remaining method
-        if (selectedPaymentMethod === methodId) {
-            const remainingMethods = paymentMethods.filter(method => method.id !== methodId);
-            if (remainingMethods.length > 0) {
-                setSelectedPaymentMethod(remainingMethods[0].id);
-            }
-        }
-    };
+    //     // If the deleted method was selected, select the first remaining method
+    //     if (selectedPaymentMethod === methodId) {
+    //         const remainingMethods = paymentMethods.filter(method => method.id !== methodId);
+    //         if (remainingMethods.length > 0) {
+    //             setSelectedPaymentMethod(remainingMethods[0].id);
+    //         }
+    //     }
+    // };
 
     return (
         <div className="space-y-6 lg:space-y-8 ">
             {/* Payment Section */}
             <Card className="border-0 shadow-sm p-4">
-                <CardHeader className="">
+                {/* <CardHeader className="">
                     <CardTitle className="text-lg font-semibold text-gray-900">Payment</CardTitle>
                     <CardDescription className="text-md text-gray-400 leading-relaxed">
                         Manage your payment methods securely. Add, update, or remove your credit/debit cards.
                     </CardDescription>
-                </CardHeader>
-                <CardContent className="">
+                </CardHeader> */}
+                {/* <CardContent className="">
                     <div className="space-y-3">
                         {paymentMethods.map((method) => (
                             <div key={method.id} className="border border-gray-200 rounded-lg p-3 lg:p-4">
@@ -138,7 +141,7 @@ export default function PaymentPage() {
                             </div>
                         ))}
                     </div>
-                </CardContent>
+                </CardContent> */}
                 {/* Billing Section */}
                 <div className="border-t pt-4 border-gray-200">
                     <CardHeader className="mb-2">
@@ -193,8 +196,9 @@ export default function PaymentPage() {
                                 type="email"
                                 value={emailAddress}
                                 onChange={(e) => handleEmailChange(e.target.value)}
-                                className="w-full max-w-md"
+                                className="w-full max-w-md "
                                 placeholder="Enter email address"
+                                disabled={true}
                             />
                         </div>
                     </CardContent>

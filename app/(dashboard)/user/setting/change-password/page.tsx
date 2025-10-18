@@ -6,6 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Lock, Eye, EyeOff } from 'lucide-react';
+import { useChangePasswordMutation } from '@/rtk/api/authApi';
+import toast from 'react-hot-toast';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '@/rtk/index';
+import { clearChangePasswordState } from '@/rtk/slices/authSlice';
+import { useEffect } from 'react';
 
 interface ChangePasswordForm {
     currentPassword: string;
@@ -18,23 +24,70 @@ export default function ChangePasswordPage() {
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+    const dispatch = useDispatch();
+    const { changePasswordLoading, changePasswordError, changePasswordSuccess } = useSelector(
+        (state: RootState) => state.auth
+    );
+    const [changePassword] = useChangePasswordMutation();
+
     const {
         register,
         handleSubmit,
         watch,
-        formState: { errors, isSubmitting }
+        reset,
+        formState: { errors }
     } = useForm<ChangePasswordForm>();
 
     const newPassword = watch('newPassword');
 
-    const onSubmit = async (data: ChangePasswordForm) => {
-        try {
-            // console.log('Password change data:', data);
-            // Add your API call here to change password
-            // await changePassword(data);
-        } catch (error) {
-            // console.error('Error changing password:', error);
+    // Handle toast notifications based on Redux state
+    useEffect(() => {
+        if (changePasswordSuccess) {
+            toast.success(changePasswordSuccess);
+            reset(); // Clear the form
+            dispatch(clearChangePasswordState()); // Clear the success message
         }
+    }, [changePasswordSuccess, reset, dispatch]);
+
+    useEffect(() => {
+        if (changePasswordError) {
+            toast.error(changePasswordError);
+            dispatch(clearChangePasswordState()); // Clear the error message
+        }
+    }, [changePasswordError, dispatch]);
+
+    const onSubmit = async (data: ChangePasswordForm) => {
+        console.log('Form submitted with data:', data);
+        
+        // Clear any previous state
+        dispatch(clearChangePasswordState());
+        
+        try {
+            console.log('Calling changePassword API...');
+            const result = await changePassword({
+                old_password: data.currentPassword,
+                new_password: data.newPassword
+            });
+            
+            console.log('API Response:', result);
+            
+            // Handle the response manually instead of using unwrap()
+            if (result.data) {
+                console.log('Success response:', result.data);
+                // The Redux slice will handle the success/error state
+            } else if (result.error) {
+                console.log('Error response:', result.error);
+                // The Redux slice will handle the error state
+            }
+        } catch (error) {
+            console.error('Catch block error:', error);
+        }
+    };
+
+    const handleFormSubmit = handleSubmit(onSubmit);
+
+    const handleButtonClick = () => {
+        handleFormSubmit();
     };
 
     const validatePassword = (value: string) => {
@@ -65,7 +118,7 @@ export default function ChangePasswordPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                    <form onSubmit={handleFormSubmit} className="space-y-6">
                         {/* Current Password */}
                         <div className="space-y-1">
                             <Label htmlFor="currentPassword" className="text-sm font-medium">
@@ -175,11 +228,12 @@ export default function ChangePasswordPage() {
                         {/* Submit Button */}
                         <div className="flex justify-end pt-4">
                             <Button
-                                type="submit"
-                                disabled={isSubmitting}
+                                type="button"
+                                onClick={handleButtonClick}
+                                disabled={changePasswordLoading}
                                 className="bg-[#0F2598] hover:bg-[#0F2598]/80 cursor-pointer text-white px-6 lg:px-8 py-2 rounded-lg font-medium w-full lg:w-auto"
                             >
-                                {isSubmitting ? 'Changing Password...' : 'Change Password'}
+                                {changePasswordLoading ? 'Changing Password...' : 'Change Password'}
                             </Button>
                         </div>
                     </form>
