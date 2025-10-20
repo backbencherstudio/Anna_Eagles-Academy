@@ -45,7 +45,11 @@ export default function AdminDashboard() {
 
         {/* assignment overview right side */}
         <div className='w-full lg:w-5/12 flex flex-col'>
-          <AssignmentOverviewDashaboard />
+          <AssignmentOverviewDashaboard 
+            assignments={dashboardData?.data?.assignment}
+            quizzes={dashboardData?.data?.quiz}
+            isLoading={isLoading}
+          />
         </div>
       </div>
     </div>
