@@ -6,6 +6,7 @@ import { useGetWatchedHistoryQuery } from '@/rtk/api/users/myCoursesApis';
 import { WatchedHistoryItem } from '@/rtk/slices/users/myCoursesSlice';
 import { useRouter } from 'next/navigation';
 import useEmblaCarousel from 'embla-carousel-react';
+import { ContinueWatchingSkeleton } from './MyCoursePageSkeleton';
 
 interface VideoDisplayData {
     id: string;
@@ -127,10 +128,7 @@ export default function ContinueWatching() {
                         <PauseIcon />
                     </span> Continue Watching
                 </h2>
-                <div className="flex items-center justify-center py-8">
-                    Loading...
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
-                </div>
+                <ContinueWatchingSkeleton />
             </div>
         );
     }

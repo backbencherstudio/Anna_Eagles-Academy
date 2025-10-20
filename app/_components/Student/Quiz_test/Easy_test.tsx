@@ -227,14 +227,14 @@ export default function Easy_test() {
                                 </div>
 
                                 {/* Student Answer Section */}
-                                <div className="mb-4">
+                                {/* <div className="mb-4">
                                     <h4 className="text-sm font-medium text-gray-700 mb-3">Your Answer</h4>
                                     <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                                         <p className="text-sm text-gray-800 leading-relaxed">
                                             {submittedAnswer?.answer_text || answers[question.id] || 'No answer provided'}
                                         </p>
                                     </div>
-                                </div>
+                                </div> */}
 
                                 {/* Answer Input - Only show if not submitted */}
                                 {!isSubmitted && (

@@ -43,7 +43,26 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
 
 
     const handleStripePaymentSuccess = (paymentIntent: any) => {
-        router.push(`/user/payment-success/${currentCheckout?.id}`);
+        // Encode payment intent data as URL parameters
+        const paymentData = {
+            id: paymentIntent.id,
+            status: paymentIntent.status,
+            amount: paymentIntent.amount,
+            currency: paymentIntent.currency,
+            created: paymentIntent.created
+        };
+        
+        // Create URL with payment data as query parameters
+        const params = new URLSearchParams({
+            payment_id: paymentData.id,
+            status: paymentData.status,
+            amount: paymentData.amount.toString(),
+            currency: paymentData.currency,
+            created: paymentData.created.toString()
+        });
+        
+        // Use window.location.href for full page reload
+        window.location.href = `/user/payment-success/${currentCheckout?.id}?${params.toString()}`;
     };
 
     const handleStripePaymentError = (error: string) => {

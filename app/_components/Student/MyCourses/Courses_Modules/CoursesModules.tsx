@@ -218,7 +218,7 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
           autoPlay={true}
           showVolumeControls={true}
           showSkipControls={false}
-          allowSeeking={false}
+          allowSeeking={true}
           isPreviousDisabled={isPreviousDisabled}
           isNextDisabled={isNextDisabled}
         />

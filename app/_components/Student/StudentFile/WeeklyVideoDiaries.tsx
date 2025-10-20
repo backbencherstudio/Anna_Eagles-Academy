@@ -51,29 +51,41 @@ export default function WeeklyVideoDiaries({ items = [] as StudentFileItem[] }: 
 
 
                         {/* videos */}
-                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                            {items.map((v) => {
-                                const dateText = new Date(v.created_at).toLocaleDateString()
-                                const fileName = v.url || v.file_url?.split('/').pop() || 'Video'
-                                const composed = [v.series?.title, v.course?.title].filter(Boolean).join(' - ')
-                                const title = composed || fileName
-                                return (
-                                    <VideoCard
-                                        key={v.id}
-                                        id={v.id}
-                                        title={title}
-                                        videoUrl={v.file_url}
-                                        type="Video"
-                                        date={dateText}
-                                        onPlay={handlePlayClick}
-                                        showDeleteButton={true}
-                                        onDelete={() => { setTargetDeleteId(v.id); setConfirmOpen(true) }}
-                                        isDeleting={isDeleting}
-                                        deleteButtonText="Delete"
-                                    />
-                                )
-                            })}
-                        </div>
+                        {items.length > 0 ? (
+                            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                                {items.map((v) => {
+                                    const dateText = new Date(v.created_at).toLocaleDateString()
+                                    const fileName = v.url || v.file_url?.split('/').pop() || 'Video'
+                                    const composed = [v.series?.title, v.course?.title].filter(Boolean).join(' - ')
+                                    const title = composed || fileName
+                                    return (
+                                        <VideoCard
+                                            key={v.id}
+                                            id={v.id}
+                                            title={title}
+                                            videoUrl={v.file_url}
+                                            type="Video"
+                                            date={dateText}
+                                            onPlay={handlePlayClick}
+                                            showDeleteButton={true}
+                                            onDelete={() => { setTargetDeleteId(v.id); setConfirmOpen(true) }}
+                                            isDeleting={isDeleting}
+                                            deleteButtonText="Delete"
+                                        />
+                                    )
+                                })}
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-12 text-center">
+                                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                                    <CameraIcon />
+                                </div>
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">No Video Diaries Yet</h3>
+                                <p className="text-gray-500 max-w-sm">
+                                    You haven't uploaded any weekly video diaries yet. Click the "Upload Files" button to get started.
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </CardContent>
                 <VideoModal

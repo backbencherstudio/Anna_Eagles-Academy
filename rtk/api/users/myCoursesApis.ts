@@ -24,7 +24,7 @@ export const myCoursesApi = createApi({
                 url: `/api/student/series/single/${series_id}`,
                 method: 'GET',
             }),
-            providesTags: ['MyCourses'],
+            // providesTags: ['MyCourses'],
             keepUnusedDataFor: 0,
         }),
 
@@ -34,7 +34,7 @@ export const myCoursesApi = createApi({
                 url: `/api/student/series/courses/${course_id}`,
                 method: 'GET',
             }),
-            providesTags: ['MyCourses'],
+            // providesTags: ['MyCourses'],
             keepUnusedDataFor: 0,
         }),
 
@@ -45,7 +45,7 @@ export const myCoursesApi = createApi({
                 url: `/api/student/series/lessons/${lesson_id}`,
                 method: 'GET',
             }),
-            providesTags: ['MyCourses'],
+            // providesTags: ['MyCourses'],
             keepUnusedDataFor: 0,
         }),
 

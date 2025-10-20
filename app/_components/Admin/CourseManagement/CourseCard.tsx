@@ -274,7 +274,7 @@ export default function CourseCard({ course }: CourseCardProps) {
                 <div className="h-px bg-gray-100 mt-3 mb-3" />
 
                 {/* Progress */}
-                <div className="mt-3">
+                {/* <div className="mt-3">
                     <div className="flex items-center justify-between text-xs mb-1">
                         <span className="text-gray-500">File upload progressing:</span>
                         {progress === 100 ? (
@@ -294,7 +294,7 @@ export default function CourseCard({ course }: CourseCardProps) {
                             />
                         </div>
                     )}
-                </div>
+                </div> */}
             </div>
 
             {/* Delete Confirmation Dialog */}
