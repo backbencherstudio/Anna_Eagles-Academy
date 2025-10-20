@@ -1050,6 +1050,7 @@ export default function CustomVideoPlayer({
                             preload={preload}
                             controls={false}
                             playsInline
+                            
                             draggable={false}
                             controlsList="nodownload noplaybackrate"
                             disablePictureInPicture

@@ -2384,6 +2384,7 @@ __metadata:
     eslint: "npm:^9"
     eslint-config-next: "npm:15.4.2"
     file-saver: "npm:^2.0.5"
+    hls.js: "npm:^1.6.13"
     html-to-image: "npm:^1.11.11"
     html2canvas: "npm:^1.4.1"
     i: "npm:^0.3.7"
@@ -4040,6 +4041,13 @@ __metadata:
     hls.js: "npm:^1.6.5"
     media-tracks: "npm:^0.3.3"
   checksum: 10c0/8cfc0818c8097fa2c4bee0439e329966afc614c0c891f87cf489f5dc63c8cf09710a716e70c60199c05a7ac3c9cf98f543f82dd07983896ac555ce5afc2481fc
+  languageName: node
+  linkType: hard
+
+"hls.js@npm:^1.6.13":
+  version: 1.6.13
+  resolution: "hls.js@npm:1.6.13"
+  checksum: 10c0/3f937f64735c02cb82e16268f763e35f73214ad47345ce51e8fa55d532fff184e0f889f06a87f07f83c36c2d25bd987f791ef6cf4de216f9d90e1fa383262094
   languageName: node
   linkType: hard
 
