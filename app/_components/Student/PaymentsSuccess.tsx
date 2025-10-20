@@ -3,6 +3,8 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useGetCheckoutQuery } from '@/rtk/api/users/paymentsApis';
+import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 
 interface PaymentsSuccessProps {
     checkoutId: string;
@@ -10,6 +12,7 @@ interface PaymentsSuccessProps {
 }
 
 export default function PaymentsSuccess({ checkoutId, paymentIntent }: PaymentsSuccessProps) {
+    const router = useRouter();
     const { data: checkoutData, isLoading, error } = useGetCheckoutQuery(checkoutId);
     const currentCheckout = checkoutData?.data;
 
@@ -47,6 +50,13 @@ export default function PaymentsSuccess({ checkoutId, paymentIntent }: PaymentsS
         );
     }
 
+
+    const handleBackToDashboard = () => {
+        router.push('/user/dashboard');
+    }
+    const handleStartLearning = () => {
+        router.push('/user/my-courses');
+    }
     return (
         <div className="w-full bg-white rounded-2xl shadow p-8">
             <div className="flex flex-col items-center justify-center">
@@ -56,7 +66,7 @@ export default function PaymentsSuccess({ checkoutId, paymentIntent }: PaymentsS
                         Congratulations! Your payment has been processed successfully. Thank you for choosing our courses. Your receipt has been sent to your email.
                     </p>
                 </div>
-                
+
                 <div className="w-full flex items-center justify-center flex-col lg:flex-row gap-8">
                     {/* Payment Receipt */}
                     <div className="w-full lg:w-6/12">
@@ -83,7 +93,7 @@ export default function PaymentsSuccess({ checkoutId, paymentIntent }: PaymentsS
                                     </>
                                 )}
                             </div>
-                            
+
                             {/* Course Details - Show if available */}
                             {currentCheckout ? (
                                 <>
@@ -103,7 +113,7 @@ export default function PaymentsSuccess({ checkoutId, paymentIntent }: PaymentsS
                                         </div>
                                         <div className="font-semibold text-gray-800">${currentCheckout.total_price}</div>
                                     </div>
-                                    
+
                                     <div className="border-t pt-4 text-sm font-semibold text-gray-500">
                                         <div className="flex justify-between mb-1">
                                             <span>Sub Total</span>
@@ -141,32 +151,27 @@ export default function PaymentsSuccess({ checkoutId, paymentIntent }: PaymentsS
                             )}
                         </div>
                     </div>
-                    
+
                     {/* Success Illustration */}
                     <div className="w-full lg:w-6/12 flex items-center justify-center">
-                        <Image 
-                            src="/images/payments/success.png" 
-                            alt="payment-success" 
-                            width={1200} 
-                            height={1200} 
-                            className="w-fit h-fit object-cover" 
+                        <Image
+                            src="/images/payments/success.png"
+                            alt="payment-success"
+                            width={1200}
+                            height={1200}
+                            className="w-fit h-fit object-cover"
                         />
                     </div>
                 </div>
-                
+
                 <div className="flex gap-4 mt-6 max-w-lg mx-auto">
-                    <Link 
-                        href="/user/dashboard" 
-                        className="text-center py-2 px-4 rounded-lg border border-[#F1C27D] text-[#F1C27D] font-medium hover:bg-[#F1C27D]/10 transition"
-                    >
+                    <Button variant="outline" className="text-center py-1 px-4 rounded-lg border border-[#F1C27D] text-[#F1C27D] font-medium hover:bg-[#F1C27D]/10 transition cursor-pointer hover:text-[#F1C27D]/80" onClick={handleBackToDashboard}>
                         Back to Dashboard
-                    </Link>
-                    <Link 
-                        href="/user/my-courses" 
-                        className="text-center py-2 px-4 rounded-lg bg-[#0F2598] text-white font-medium hover:bg-[#0F2598]/80 transition"
-                    >
+                    </Button>
+
+                    <Button variant="default" className="text-center py-1 px-4 rounded-lg bg-[#0F2598] text-white font-medium hover:bg-[#0F2598]/80 transition cursor-pointer" onClick={handleStartLearning}>
                         Start Learning
-                    </Link>
+                    </Button>
                 </div>
             </div>
         </div>

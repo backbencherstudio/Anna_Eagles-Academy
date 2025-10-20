@@ -28,7 +28,12 @@ export default function TeacherVideo({ encouragement }: { encouragement: Encoura
             <h2 className="text-[#1D1F2C] font-bold text-xl  mb-4">Teacher Video</h2>
 
             <div className="flex flex-col gap-4 max-h-[100vh] overflow-y-auto pr-1">
-                {encouragement.map((item) => {
+                {(!encouragement || encouragement.length === 0) ? (
+                    <div className="flex items-center justify-center py-8">
+                        <p className="text-gray-500 text-sm">Data not found</p>
+                    </div>
+                ) : (
+                    encouragement.map((item) => {
                     const dateSource = item.created_at || item.release_date
                     const dateObj = dateSource ? new Date(dateSource) : null
                     const timeText = dateObj ? dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : '--:--'
@@ -83,7 +88,8 @@ export default function TeacherVideo({ encouragement }: { encouragement: Encoura
                             </div>
                         </div>
                     )
-                })}
+                })
+                )}
             </div>
 
             <VideoModal

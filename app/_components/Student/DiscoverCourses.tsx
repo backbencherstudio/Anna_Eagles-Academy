@@ -279,7 +279,7 @@ export default function DiscoverCourses({ courseId, courseData }: DiscoverCourse
                             {(isLoading || checkoutLoading) ? (
                                 <div className="flex items-center gap-2">
                                     <Loader2 className="animate-spin h-5 w-5" />
-                                    <span>Creating Checkout...</span>
+                                    <span>Preparing Checkout...</span>
                                 </div>
                             ) : (
                                 "Enroll Now"

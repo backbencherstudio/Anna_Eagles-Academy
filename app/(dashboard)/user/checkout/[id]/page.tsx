@@ -11,6 +11,7 @@ import { useApplyCouponMutation, useGetCheckoutQuery } from '@/rtk/api/users/pay
 import { setAppliedCoupon, setCouponDiscount, setError } from '@/rtk/slices/users/paymentsSlice';
 import { RootState } from '@/rtk';
 import StripePaymentForm from '@/components/StripePaymentForm';
+import CheckoutLoadingShimmer from '@/components/Resuable/CheckoutLoadingShimmer';
 import toast from 'react-hot-toast';
 
 interface Course {
@@ -111,29 +112,46 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
     }
 
     // Loading state
-    // if (checkoutLoading) {
-    //     return (
-    //         <div className="flex items-center justify-center h-screen">
-    //             <div className="text-center">
-    //                 <Loader2 className="animate-spin w-8 h-8 mx-auto mb-4" />
-    //                 <p>Loading checkout data...</p>
-    //             </div>
-    //         </div>
-    //     );
-    // }
+    if (checkoutLoading) {
+        return <CheckoutLoadingShimmer />;
+    }
 
-    // Error state
-    if (checkoutError || !currentCheckout) {
+    // Error state - only show if there's an actual error or if loading is complete and no data
+    if (checkoutError || (!checkoutLoading && !currentCheckout)) {
         return (
-            <div className="flex items-center justify-center ">
-                <div className="text-center">
-                    <h2 className="text-2xl font-semibold text-gray-600 mb-4">Checkout not found</h2>
-                    <p className="text-gray-500 mb-6">
-                        {checkoutError ? 'Error loading checkout data' : 'The checkout you\'re looking for doesn\'t exist or has been removed.'}
-                    </p>
-                    <Button onClick={() => router.push('/user/discover')}>
-                        Back to Courses
-                    </Button>
+            <div className="flex items-center justify-center h-full">
+                <div className="text-center max-w-md mx-auto px-4">
+                    <div className="mb-6">
+                        <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                            <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                            </svg>
+                        </div>
+                        <h2 className="text-2xl font-semibold text-gray-600 mb-4">
+                            {checkoutError ? 'Unable to Load Checkout' : 'Checkout Not Found'}
+                        </h2>
+                        <p className="text-gray-500 mb-6">
+                            {checkoutError 
+                                ? 'There was an error loading your checkout information. Please try again or contact support if the problem persists.'
+                                : 'The checkout session you\'re looking for doesn\'t exist or may have expired. Please start a new enrollment process.'
+                            }
+                        </p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                        <Button 
+                            onClick={() => router.push('/user/discover')}
+                            className="bg-[#0F2598] cursor-pointer hover:bg-[#0F2598]/80 text-white"
+                        >
+                            Browse Courses
+                        </Button>
+                        <Button 
+                            onClick={() => window.location.reload()}
+                            variant="outline"
+                            className="border-gray-300 cursor-pointer text-gray-600 hover:bg-gray-50"
+                        >
+                            Try Again
+                        </Button>
+                    </div>
                 </div>
             </div>
         );
