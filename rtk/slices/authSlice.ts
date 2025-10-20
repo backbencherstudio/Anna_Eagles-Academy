@@ -203,9 +203,12 @@ const authSlice = createSlice({
       )
       .addMatcher(
         authApi.endpoints.checkAuth.matchRejected,
-        (state) => {
+        (state, action) => {
           state.isLoading = false;
-          state.error = null;
+          // Surface a friendly message when /me fails (e.g., 500)
+          const payloadMessage = (action.payload as any)?.data?.message;
+          const fallbackMessage = action.error?.message;
+          state.error = payloadMessage || fallbackMessage || 'Failed to verify session. Please try again.';
           state.isInitialized = true;
         }
       )
