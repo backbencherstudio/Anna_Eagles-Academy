@@ -142,4 +142,3 @@ export default function UserSidebar({ isMobileMenuOpen, onMobileMenuClose }: Sid
     </>
   );
 }
-
