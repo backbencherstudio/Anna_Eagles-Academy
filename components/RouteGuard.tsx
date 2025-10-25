@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/rtk/hooks';
-import { clearAuth, initializeFromToken } from '@/rtk/slices/authSlice';
+import { clearAuth, initializeFromToken, clearError } from '@/rtk/slices/authSlice';
 import { useCheckAuthQuery, useLogoutMutation } from '@/rtk/api/authApi';
 import LoadingOverlay from './Resuable/LoadingOverlay';
 
@@ -60,7 +60,8 @@ export default function RouteGuard({
         try {
           await checkAuth();
         } catch (error) {
-          dispatch(initializeFromToken(token));
+          // Don't initialize with token if /me fails - let error show
+          dispatch(clearAuth());
         }
       } else if (!token && !isAuthenticated && !isInitialized) {
         dispatch(clearAuth());
@@ -115,20 +116,40 @@ export default function RouteGuard({
 
   if (error && requireAuth && isInitialized && !isAuthInProgress) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Authentication Error</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={() => {
-              logout();
-              dispatch(clearAuth());
-              router.push('/login');
-            }}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Go to Login
-          </button>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center max-w-lg px-4">
+          <div className="w-20 h-20 mx-auto mb-6 bg-red-50 rounded-full flex items-center justify-center">
+            <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01M4.93 4.93l14.14 14.14" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-semibold text-[#111827] mb-3">Authentication Error</h2>
+          <p className="text-[#777980] text-base mb-8">{error}</p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button
+              onClick={async () => {
+                try {
+                  dispatch(clearError());
+                  await checkAuth();
+                } catch (_) {
+                  // ignore; slice handles error state
+                }
+              }}
+              className="px-6 py-3 rounded-lg bg-[#0F2598] hover:bg-[#0F2598]/80 text-white font-medium transition-all duration-200"
+            >
+              Try again
+            </button>
+            <button
+              onClick={() => {
+                logout();
+                dispatch(clearAuth());
+                router.push('/login');
+              }}
+              className="px-6 py-3 rounded-lg border border-[#ECEFF3] text-[#111827] hover:bg-gray-50 font-medium transition-all duration-200"
+            >
+              Go to Login
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -138,8 +159,12 @@ export default function RouteGuard({
     return <>{children}</>;
   }
 
-  if (!hasToken) {
-    return null;
+  if (!hasToken && requireAuth) {
+    return (
+      <div className="min-h-[50vh] flex items-center justify-center">
+        <LoadingOverlay loadingText="Redirecting to login..." delay={200} />
+      </div>
+    );
   }
 
   return <LoadingOverlay loadingText="Loading..." delay={300} />;

@@ -146,10 +146,15 @@ export const createAuthBaseQuery = () => {
       if (status === 401) {
         handleLogout(api);
       }
+      const serverMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        (status >= 500 ? 'Internal server error. Please try again.' : 'Request failed');
       return {
         error: {
           status,
-          data: error.response?.data || error.message || 'An error occurred',
+          data: { message: serverMessage },
         },
       };
     }
