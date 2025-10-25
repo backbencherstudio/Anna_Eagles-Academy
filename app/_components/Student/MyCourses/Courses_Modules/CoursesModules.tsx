@@ -3,6 +3,7 @@ import React, { useState, useCallback, useEffect, useMemo } from "react";
 import Modules_Sidebar from "./Modules_Sidebar";
 import CustomVideoPlayer from "@/components/Resuable/CustomVideoPlayer";
 import { useLazyGetSingleEnrolledCourseQuery, useLazyGetSingleLessonQuery, useLazyGetSingleEnrolledSeriesQuery } from "@/rtk/api/users/myCoursesApis";
+import ShakaPlayer from "@/components/Resuable/ShakaPlayer";
 
 interface CoursesModulesProps {
   seriesId: string;
@@ -27,6 +28,11 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
   const [fetchSeries, { data: seriesResponse }] = useLazyGetSingleEnrolledSeriesQuery();
 
   const handleLessonSelect = useCallback((lessonId: string) => {
+    // Prevent duplicate selections
+    if (selectedItemId === lessonId) {
+      return;
+    }
+
     setCurrentVideo({
       video_id: "loading",
       video_title: "Loading...",
@@ -34,7 +40,9 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
       video_duration: "",
       module: ""
     });
-    setVideoKey(prev => prev + 1);
+    
+    // Force video reload with timestamp to prevent caching issues
+    setVideoKey(Date.now());
 
     setSelectedItemId(lessonId);
     const [kind, courseId] = lessonId.split("-", 2);
@@ -45,7 +53,7 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
     } else {
       fetchLesson(lessonId);
     }
-  }, [fetchCourse, fetchLesson]);
+  }, [fetchCourse, fetchLesson, selectedItemId]);
 
   useEffect(() => {
     if (!courseResponse?.data || !selectedItemId) return;
@@ -59,11 +67,11 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
         setCurrentVideo({
           video_id: selectedItemId,
           video_title: title,
-          video_url: encodeURI(url),
+          video_url: url,
           video_duration: course.video_length || "",
           module: course.title,
         });
-        setVideoKey(prev => prev + 1);
+        setVideoKey(Date.now());
       }
     }
   }, [courseResponse?.data, selectedItemId]);
@@ -78,11 +86,11 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
         setCurrentVideo({
           video_id: lesson.id,
           video_title: lesson.title,
-          video_url: encodeURI(lesson.file_url),
+          video_url: lesson.file_url,
           video_duration: lesson.video_length || "",
           module: lesson.course?.title || "",
         });
-        setVideoKey(prev => prev + 1);
+        setVideoKey(Date.now());
       }
     }
   }, [lessonResponse?.data, selectedItemId]);
@@ -205,9 +213,12 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
     <div className={`flex max-w-7xl mx-auto gap-6 transition-all duration-500 ease-in-out ${isTheaterMode ? 'flex-col max-w-full px-0' : 'flex-col xl:flex-row '}`}>
       <div className={`bg-white h-fit rounded-2xl shadow transition-all duration-500 ease-in-out ${isTheaterMode ? 'w-full p-0' : 'flex-1 w-full min-w-0 p-2 lg:p-6'}`}>
         <CustomVideoPlayer
-          videoData={currentVideo}
+          videoData={{
+            ...currentVideo,
+            video_url: currentVideo.video_url ? `${currentVideo.video_url}${currentVideo.video_url.includes('?') ? '&' : '?'}cb=${videoKey}&nocache=1` : currentVideo.video_url
+          }}
           className={isTheaterMode ? "" : "mb-4"}
-          key={`${currentVideo.video_id}-${videoKey}`}
+          key={`${currentVideo.video_id}-${videoKey}-${Date.now()}`}
           isTheaterMode={isTheaterMode}
           onTheaterModeToggle={toggleTheaterMode}
           onPreviousTrack={handlePreviousTrack}
@@ -222,6 +233,8 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
           isPreviousDisabled={isPreviousDisabled}
           isNextDisabled={isNextDisabled}
         />
+
+      
       </div>
 
 

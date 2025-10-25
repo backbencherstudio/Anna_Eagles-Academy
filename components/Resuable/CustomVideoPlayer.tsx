@@ -390,8 +390,19 @@ export default function CustomVideoPlayer({
         setIsMuted(false);
 
         if (videoRef.current) {
+            // More aggressive video reset to prevent caching issues
+            videoRef.current.pause();
             videoRef.current.currentTime = 0;
+            videoRef.current.removeAttribute('src');
             videoRef.current.load();
+            
+            // Force reload after a brief delay to ensure proper reset
+            setTimeout(() => {
+                if (videoRef.current && !isManifestUrl) {
+                    videoRef.current.src = videoData.video_url;
+                    videoRef.current.load();
+                }
+            }, 100);
         }
 
         const loadingTimeout = setTimeout(() => {
@@ -1043,7 +1054,7 @@ export default function CustomVideoPlayer({
                 {videoData.video_url ? (
                     <>
                         <video
-                            key={`video-${videoData.video_id}`}
+                            key={`video-${videoData.video_id}-${videoData.video_url?.split('?')[0]}`}
                             ref={videoRef}
                             src={isManifestUrl ? undefined : videoData.video_url}
                             className={`w-full h-full object-cover ${isTheaterMode ? 'max-h-[80vh] w-auto mx-auto' : ''}`}
@@ -1125,7 +1136,25 @@ export default function CustomVideoPlayer({
                             muted={volume === 0}
                             style={{ pointerEvents: 'auto' }}
                             onClick={togglePlay}
-                            onDoubleClick={toggleFullscreen}
+                            onDoubleClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                // Force video reload on double-click to prevent caching issues
+                                if (videoRef.current) {
+                                    const currentSrc = videoRef.current.src;
+                                    videoRef.current.pause();
+                                    videoRef.current.currentTime = 0;
+                                    videoRef.current.src = '';
+                                    videoRef.current.load();
+                                    setTimeout(() => {
+                                        if (videoRef.current) {
+                                            videoRef.current.src = currentSrc;
+                                            videoRef.current.load();
+                                        }
+                                    }, 50);
+                                }
+                                toggleFullscreen();
+                            }}
                         >
                             Your browser does not support the video tag.
                         </video>
