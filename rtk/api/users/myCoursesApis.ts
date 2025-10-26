@@ -24,7 +24,7 @@ export const myCoursesApi = createApi({
                 url: `/api/student/series/single/${series_id}`,
                 method: 'GET',
             }),
-            // providesTags: ['MyCourses'],
+            providesTags: ['MyCourses'],
             keepUnusedDataFor: 0,
         }),
 
@@ -34,10 +34,9 @@ export const myCoursesApi = createApi({
                 url: `/api/student/series/courses/${course_id}`,
                 method: 'GET',
             }),
-            // providesTags: ['MyCourses'],
-            keepUnusedDataFor: 0,
+            providesTags: ['MyCourses'],
+            keepUnusedDataFor: 0, // No cache, always fetch fresh data
         }),
-
 
         // get single leson   
         getSingleLesson: builder.query({
@@ -45,8 +44,8 @@ export const myCoursesApi = createApi({
                 url: `/api/student/series/lessons/${lesson_id}`,
                 method: 'GET',
             }),
-            // providesTags: ['MyCourses'],
-            keepUnusedDataFor: 0,
+            providesTags: ['MyCourses'],
+            keepUnusedDataFor: 0, // No cache, always fetch fresh data
         }),
 
 
@@ -57,8 +56,7 @@ export const myCoursesApi = createApi({
                 method: 'POST',
                 body: { progress },
             }),
-            // providesTags: ['MyCourses'],
-            // keepUnusedDataFor: 0,
+            invalidatesTags: ['MyCourses'],
         }),
 
         // watched history

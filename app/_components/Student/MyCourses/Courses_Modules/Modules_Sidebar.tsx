@@ -11,7 +11,7 @@ interface LessonFile {
   kind: string;
   alt: string;
   position: number;
-  video_length: string;
+  video_length: string | null;
   lesson_progress: {
     lesson_id: string;
     id: string;
@@ -32,6 +32,8 @@ interface Course {
   position: number;
   price: string;
   video_length: string;
+  intro_video_length: string | null;
+  end_video_length: string | null;
   intro_video_url: string | null;
   end_video_url: string | null;
   lesson_files: LessonFile[];
@@ -77,7 +79,7 @@ export default function Modules_Sidebar({
         id: `intro-${course.id}`,
         title: "Introduction",
         url: course.intro_video_url,
-        duration: course.video_length,
+        duration: course.intro_video_length, // Use intro_video_length from API
         is_unlocked: true,
         lesson_progress: null,
         position: 0,
@@ -91,7 +93,7 @@ export default function Modules_Sidebar({
         id: lesson.id,
         title: lesson.title,
         url: lesson.url,
-        duration: lesson.video_length,
+        duration: lesson.video_length, // Use lesson's own video_length
         is_unlocked: lesson.is_unlocked,
         lesson_progress: lesson.lesson_progress,
         position: lesson.position,
@@ -105,7 +107,7 @@ export default function Modules_Sidebar({
         id: `end-${course.id}`,
         title: "Conclusion",
         url: course.end_video_url,
-        duration: course.video_length,
+        duration: course.end_video_length, // Use end_video_length from API
         is_unlocked: true,
         lesson_progress: null,
         position: lessons.length,
@@ -259,9 +261,11 @@ export default function Modules_Sidebar({
                       </div>
 
                       <div className="text-right">
-                        <div className="text-xs text-gray-500 mt-1">
-                          {vid.duration}
-                        </div>
+                        {vid.duration ? (
+                          <div className="text-xs text-gray-500 mt-1">
+                            {vid.duration}
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   );
