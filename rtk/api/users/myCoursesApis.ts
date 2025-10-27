@@ -35,7 +35,7 @@ export const myCoursesApi = createApi({
                 method: 'GET',
             }),
             providesTags: ['MyCourses'],
-            keepUnusedDataFor: 0, // No cache, always fetch fresh data
+            keepUnusedDataFor: 0, 
         }),
 
         // get single leson   
@@ -45,7 +45,7 @@ export const myCoursesApi = createApi({
                 method: 'GET',
             }),
             providesTags: ['MyCourses'],
-            keepUnusedDataFor: 0, // No cache, always fetch fresh data
+            keepUnusedDataFor: 0, 
         }),
 
 
@@ -62,12 +62,8 @@ export const myCoursesApi = createApi({
         }),
 
 
-        // intro video progress set  /api/student/series/courses/cmh76j86q000awsz4scztyu55/intro-video/progress
-        //         {
-        //     "time_spent":600,
-        //     "last_position":600,
-        //     "completion_percentage":100
-        // } pass in body 
+        // intro video progress set  
+      
 
         setIntroVideoProgress: builder.mutation({
             query: ({ course_id, time_spent, last_position, completion_percentage }: { course_id: string, time_spent: number, last_position: number, completion_percentage: number }) => ({
@@ -79,13 +75,8 @@ export const myCoursesApi = createApi({
         }),
 
 
-        // end video progress set  /api/student/series/courses/cmgyly7280007ws086d7t8f1b/end-video/progress
-        //         {
-        //     "time_spent":600,
-        //     "last_position":600,
-        //     "completion_percentage":100
-        // } pass in body 
-
+        // end video progress set  
+    
         setEndVideoProgress: builder.mutation({
             query: ({ course_id, time_spent, last_position, completion_percentage }: { course_id: string, time_spent: number, last_position: number, completion_percentage: number }) => ({
                 url: `/api/student/series/courses/${course_id}/end-video/progress`,
@@ -96,12 +87,8 @@ export const myCoursesApi = createApi({
         }),
 
 
-        // lesson video progress set  /api/student/series/lessons/cmgym2bkd000fws08dxqihjwe/progress
-        //         {
-        //     "time_spent":600,
-        //     "last_position":600,
-        //     "completion_percentage":100
-        // } pass in body  
+        // lesson video progress set  
+     
 
         setLessonVideoProgress: builder.mutation({
             query: ({ lesson_id, time_spent, last_position, completion_percentage }: { lesson_id: string, time_spent: number, last_position: number, completion_percentage: number }) => ({

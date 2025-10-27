@@ -85,7 +85,8 @@ export default function ContinueWatching() {
     };
 
     // Helper function to convert video length to seconds
-    const parseVideoLength = (lengthStr: string): number => {
+    const parseVideoLength = (lengthStr: string | null | undefined): number => {
+        if (!lengthStr) return 0;
         const match = lengthStr.match(/(\d+)m\s*(\d+)s/);
         if (match) {
             const minutes = parseInt(match[1]);
@@ -97,7 +98,7 @@ export default function ContinueWatching() {
 
     // Transform API data for display
     const watchedVideos: VideoDisplayData[] = watchedHistoryData?.data?.watchedLessons?.map((item: WatchedHistoryItem) => {
-        const videoLengthSeconds = parseVideoLength(item.lesson.video_length);
+        const videoLengthSeconds = parseVideoLength(item.lesson?.video_length);
         const watchedSeconds = item.progress.time_spent || 0;
         const completionPercentage = item.progress.completion_percentage || 0;
 
@@ -110,7 +111,7 @@ export default function ContinueWatching() {
             videoTitle: item.lesson.title,
             thumbnail: item.series.thumbnail,
             watchedStr: formatTime(watchedSeconds),
-            totalStr: item.lesson.video_length,
+            totalStr: item.lesson?.video_length || "0m 0s",
             percent: Math.min(timeBasedProgress, 100),
             completionPercentage: completionPercentage,
             viewedAtStr: `Last at ${formatDate(item.progress.viewed_at)}`,

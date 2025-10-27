@@ -28,6 +28,11 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
   const [fetchSeries, { data: seriesResponse }] = useLazyGetSingleEnrolledSeriesQuery();
 
   const handleLessonSelect = useCallback((lessonId: string) => {
+    // Prevent double click - if same lesson already selected, ignore
+    if (selectedItemId === lessonId) {
+      return;
+    }
+
     // Always fetch fresh data, even if clicking the same lesson
     setCurrentVideo({
       video_id: "loading",
@@ -40,6 +45,14 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
     setVideoKey(prev => prev + 1);
 
     setSelectedItemId(lessonId);
+    
+    // Update URL with selected video ID
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('watch', lessonId);
+      window.history.pushState({}, '', url.toString());
+    }
+    
     const [kind, courseId] = lessonId.split("-", 2);
 
     if (kind === "intro" || kind === "end") {
@@ -48,7 +61,7 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
     } else {
       fetchLesson(lessonId);
     }
-  }, [fetchCourse, fetchLesson]);
+  }, [fetchCourse, fetchLesson, selectedItemId]);
 
   useEffect(() => {
     if (!courseResponse?.data || !selectedItemId) return;

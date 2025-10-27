@@ -11,9 +11,9 @@ export default async function CoursesModulesPage({
 }) {
   const { id } = await params;
   const search = await searchParams;
-  const lessonId = search.lessonId as string | undefined;
+  const watchId = search.watch as string | undefined;
   
   return (
-    <CoursesModules seriesId={id} initialLessonId={lessonId} />
+    <CoursesModules seriesId={id} initialLessonId={watchId} />
   )
 }
