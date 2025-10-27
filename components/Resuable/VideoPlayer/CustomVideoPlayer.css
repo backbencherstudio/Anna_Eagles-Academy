@@ -1,0 +1,292 @@
+/* Clean Custom Video Player Styles */
+.video-player-container {
+    position: relative;
+    background: #000;
+}
+
+/* Touch-friendly improvements */
+.touch-manipulation {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Mobile responsive improvements */
+@media (max-width: 640px) {
+    .video-player-container {
+        aspect-ratio: auto;
+    }
+    
+    /* Larger touch targets on mobile */
+    .video-player-container button {
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    /* Fix video display on mobile fullscreen */
+    .video-player-container video {
+        object-fit: contain !important;
+        width: 100% !important;
+        height: 100% !important;
+    }
+    
+    /* Fullscreen mode on mobile */
+    :fullscreen .shaka-video {
+        object-fit: contain !important;
+    }
+    
+    :-webkit-full-screen .shaka-video {
+        object-fit: contain !important;
+    }
+    
+    :-moz-full-screen .shaka-video {
+        object-fit: contain !important;
+    }
+    
+    :-ms-fullscreen .shaka-video {
+        object-fit: contain !important;
+    }
+}
+
+/* Shaka Player UI Customization */
+.shaka-video-container {
+    width: 100%;
+    height: 100%;
+}
+
+.shaka-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Custom loading animation */
+.video-loading {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-left: 4px solid #F1C27D;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Theater mode styles */
+.theater-mode {
+    /* Parent handles layout, just ensure video takes full width */
+    width: 100%;
+}
+
+/* Shaka Player UI overrides */
+.shaka-controls-container {
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.6) 50%, transparent 100%);
+}
+
+.shaka-controls-button {
+    color: white;
+    transition: all 0.2s ease-in-out;
+}
+
+.shaka-controls-button:hover {
+    color: #F1C27D;
+    transform: scale(1.1);
+}
+
+.shaka-controls-button[aria-pressed="true"] {
+    color: #F1C27D;
+}
+
+.shaka-progress-bar {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.shaka-progress-bar .shaka-progress-bar-played {
+    background: #F1C27D;
+}
+
+.shaka-progress-bar .shaka-progress-bar-buffered {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* Ensure Shaka Player UI is properly positioned */
+.shaka-video-container .shaka-controls-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+}
+
+/* Custom styling for Shaka Player buttons */
+.shaka-controls-button[aria-label*="play"],
+.shaka-controls-button[aria-label*="pause"] {
+    background: rgba(241, 194, 125, 0.2);
+    border-radius: 50%;
+    padding: 8px;
+}
+
+.shaka-controls-button[aria-label*="play"]:hover,
+.shaka-controls-button[aria-label*="pause"]:hover {
+    background: rgba(241, 194, 125, 0.3);
+}
+
+/* Custom Range Input Styling */
+.video-player-container input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.video-player-container input[type="range"]::-webkit-slider-track {
+    background: rgba(255, 255, 255, 0.3);
+    height: 6px;
+    border-radius: 3px;
+}
+
+.video-player-container input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    background: #F1C27D;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.video-player-container input[type="range"]::-webkit-slider-thumb:hover {
+    background: #F1C27D;
+    transform: scale(1.2);
+}
+
+.video-player-container input[type="range"]::-moz-range-track {
+    background: rgba(255, 255, 255, 0.3);
+    height: 6px;
+    border-radius: 3px;
+}
+
+.video-player-container input[type="range"]::-moz-range-thumb {
+    background: #F1C27D;
+    width: 14px;
+    height: 14px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.video-player-container input[type="range"]::-moz-range-thumb:hover {
+    background: #F1C27D;
+    transform: scale(1.2);
+}
+
+/* Progress bar specific styling */
+.video-player-container input[type="range"][class*="bg-gray-600"] {
+    background: linear-gradient(to right, #F1C27D 0%, #F1C27D var(--progress, 0%), rgba(255, 255, 255, 0.3) var(--progress, 0%), rgba(255, 255, 255, 0.3) 100%);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .video-loading {
+        width: 40px;
+        height: 40px;
+    }
+
+    /* Hide volume control on mobile */
+    .video-player-container input[type="range"][class*="w-20"] {
+        display: none;
+    }
+}
+
+/* Smooth transitions */
+.video-player-container button {
+    transition: all 0.2s ease-in-out;
+}
+
+.video-player-container button:hover {
+    filter: brightness(1.2);
+}
+
+/* Volume popup animations */
+.volume-popup {
+    animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Volume slider handle glow */
+.video-player-container [class*="cursor-grab"] {
+    box-shadow: 0 0 8px rgba(241, 194, 125, 0.5);
+    transition: all 0.15s ease;
+}
+
+.video-player-container [class*="cursor-grab"]:hover {
+    box-shadow: 0 0 12px rgba(241, 194, 125, 0.8);
+    transform: translateY(-50%) scale(1.3);
+}
+
+.video-player-container [class*="cursor-grabbing"] {
+    box-shadow: 0 0 15px rgba(241, 194, 125, 1);
+    transform: translateY(-50%) scale(1.4);
+}
+
+/* Smooth volume slider transitions */
+.video-player-container .group {
+    transition: all 0.2s ease;
+}
+
+/* Volume Slider Popup Animation */
+.volume-popup {
+    animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Volume Slider Vertical Track */
+.volume-slider-track {
+    min-width: 8px;
+}
+
+.volume-slider-track:hover .volume-slider-handle {
+    opacity: 1 !important;
+    transform: translate(-50%, -50%) scale(1.3);
+}
+
+/* Volume Slider Handle Hover Effect */
+.volume-slider-handle {
+    transition: all 0.2s ease;
+    box-shadow: 0 0 8px rgba(241, 194, 125, 0.5);
+}
+
+.volume-slider-handle:hover {
+    box-shadow: 0 0 12px rgba(241, 194, 125, 0.8);
+}
+
+/* Volume Slider Filled Portion Glow */
+.volume-slider-track:hover div[class*="absolute bottom-0 left-0 bg-\\[\\#F1C27D\\]"] {
+    box-shadow: 0 0 12px rgba(241, 194, 125, 0.6);
+    filter: brightness(1.2);
+}

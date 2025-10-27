@@ -49,15 +49,6 @@ export const myCoursesApi = createApi({
         }),
 
 
-        // video progress set /api/student/series/lessons/cmguc9esb000aws90b43qqjhw/progress
-        setVideoProgress: builder.mutation({
-            query: ({ lesson_id, progress }: { lesson_id: string, progress: number }) => ({
-                url: `/api/student/series/lessons/${lesson_id}/progress`,
-                method: 'POST',
-                body: { progress },
-            }),
-            invalidatesTags: ['MyCourses'],
-        }),
 
         // watched history
         getWatchedHistory: builder.query({
@@ -69,6 +60,59 @@ export const myCoursesApi = createApi({
             keepUnusedDataFor: 0,
 
         }),
+
+
+        // intro video progress set  /api/student/series/courses/cmh76j86q000awsz4scztyu55/intro-video/progress
+        //         {
+        //     "time_spent":600,
+        //     "last_position":600,
+        //     "completion_percentage":100
+        // } pass in body 
+
+        setIntroVideoProgress: builder.mutation({
+            query: ({ course_id, time_spent, last_position, completion_percentage }: { course_id: string, time_spent: number, last_position: number, completion_percentage: number }) => ({
+                url: `/api/student/series/courses/${course_id}/intro-video/progress`,
+                method: 'POST',
+                body: { time_spent, last_position, completion_percentage },
+            }),
+            invalidatesTags: ['MyCourses'],
+        }),
+
+
+        // end video progress set  /api/student/series/courses/cmgyly7280007ws086d7t8f1b/end-video/progress
+        //         {
+        //     "time_spent":600,
+        //     "last_position":600,
+        //     "completion_percentage":100
+        // } pass in body 
+
+        setEndVideoProgress: builder.mutation({
+            query: ({ course_id, time_spent, last_position, completion_percentage }: { course_id: string, time_spent: number, last_position: number, completion_percentage: number }) => ({
+                url: `/api/student/series/courses/${course_id}/end-video/progress`,
+                method: 'POST',
+                body: { time_spent, last_position, completion_percentage },
+            }),
+            invalidatesTags: ['MyCourses'],
+        }),
+
+
+        // lesson video progress set  /api/student/series/lessons/cmgym2bkd000fws08dxqihjwe/progress
+        //         {
+        //     "time_spent":600,
+        //     "last_position":600,
+        //     "completion_percentage":100
+        // } pass in body  
+
+        setLessonVideoProgress: builder.mutation({
+            query: ({ lesson_id, time_spent, last_position, completion_percentage }: { lesson_id: string, time_spent: number, last_position: number, completion_percentage: number }) => ({
+                url: `/api/student/series/lessons/${lesson_id}/progress`,
+                method: 'POST',
+                body: { time_spent, last_position, completion_percentage },
+            }),
+            invalidatesTags: ['MyCourses'],
+        }),
+
+
     }),
 });
 
@@ -81,5 +125,7 @@ export const {
     useGetSingleLessonQuery,
     useLazyGetSingleLessonQuery,
     useGetWatchedHistoryQuery,
-    useSetVideoProgressMutation
+    useSetIntroVideoProgressMutation,
+    useSetEndVideoProgressMutation,
+    useSetLessonVideoProgressMutation
 } = myCoursesApi;

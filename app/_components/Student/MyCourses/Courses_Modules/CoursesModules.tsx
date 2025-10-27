@@ -1,7 +1,7 @@
 "use client"
 import React, { useState, useCallback, useEffect, useMemo } from "react";
 import Modules_Sidebar from "./Modules_Sidebar";
-import CustomVideoPlayer from "@/components/Resuable/CustomVideoPlayer";
+import CustomVideoPlayer from "@/components/Resuable/VideoPlayer/CustomVideoPlayer";
 import { useLazyGetSingleEnrolledCourseQuery, useLazyGetSingleLessonQuery, useLazyGetSingleEnrolledSeriesQuery } from "@/rtk/api/users/myCoursesApis";
 
 interface CoursesModulesProps {
@@ -18,10 +18,10 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
     video_title: "",
     video_url: "",
     video_duration: "",
-    module: ""
+    module: "",
+    video_type: "lesson" as 'intro' | 'end' | 'lesson'
   });
   const [videoKey, setVideoKey] = useState(0);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const [fetchCourse, { data: courseResponse }] = useLazyGetSingleEnrolledCourseQuery();
   const [fetchLesson, { data: lessonResponse }] = useLazyGetSingleLessonQuery();
@@ -34,21 +34,18 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
       video_title: "Loading...",
       video_url: "",
       video_duration: "",
-      module: ""
+      module: "",
+      video_type: "lesson"
     });
     setVideoKey(prev => prev + 1);
-    // Force refresh even for same video
-    setRefreshTrigger(prev => prev + 1);
 
     setSelectedItemId(lessonId);
     const [kind, courseId] = lessonId.split("-", 2);
 
     if (kind === "intro" || kind === "end") {
       setActiveCourseId(courseId);
-      // Force fresh fetch - keepUnusedDataFor: 0 ensures no cache
       fetchCourse(courseId);
     } else {
-      // Force fresh fetch - keepUnusedDataFor: 0 ensures no cache
       fetchLesson(lessonId);
     }
   }, [fetchCourse, fetchLesson]);
@@ -65,17 +62,32 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
       const duration = kind === "intro" ? course.intro_video_length : course.end_video_length;
 
       if (url) {
-        setCurrentVideo({
-          video_id: selectedItemId,
+        const courseProgress = course.course_progress;
+        const lastPosition = kind === "intro"
+          ? courseProgress?.intro_video_last_position
+          : courseProgress?.end_video_last_position;
+
+        const newVideoData = {
+          video_id: courseId,
           video_title: title,
           video_url: encodeURI(url),
           video_duration: duration || "",
           module: `${course.series?.title || course.title} - ${course.title}`,
+          video_type: (kind === "intro" ? "intro" : "end") as 'intro' | 'end',
+          last_position: lastPosition || 0,
+        };
+
+        // Only update if URL actually changed
+        setCurrentVideo((prev) => {
+          if (prev.video_url !== newVideoData.video_url) {
+            setVideoKey(Date.now());
+            return newVideoData;
+          }
+          return prev;
         });
-        setVideoKey(Date.now()); // Use timestamp to force reload
       }
     }
-  }, [courseResponse, selectedItemId, refreshTrigger]);
+  }, [courseResponse, selectedItemId]);
 
   useEffect(() => {
     if (!lessonResponse?.data || !selectedItemId) return;
@@ -88,17 +100,27 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
         const courseTitle = lesson.course?.title || "";
         const moduleText = seriesTitle ? `${seriesTitle} - ${courseTitle}` : courseTitle;
 
-        setCurrentVideo({
+        const newVideoData = {
           video_id: lesson.id,
           video_title: lesson.title,
           video_url: encodeURI(lesson.file_url),
           video_duration: lesson.video_length || "",
           module: moduleText,
+          video_type: "lesson" as 'lesson',
+          last_position: lesson.progress?.last_position || 0,
+        };
+
+        // Only update if URL actually changed
+        setCurrentVideo((prev) => {
+          if (prev.video_url !== newVideoData.video_url) {
+            setVideoKey(Date.now());
+            return newVideoData;
+          }
+          return prev;
         });
-        setVideoKey(Date.now()); // Use timestamp to force reload
       }
     }
-  }, [lessonResponse?.data, selectedItemId, seriesResponse?.data, refreshTrigger]);
+  }, [lessonResponse?.data, selectedItemId, seriesResponse?.data]);
 
   useEffect(() => {
     if (initialLessonId && !selectedItemId) {
@@ -190,6 +212,11 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
     }
   }, [selectedItemId, getAllLessons, handleLessonSelect]);
 
+  // Auto-play next video when current video ends
+  const handleVideoEnd = useCallback(() => {
+    handleNextTrack();
+  }, [handleNextTrack]);
+
   // Check if previous/next buttons should be disabled
   const isPreviousDisabled = useMemo(() => {
     const allLessons = getAllLessons();
@@ -215,7 +242,7 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
   }, [isTheaterMode]);
 
   return (
-    <div className={`flex max-w-[1600px] mx-auto gap-6 transition-all duration-500 ease-in-out ${isTheaterMode ? 'flex-col max-w-full px-0' : 'flex-col xl:flex-row '}`}>
+    <div className={`flex max-w-[1400px] mx-auto gap-6 transition-all duration-500 ease-in-out ${isTheaterMode ? 'flex-col max-w-full px-0' : 'flex-col xl:flex-row '}`}>
       <div className={`bg-white h-fit rounded-2xl shadow transition-all duration-500 ease-in-out ${isTheaterMode ? 'w-full p-0' : 'flex-1 w-full min-w-0 p-2 lg:p-6'}`}>
         <CustomVideoPlayer
           videoData={currentVideo}
@@ -224,6 +251,18 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
           isTheaterMode={isTheaterMode}
           onTheaterModeToggle={toggleTheaterMode}
           autoPlay={true}
+          onVideoEnd={handleVideoEnd}
+        // Optional features - all enabled by default, uncomment to disable
+        // showVolumeControl={false}   // Hide volume control
+        // showPlaybackSpeed={false}   // Hide playback speed
+        // showSkipControls={false}    // Hide skip buttons
+        // showFullscreen={false}      // Hide fullscreen button
+        // showProgressBar={false}    // Hide progress bar
+
+        // showSettings={true}                    
+        // showTheaterMode={true}                
+        // showPictureInPicture={true}            
+
         />
       </div>
 
