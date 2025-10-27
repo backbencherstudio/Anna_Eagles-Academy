@@ -3,7 +3,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import 'shaka-player/dist/controls.css';
 import './CustomVideoPlayer.css';
 import { useVideoProgress } from "@/hooks/useVideoProgress";
-import { Play, Pause, SkipBack, SkipForward, Maximize } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Maximize, RotateCcw } from "lucide-react";
 import VolumeControl from "./VolumeControl";
 import VideoProgressBar from "./VideoProgressBar";
 import SettingsMenu from "./SettingsMenu";
@@ -47,6 +47,14 @@ interface CustomVideoPlayerProps {
     showTheaterMode?: boolean;
     /** Show picture-in-picture option in settings */
     showPictureInPicture?: boolean;
+    /** Callback to go to previous video */
+    onPreviousVideo?: () => void;
+    /** Callback to go to next video */
+    onNextVideo?: () => void;
+    /** Whether previous video is available and unlocked */
+    hasPreviousVideo?: boolean;
+    /** Whether next video is available and unlocked */
+    hasNextVideo?: boolean;
 }
 
 /**
@@ -89,7 +97,11 @@ export default function CustomVideoPlayer({
     showProgressBar = true,
     showSettings = true,
     showTheaterMode = true,
-    showPictureInPicture = true
+    showPictureInPicture = true,
+    onPreviousVideo,
+    onNextVideo,
+    hasPreviousVideo = false,
+    hasNextVideo = false
 }: CustomVideoPlayerProps) {
     // Basic states
     const [videoError, setVideoError] = useState<string | null>(null);
@@ -104,6 +116,7 @@ export default function CustomVideoPlayer({
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [showControls, setShowControls] = useState(true);
     const [buffered, setBuffered] = useState(0);
+    const [hasEnded, setHasEnded] = useState(false);
 
     // Refs
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -129,7 +142,13 @@ export default function CustomVideoPlayer({
     // Control handlers
     const togglePlay = useCallback(() => {
         if (videoRef.current) {
-            if (videoRef.current.paused) {
+            // If video has ended, replay from the beginning
+            if (hasEnded) {
+                videoRef.current.currentTime = 0;
+                setHasEnded(false);
+                videoRef.current.play();
+                setIsPlaying(true);
+            } else if (videoRef.current.paused) {
                 videoRef.current.play();
                 setIsPlaying(true);
             } else {
@@ -137,7 +156,7 @@ export default function CustomVideoPlayer({
                 setIsPlaying(false);
             }
         }
-    }, []);
+    }, [hasEnded]);
 
     const toggleMute = useCallback(() => {
         if (videoRef.current) {
@@ -278,7 +297,12 @@ export default function CustomVideoPlayer({
         return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
     }, []);
 
-
+    // Reset hasEnded when video starts playing
+    useEffect(() => {
+        if (isPlaying && hasEnded) {
+            setHasEnded(false);
+        }
+    }, [isPlaying, hasEnded]);
 
     // Sync video state on mount
     useEffect(() => {
@@ -609,6 +633,7 @@ export default function CustomVideoPlayer({
         setIsLoading(true);
         setIsBuffering(false);
         setVideoError(null);
+        setHasEnded(false);
     }, [videoData.video_url]);
 
     // Track video time and save progress periodically
@@ -703,6 +728,9 @@ export default function CustomVideoPlayer({
         if (!video) return;
 
         const handleEnded = async () => {
+            setHasEnded(true);
+            setIsPlaying(false);
+            
             if (videoData.video_type && duration > 0) {
                 // Save as complete when video ends
                 throttledSaveProgressRef.current(
@@ -799,7 +827,7 @@ export default function CustomVideoPlayer({
                                     onClick={togglePlay}
                                 ></div>
 
-                                {/* Center Play/Pause Button */}
+                                {/* Center Play/Pause/Replay Button */}
                                 {!isPlaying && (
                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                         <button
@@ -808,8 +836,13 @@ export default function CustomVideoPlayer({
                                                 togglePlay();
                                             }}
                                             className="bg-black/50 cursor-pointer hover:bg-black/70 rounded-full p-3 transition-all duration-200 hover:scale-110 pointer-events-auto"
+                                            title={hasEnded ? "Replay" : "Play"}
                                         >
-                                            <Play size={32} className="text-white " />
+                                            {hasEnded ? (
+                                                <RotateCcw size={32} className="text-white " />
+                                            ) : (
+                                                <Play size={32} className="text-white " />
+                                            )}
                                         </button>
                                     </div>
                                 )}
@@ -829,29 +862,54 @@ export default function CustomVideoPlayer({
                                     {/* Control Buttons */}
                                     <div className="flex items-center justify-between gap-2">
                                         <div className="flex items-center gap-1 sm:gap-2 flex-shrink">
-                                            {/* Play/Pause */}
+                                            {/* Play/Pause/Replay */}
                                             <button
                                                 onClick={togglePlay}
                                                 className="text-white hover:text-[#F1C27D] transition-colors cursor-pointer p-2 touch-manipulation"
+                                                title={hasEnded ? "Replay" : isPlaying ? "Pause" : "Play"}
                                             >
-                                                {isPlaying ? <Pause size={20} className="sm:w-6 sm:h-6" /> : <Play size={20} className="sm:w-6 sm:h-6" />}
+                                                {hasEnded ? (
+                                                    <RotateCcw size={20} className="sm:w-6 sm:h-6" />
+                                                ) : isPlaying ? (
+                                                    <Pause size={20} className="sm:w-6 sm:h-6" />
+                                                ) : (
+                                                    <Play size={20} className="sm:w-6 sm:h-6" />
+                                                )}
                                             </button>
 
                                             {/* Skip Controls - Hidden on mobile */}
                                             {showSkipControls && (
                                                 <>
                                                     <button
-                                                        onClick={() => skip(-10)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            // If previous video navigation is available, use it
+                                                            if (onPreviousVideo && hasPreviousVideo) {
+                                                                onPreviousVideo();
+                                                            } else {
+                                                                // Otherwise, seek backwards 10 seconds
+                                                                skip(-10);
+                                                            }
+                                                        }}
                                                         className="hidden cursor-pointer sm:block text-white hover:text-[#F1C27D] transition-colors p-2"
-                                                        title="Rewind 10s"
+                                                        title={onPreviousVideo && hasPreviousVideo ? "Previous video" : "Rewind 10s"}
                                                     >
                                                         <SkipBack size={22} />
                                                     </button>
 
                                                     <button
-                                                        onClick={() => skip(10)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            // If next video navigation is available, use it
+                                                            if (onNextVideo && hasNextVideo) {
+                                                                onNextVideo();
+                                                            } else {
+                                                                // Otherwise, seek forward 10 seconds
+                                                                skip(10);
+                                                            }
+                                                        }}
                                                         className="hidden cursor-pointer sm:block text-white hover:text-[#F1C27D] transition-colors p-2"
-                                                        title="Forward 10s"
+                                                        title={onNextVideo && hasNextVideo ? "Next video" : "Forward 10s"}
                                                     >
                                                         <SkipForward size={22} />
                                                     </button>

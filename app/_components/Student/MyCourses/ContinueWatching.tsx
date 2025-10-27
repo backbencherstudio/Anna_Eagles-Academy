@@ -169,9 +169,7 @@ export default function ContinueWatching() {
     // id wise view 
 
     const handleViewVideo = (seriesId: string, lessonId: string) => {
-        const params = new URLSearchParams();
-        params.set('lessonId', lessonId);
-        router.push(`/user/courses-modules/${seriesId}?${params.toString()}`);
+        router.push(`/user/courses-modules/${seriesId}?watch=${lessonId}`);
     }
 
     return (

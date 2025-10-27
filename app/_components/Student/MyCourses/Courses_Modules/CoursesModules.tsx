@@ -135,11 +135,33 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
     }
   }, [lessonResponse?.data, selectedItemId, seriesResponse?.data]);
 
+  // Handle initial lesson selection from URL
   useEffect(() => {
     if (initialLessonId && !selectedItemId) {
-      handleLessonSelect(initialLessonId);
+      // Prevent double selection by checking if already selected
+      const [kind, courseId] = initialLessonId.split("-", 2);
+
+      // Set loading state
+      setCurrentVideo({
+        video_id: "loading",
+        video_title: "Loading...",
+        video_url: "",
+        video_duration: "",
+        module: "",
+        video_type: "lesson"
+      });
+      setVideoKey(prev => prev + 1);
+      setSelectedItemId(initialLessonId);
+
+      // Fetch the lesson/course data
+      if (kind === "intro" || kind === "end") {
+        setActiveCourseId(courseId);
+        fetchCourse(courseId);
+      } else {
+        fetchLesson(initialLessonId);
+      }
     }
-  }, [initialLessonId, selectedItemId, handleLessonSelect]);
+  }, [initialLessonId, selectedItemId, fetchCourse, fetchLesson]);
 
   // Fetch series data for navigation
   useEffect(() => {
@@ -165,7 +187,7 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
           title: "Introduction",
           url: course.intro_video_url,
           duration: course.intro_video_length,
-          is_unlocked: true,
+          is_unlocked: course.course_progress?.intro_video_unlocked ?? true,
           kind: 'intro',
           courseId: course.id
         });
@@ -191,7 +213,7 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
           title: "Conclusion",
           url: course.end_video_url,
           duration: course.end_video_length,
-          is_unlocked: true,
+          is_unlocked: course.course_progress?.end_video_unlocked ?? false,
           kind: 'end',
           courseId: course.id
         });
@@ -225,22 +247,32 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
     }
   }, [selectedItemId, getAllLessons, handleLessonSelect]);
 
-  // Auto-play next video when current video ends
+  // Auto-play next video when current video ends - DISABLED
   const handleVideoEnd = useCallback(() => {
-    handleNextTrack();
-  }, [handleNextTrack]);
+    // Don't automatically play next video when current video ends
+    // User will need to manually select next video
+    // handleNextTrack();
+  }, []);
 
   // Check if previous/next buttons should be disabled
   const isPreviousDisabled = useMemo(() => {
     const allLessons = getAllLessons();
     const currentIndex = allLessons.findIndex(lesson => lesson.id === selectedItemId);
-    return currentIndex <= 0;
+    if (currentIndex <= 0) return true;
+    
+    // Check if previous video is unlocked
+    const previousLesson = allLessons[currentIndex - 1];
+    return !previousLesson?.is_unlocked;
   }, [selectedItemId, getAllLessons]);
 
   const isNextDisabled = useMemo(() => {
     const allLessons = getAllLessons();
     const currentIndex = allLessons.findIndex(lesson => lesson.id === selectedItemId);
-    return currentIndex >= allLessons.length - 1;
+    if (currentIndex >= allLessons.length - 1) return true;
+    
+    // Check if next video is unlocked
+    const nextLesson = allLessons[currentIndex + 1];
+    return !nextLesson?.is_unlocked;
   }, [selectedItemId, getAllLessons]);
 
   useEffect(() => {
@@ -263,8 +295,12 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
           key={`${currentVideo.video_id}-${videoKey}-${selectedItemId}`}
           isTheaterMode={isTheaterMode}
           onTheaterModeToggle={toggleTheaterMode}
-          autoPlay={true}
+          autoPlay={false}
           onVideoEnd={handleVideoEnd}
+          onPreviousVideo={handlePreviousTrack}
+          onNextVideo={handleNextTrack}
+          hasPreviousVideo={!isPreviousDisabled}
+          hasNextVideo={!isNextDisabled}
         // Optional features - all enabled by default, uncomment to disable
         // showVolumeControl={false}   // Hide volume control
         // showPlaybackSpeed={false}   // Hide playback speed

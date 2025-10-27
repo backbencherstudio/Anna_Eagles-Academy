@@ -35,7 +35,7 @@ export const myCoursesApi = createApi({
                 method: 'GET',
             }),
             providesTags: ['MyCourses'],
-            keepUnusedDataFor: 0, 
+            keepUnusedDataFor: 0,
         }),
 
         // get single leson   
@@ -45,7 +45,7 @@ export const myCoursesApi = createApi({
                 method: 'GET',
             }),
             providesTags: ['MyCourses'],
-            keepUnusedDataFor: 0, 
+            keepUnusedDataFor: 0,
         }),
 
 
@@ -63,7 +63,7 @@ export const myCoursesApi = createApi({
 
 
         // intro video progress set  
-      
+
 
         setIntroVideoProgress: builder.mutation({
             query: ({ course_id, time_spent, last_position, completion_percentage }: { course_id: string, time_spent: number, last_position: number, completion_percentage: number }) => ({
@@ -76,7 +76,7 @@ export const myCoursesApi = createApi({
 
 
         // end video progress set  
-    
+
         setEndVideoProgress: builder.mutation({
             query: ({ course_id, time_spent, last_position, completion_percentage }: { course_id: string, time_spent: number, last_position: number, completion_percentage: number }) => ({
                 url: `/api/student/series/courses/${course_id}/end-video/progress`,
@@ -88,13 +88,27 @@ export const myCoursesApi = createApi({
 
 
         // lesson video progress set  
-     
+
 
         setLessonVideoProgress: builder.mutation({
             query: ({ lesson_id, time_spent, last_position, completion_percentage }: { lesson_id: string, time_spent: number, last_position: number, completion_percentage: number }) => ({
                 url: `/api/student/series/lessons/${lesson_id}/progress`,
                 method: 'POST',
                 body: { time_spent, last_position, completion_percentage },
+            }),
+            invalidatesTags: ['MyCourses'],
+        }),
+
+
+
+
+        // strimming lesson video play  /api/student/series/lessons/cmh76f98f0006wsz4uhpijmiq/stream
+
+        useSetStrimmingLessonVideoPlayMutation: builder.mutation({
+            query: ({ lesson_id, strimming_video_url }: { lesson_id: string, strimming_video_url: string }) => ({
+                url: `/api/student/series/lessons/${lesson_id}/stream`,
+                method: 'GET',
+                body: { strimming_video_url },
             }),
             invalidatesTags: ['MyCourses'],
         }),
@@ -115,4 +129,5 @@ export const {
     useSetIntroVideoProgressMutation,
     useSetEndVideoProgressMutation,
     useSetLessonVideoProgressMutation
+  
 } = myCoursesApi;

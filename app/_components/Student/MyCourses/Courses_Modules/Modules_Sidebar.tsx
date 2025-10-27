@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import * as Accordion from '@radix-ui/react-accordion';
 import { useGetSingleEnrolledSeriesQuery } from "@/rtk/api/users/myCoursesApis";
 
@@ -80,7 +80,7 @@ export default function Modules_Sidebar({
   const seriesData = seriesResponse?.data;
 
   // Convert courses to modules format
-  const modules = seriesData?.courses?.map((course: Course) => {
+  const modules = useMemo(() => seriesData?.courses?.map((course: Course) => {
     const lessons = [];
 
     // Add intro video if exists
@@ -113,7 +113,7 @@ export default function Modules_Sidebar({
         id: lesson.id,
         title: lesson.title,
         url: lesson.url,
-        duration: lesson.video_length, 
+        duration: lesson.video_length,
         is_unlocked: lesson.is_unlocked,
         lesson_progress: lesson.lesson_progress,
         position: lesson.position,
@@ -151,14 +151,34 @@ export default function Modules_Sidebar({
       videos: lessons,
       course_progress: course.course_progress
     };
-  }) || [];
+  }) || [], [seriesData?.courses]);
 
-  // Open first module by default when data loads
+  // Auto-open the module that contains the selected lesson
   useEffect(() => {
-    if (seriesData && modules.length > 0 && openModules.length === 0) {
+    if (!seriesData || modules.length === 0 || !selectedLessonId) return;
+
+    // Find which module contains the selected lesson
+    const moduleWithSelectedLesson = modules.find((mod: any) =>
+      mod.videos.some((vid: any) => vid.id === selectedLessonId)
+    );
+
+    if (moduleWithSelectedLesson) {
+      setOpenModules(prev => {
+        // Only update if the module is not already open
+        if (!prev.includes(moduleWithSelectedLesson.module_id)) {
+          return [moduleWithSelectedLesson.module_id];
+        }
+        return prev;
+      });
+    }
+  }, [modules, selectedLessonId, seriesData]);
+
+  // Open first module by default when data loads and no lesson is selected
+  useEffect(() => {
+    if (seriesData && modules.length > 0 && openModules.length === 0 && !selectedLessonId) {
       setOpenModules([modules[0].module_id]);
     }
-  }, [seriesData, modules.length, openModules.length]);
+  }, [modules.length, openModules.length, selectedLessonId, seriesData]);
 
   // Auto-select the first available intro video when nothing is selected
   useEffect(() => {
@@ -241,7 +261,8 @@ export default function Modules_Sidebar({
             <Accordion.Content className="px-2 pb-3 pt-1">
               <div className="flex flex-col gap-2">
                 {mod.videos.map((vid: any) => {
-                  const isCompleted = vid.lesson_progress?.is_completed || false;
+                  // For intro and end videos, check both completion flag and percentage (>= 95% considered completed)
+                  const isCompleted = (vid.lesson_progress?.is_completed === true) || (vid.lesson_progress?.completion_percentage >= 95);
                   const completionPercentage = vid.lesson_progress?.completion_percentage || 0;
                   const isUnlocked = vid.is_unlocked;
 
