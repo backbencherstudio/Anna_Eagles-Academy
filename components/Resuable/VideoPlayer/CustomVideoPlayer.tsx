@@ -809,7 +809,7 @@ export default function CustomVideoPlayer({
                                             }}
                                             className="bg-black/50 cursor-pointer hover:bg-black/70 rounded-full p-3 transition-all duration-200 hover:scale-110 pointer-events-auto"
                                         >
-                                            <Play size={32} className="text-white ml-1" />
+                                            <Play size={32} className="text-white " />
                                         </button>
                                     </div>
                                 )}
@@ -975,7 +975,7 @@ export default function CustomVideoPlayer({
                                             e.stopPropagation();
                                             onTheaterModeToggle?.();
                                         }}
-                                        className="p-2 rounded-full cursor-pointer bg-black/50 text-white hover:bg-black/70 transition-all duration-200 hover:scale-105"
+                                        className="p-2 bg-black/50 rounded-full cursor-pointer text-white hover:bg-black/70 transition-all duration-200 hover:scale-105"
                                     >
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
