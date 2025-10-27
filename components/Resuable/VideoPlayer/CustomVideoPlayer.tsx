@@ -16,6 +16,7 @@ interface VideoData {
     module?: string;
     video_type?: 'intro' | 'end' | 'lesson';
     last_position?: number;
+    is_completed?: boolean;
 }
 
 interface CustomVideoPlayerProps {
@@ -117,6 +118,7 @@ export default function CustomVideoPlayer({
     const [showControls, setShowControls] = useState(true);
     const [buffered, setBuffered] = useState(0);
     const [hasEnded, setHasEnded] = useState(false);
+    const [hoveredControl, setHoveredControl] = useState<string | null>(null);
 
     // Refs
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -245,11 +247,17 @@ export default function CustomVideoPlayer({
                     break;
                 case 'ArrowLeft':
                     e.preventDefault();
-                    skip(-10);
+                    // Only skip backwards if video is completed
+                    if (videoData.is_completed !== false) {
+                        skip(-10);
+                    }
                     break;
                 case 'ArrowRight':
                     e.preventDefault();
-                    skip(10);
+                    // Only skip forward if video is completed
+                    if (videoData.is_completed !== false) {
+                        skip(10);
+                    }
                     break;
                 case 'ArrowUp':
                     e.preventDefault();
@@ -272,7 +280,7 @@ export default function CustomVideoPlayer({
 
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [togglePlay, skip, handleVolumeChange, toggleMute, toggleFullscreen, volume]);
+    }, [togglePlay, skip, handleVolumeChange, toggleMute, toggleFullscreen, volume, videoData.is_completed]);
 
     // Auto-hide controls
     useEffect(() => {
@@ -851,79 +859,137 @@ export default function CustomVideoPlayer({
                                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-0 sm:p-4 md:pb-4 sm:pb-6">
                                     {/* Custom Progress Bar */}
                                     <div className="mb-0 md:mb-3">
-                                        <VideoProgressBar
-                                            currentTime={currentTime}
-                                            duration={duration}
-                                            buffered={buffered}
-                                            onSeek={handleSeek}
-                                        />
+                                    <VideoProgressBar
+                                        currentTime={currentTime}
+                                        duration={duration}
+                                        buffered={buffered}
+                                        onSeek={handleSeek}
+                                        isCompleted={videoData.is_completed !== false}
+                                    />
                                     </div>
 
                                     {/* Control Buttons */}
                                     <div className="flex items-center justify-between gap-2">
                                         <div className="flex items-center gap-1 sm:gap-2 flex-shrink">
                                             {/* Play/Pause/Replay */}
-                                            <button
-                                                onClick={togglePlay}
-                                                className="text-white hover:text-[#F1C27D] transition-colors cursor-pointer p-2 touch-manipulation"
-                                                title={hasEnded ? "Replay" : isPlaying ? "Pause" : "Play"}
+                                            <div 
+                                                className="relative"
+                                                onMouseEnter={() => setHoveredControl('play')}
+                                                onMouseLeave={() => setHoveredControl(null)}
                                             >
-                                                {hasEnded ? (
-                                                    <RotateCcw size={20} className="sm:w-6 sm:h-6" />
-                                                ) : isPlaying ? (
-                                                    <Pause size={20} className="sm:w-6 sm:h-6" />
-                                                ) : (
-                                                    <Play size={20} className="sm:w-6 sm:h-6" />
+                                                <button
+                                                    onClick={togglePlay}
+                                                    className="text-white hover:text-[#F1C27D] transition-colors cursor-pointer p-2 touch-manipulation"
+                                                >
+                                                    {hasEnded ? (
+                                                        <RotateCcw size={20} className="sm:w-6 sm:h-6" />
+                                                    ) : isPlaying ? (
+                                                        <Pause size={20} className="sm:w-6 sm:h-6" />
+                                                    ) : (
+                                                        <Play size={20} className="sm:w-6 sm:h-6" />
+                                                    )}
+                                                </button>
+                                                {hoveredControl === 'play' && (
+                                                    <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800/95 text-white text-xs font-medium px-2 py-1 rounded whitespace-nowrap pointer-events-none z-30">
+                                                        {hasEnded ? "Replay" : isPlaying ? "Pause" : "Play"}
+                                                    </div>
                                                 )}
-                                            </button>
+                                            </div>
 
                                             {/* Skip Controls - Hidden on mobile */}
                                             {showSkipControls && (
                                                 <>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            // If previous video navigation is available, use it
-                                                            if (onPreviousVideo && hasPreviousVideo) {
-                                                                onPreviousVideo();
-                                                            } else {
-                                                                // Otherwise, seek backwards 10 seconds
-                                                                skip(-10);
-                                                            }
-                                                        }}
-                                                        className="hidden cursor-pointer sm:block text-white hover:text-[#F1C27D] transition-colors p-2"
-                                                        title={onPreviousVideo && hasPreviousVideo ? "Previous video" : "Rewind 10s"}
+                                                    <div 
+                                                        className="relative hidden sm:block"
+                                                        onMouseEnter={() => setHoveredControl('skipBack')}
+                                                        onMouseLeave={() => setHoveredControl(null)}
                                                     >
-                                                        <SkipBack size={22} />
-                                                    </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                // If previous video navigation is available, use it
+                                                                if (onPreviousVideo && hasPreviousVideo) {
+                                                                    onPreviousVideo();
+                                                                } else if (videoData.is_completed !== false) {
+                                                                    // Only skip backwards if video is completed
+                                                                    skip(-10);
+                                                                }
+                                                                // If video is not completed, do nothing (don't skip)
+                                                            }}
+                                                            className={`p-2 ${
+                                                                onPreviousVideo && hasPreviousVideo
+                                                                    ? 'text-white hover:text-[#F1C27D] transition-colors cursor-pointer'
+                                                                    : videoData.is_completed !== false
+                                                                    ? 'text-white hover:text-[#F1C27D] transition-colors cursor-pointer'
+                                                                    : 'text-gray-500 cursor-not-allowed opacity-50'
+                                                            }`}
+                                                            disabled={!onPreviousVideo && !hasPreviousVideo && videoData.is_completed === false}
+                                                        >
+                                                            <SkipBack size={22} />
+                                                        </button>
+                                                        {hoveredControl === 'skipBack' && (
+                                                            <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800/95 text-white text-xs font-medium px-2 py-1 rounded whitespace-nowrap pointer-events-none z-30">
+                                                                {onPreviousVideo && hasPreviousVideo ? "Previous video" : "Rewind 10s"}
+                                                            </div>
+                                                        )}
+                                                    </div>
 
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            // If next video navigation is available, use it
-                                                            if (onNextVideo && hasNextVideo) {
-                                                                onNextVideo();
-                                                            } else {
-                                                                // Otherwise, seek forward 10 seconds
-                                                                skip(10);
-                                                            }
-                                                        }}
-                                                        className="hidden cursor-pointer sm:block text-white hover:text-[#F1C27D] transition-colors p-2"
-                                                        title={onNextVideo && hasNextVideo ? "Next video" : "Forward 10s"}
+                                                    <div 
+                                                        className="relative hidden sm:block"
+                                                        onMouseEnter={() => setHoveredControl('skipForward')}
+                                                        onMouseLeave={() => setHoveredControl(null)}
                                                     >
-                                                        <SkipForward size={22} />
-                                                    </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                // If next video navigation is available, use it
+                                                                if (onNextVideo && hasNextVideo) {
+                                                                    onNextVideo();
+                                                                } else if (videoData.is_completed !== false) {
+                                                                    // Only skip forward if video is completed
+                                                                    skip(10);
+                                                                }
+                                                                // If video is not completed, do nothing (don't skip)
+                                                            }}
+                                                            className={`p-2 ${
+                                                                onNextVideo && hasNextVideo
+                                                                    ? 'text-white hover:text-[#F1C27D] transition-colors cursor-pointer'
+                                                                    : videoData.is_completed !== false
+                                                                    ? 'text-white hover:text-[#F1C27D] transition-colors cursor-pointer'
+                                                                    : 'text-gray-500 cursor-not-allowed opacity-50'
+                                                            }`}
+                                                            disabled={!onNextVideo && !hasNextVideo && videoData.is_completed === false}
+                                                        >
+                                                            <SkipForward size={22} />
+                                                        </button>
+                                                        {hoveredControl === 'skipForward' && (
+                                                            <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800/95 text-white text-xs font-medium px-2 py-1 rounded whitespace-nowrap pointer-events-none z-30">
+                                                                {onNextVideo && hasNextVideo ? "Next video" : "Forward 10s"}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </>
                                             )}
 
                                             {/* Volume Control */}
                                             {showVolumeControl && (
-                                                <VolumeControl
-                                                    volume={volume}
-                                                    isMuted={isMuted}
-                                                    onVolumeChange={handleVolumeChange}
-                                                    onToggleMute={toggleMute}
-                                                />
+                                                <div 
+                                                    className="relative"
+                                                    onMouseEnter={() => setHoveredControl('volume')}
+                                                    onMouseLeave={() => setHoveredControl(null)}
+                                                >
+                                                    <VolumeControl
+                                                        volume={volume}
+                                                        isMuted={isMuted}
+                                                        onVolumeChange={handleVolumeChange}
+                                                        onToggleMute={toggleMute}
+                                                    />
+                                                    {hoveredControl === 'volume' && (
+                                                        <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800/95 text-white text-xs font-medium px-2 py-1 rounded whitespace-nowrap pointer-events-none z-30">
+                                                            {isMuted ? "Unmute" : "Mute"}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             )}
 
                                             {/* Time Display */}
@@ -936,28 +1002,49 @@ export default function CustomVideoPlayer({
 
                                             {/* Fullscreen Button */}
                                             {showFullscreen && (
-                                                <button
-                                                    onClick={toggleFullscreen}
-                                                    className="text-white cursor-pointer hover:text-[#F1C27D] transition-colors p-2 touch-manipulation"
-                                                    title="Fullscreen"
+                                                <div 
+                                                    className="relative"
+                                                    onMouseEnter={() => setHoveredControl('fullscreen')}
+                                                    onMouseLeave={() => setHoveredControl(null)}
                                                 >
-                                                    <Maximize size={20} className="sm:w-6 sm:h-6" />
-                                                </button>
+                                                    <button
+                                                        onClick={toggleFullscreen}
+                                                        className="text-white cursor-pointer hover:text-[#F1C27D] transition-colors p-2 touch-manipulation"
+                                                    >
+                                                        <Maximize size={20} className="sm:w-6 sm:h-6" />
+                                                    </button>
+                                                    {hoveredControl === 'fullscreen' && (
+                                                        <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800/95 text-white text-xs font-medium px-2 py-1 rounded whitespace-nowrap pointer-events-none z-30">
+                                                            Fullscreen
+                                                        </div>
+                                                    )}
+                                                </div>
                                             )}
                                             {/* Settings Menu */}
                                             {showSettings && (
-                                                <SettingsMenu
-                                                    playbackRate={playbackRate}
-                                                    isTheaterMode={isTheaterMode}
-                                                    showPlaybackSpeed={showPlaybackSpeed}
-                                                    onPlaybackRateChange={(rate) => {
-                                                        handlePlaybackRateChange(rate);
-                                                    }}
-                                                    onToggleTheaterMode={onTheaterModeToggle}
-                                                    onTogglePictureInPicture={togglePictureInPicture}
-                                                    showTheaterModeOption={showTheaterMode}
-                                                    showPictureInPictureOption={showPictureInPicture}
-                                                />
+                                                <div 
+                                                    className="relative"
+                                                    onMouseEnter={() => setHoveredControl('settings')}
+                                                    onMouseLeave={() => setHoveredControl(null)}
+                                                >
+                                                    <SettingsMenu
+                                                        playbackRate={playbackRate}
+                                                        isTheaterMode={isTheaterMode}
+                                                        showPlaybackSpeed={showPlaybackSpeed}
+                                                        onPlaybackRateChange={(rate) => {
+                                                            handlePlaybackRateChange(rate);
+                                                        }}
+                                                        onToggleTheaterMode={onTheaterModeToggle}
+                                                        onTogglePictureInPicture={togglePictureInPicture}
+                                                        showTheaterModeOption={showTheaterMode}
+                                                        showPictureInPictureOption={showPictureInPicture}
+                                                    />
+                                                    {hoveredControl === 'settings' && (
+                                                        <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800/95 text-white text-xs font-medium px-2 py-1 rounded whitespace-nowrap pointer-events-none z-30">
+                                                            Settings
+                                                        </div>
+                                                    )}
+                                                </div>
                                             )}
 
 

@@ -79,6 +79,10 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
         const lastPosition = kind === "intro"
           ? courseProgress?.intro_video_last_position
           : courseProgress?.end_video_last_position;
+        
+        const isCompleted = kind === "intro"
+          ? courseProgress?.intro_video_completed || false
+          : courseProgress?.end_video_completed || false;
 
         const newVideoData = {
           video_id: courseId,
@@ -88,6 +92,7 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
           module: `${course.series?.title || course.title} - ${course.title}`,
           video_type: (kind === "intro" ? "intro" : "end") as 'intro' | 'end',
           last_position: lastPosition || 0,
+          is_completed: isCompleted,
         };
 
         // Only update if URL actually changed
@@ -121,6 +126,7 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
           module: moduleText,
           video_type: "lesson" as 'lesson',
           last_position: lesson.progress?.last_position || 0,
+          is_completed: lesson.progress?.is_completed || false,
         };
 
         // Only update if URL actually changed
@@ -305,7 +311,7 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
         // showVolumeControl={false}   // Hide volume control
         // showPlaybackSpeed={false}   // Hide playback speed
         // showSkipControls={false}    // Hide skip buttons
-        // showFullscreen={false}      // Hide fullscreen button
+        showFullscreen={true}      // Hide fullscreen button
         // showProgressBar={false}    // Hide progress bar
 
         // showSettings={true}                    

@@ -7,13 +7,15 @@ interface VolumeControlProps {
     isMuted: boolean;
     onVolumeChange: (volume: number) => void;
     onToggleMute: () => void;
+    onHoverChange?: (isHovered: boolean) => void;
 }
 
 export default function VolumeControl({
     volume,
     isMuted,
     onVolumeChange,
-    onToggleMute
+    onToggleMute,
+    onHoverChange
 }: VolumeControlProps) {
     const [showSlider, setShowSlider] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -31,12 +33,14 @@ export default function VolumeControl({
             clearTimeout(timeoutRef.current);
         }
         setShowSlider(true);
+        onHoverChange?.(true);
     };
 
     const handleMouseLeave = () => {
         timeoutRef.current = setTimeout(() => {
             setShowSlider(false);
         }, 300);
+        onHoverChange?.(false);
     };
 
     const handleClick = (e: React.MouseEvent) => {
