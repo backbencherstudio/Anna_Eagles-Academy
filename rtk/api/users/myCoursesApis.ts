@@ -103,6 +103,7 @@ export const myCoursesApi = createApi({
 
 
         // strimming lesson video play  /api/student/series/lessons/cmh76f98f0006wsz4uhpijmiq/stream
+        // headers range: bytes=0-10
 
         useSetStrimmingLessonVideoPlayMutation: builder.mutation({
             query: ({ lesson_id, strimming_video_url }: { lesson_id: string, strimming_video_url: string }) => ({

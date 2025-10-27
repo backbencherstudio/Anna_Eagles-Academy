@@ -144,7 +144,6 @@ export default function CustomVideoPlayer({
     // Control handlers
     const togglePlay = useCallback(() => {
         if (videoRef.current) {
-            // If video has ended, replay from the beginning
             if (hasEnded) {
                 videoRef.current.currentTime = 0;
                 setHasEnded(false);
@@ -738,7 +737,7 @@ export default function CustomVideoPlayer({
         const handleEnded = async () => {
             setHasEnded(true);
             setIsPlaying(false);
-            
+
             if (videoData.video_type && duration > 0) {
                 // Save as complete when video ends
                 throttledSaveProgressRef.current(
@@ -859,20 +858,20 @@ export default function CustomVideoPlayer({
                                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-0 sm:p-4 md:pb-4 sm:pb-6">
                                     {/* Custom Progress Bar */}
                                     <div className="mb-0 md:mb-3">
-                                    <VideoProgressBar
-                                        currentTime={currentTime}
-                                        duration={duration}
-                                        buffered={buffered}
-                                        onSeek={handleSeek}
-                                        isCompleted={videoData.is_completed !== false}
-                                    />
+                                        <VideoProgressBar
+                                            currentTime={currentTime}
+                                            duration={duration}
+                                            buffered={buffered}
+                                            onSeek={handleSeek}
+                                            isCompleted={videoData.is_completed !== false}
+                                        />
                                     </div>
 
                                     {/* Control Buttons */}
                                     <div className="flex items-center justify-between gap-2">
                                         <div className="flex items-center gap-1 sm:gap-2 flex-shrink">
                                             {/* Play/Pause/Replay */}
-                                            <div 
+                                            <div
                                                 className="relative"
                                                 onMouseEnter={() => setHoveredControl('play')}
                                                 onMouseLeave={() => setHoveredControl(null)}
@@ -899,7 +898,7 @@ export default function CustomVideoPlayer({
                                             {/* Skip Controls - Hidden on mobile */}
                                             {showSkipControls && (
                                                 <>
-                                                    <div 
+                                                    <div
                                                         className="relative hidden sm:block"
                                                         onMouseEnter={() => setHoveredControl('skipBack')}
                                                         onMouseLeave={() => setHoveredControl(null)}
@@ -916,13 +915,12 @@ export default function CustomVideoPlayer({
                                                                 }
                                                                 // If video is not completed, do nothing (don't skip)
                                                             }}
-                                                            className={`p-2 ${
-                                                                onPreviousVideo && hasPreviousVideo
+                                                            className={`p-2 ${onPreviousVideo && hasPreviousVideo
                                                                     ? 'text-white hover:text-[#F1C27D] transition-colors cursor-pointer'
                                                                     : videoData.is_completed !== false
-                                                                    ? 'text-white hover:text-[#F1C27D] transition-colors cursor-pointer'
-                                                                    : 'text-gray-500 cursor-not-allowed opacity-50'
-                                                            }`}
+                                                                        ? 'text-white hover:text-[#F1C27D] transition-colors cursor-pointer'
+                                                                        : 'text-gray-500 cursor-not-allowed opacity-50'
+                                                                }`}
                                                             disabled={!onPreviousVideo && !hasPreviousVideo && videoData.is_completed === false}
                                                         >
                                                             <SkipBack size={22} />
@@ -934,7 +932,7 @@ export default function CustomVideoPlayer({
                                                         )}
                                                     </div>
 
-                                                    <div 
+                                                    <div
                                                         className="relative hidden sm:block"
                                                         onMouseEnter={() => setHoveredControl('skipForward')}
                                                         onMouseLeave={() => setHoveredControl(null)}
@@ -951,13 +949,12 @@ export default function CustomVideoPlayer({
                                                                 }
                                                                 // If video is not completed, do nothing (don't skip)
                                                             }}
-                                                            className={`p-2 ${
-                                                                onNextVideo && hasNextVideo
+                                                            className={`p-2 ${onNextVideo && hasNextVideo
                                                                     ? 'text-white hover:text-[#F1C27D] transition-colors cursor-pointer'
                                                                     : videoData.is_completed !== false
-                                                                    ? 'text-white hover:text-[#F1C27D] transition-colors cursor-pointer'
-                                                                    : 'text-gray-500 cursor-not-allowed opacity-50'
-                                                            }`}
+                                                                        ? 'text-white hover:text-[#F1C27D] transition-colors cursor-pointer'
+                                                                        : 'text-gray-500 cursor-not-allowed opacity-50'
+                                                                }`}
                                                             disabled={!onNextVideo && !hasNextVideo && videoData.is_completed === false}
                                                         >
                                                             <SkipForward size={22} />
@@ -973,7 +970,7 @@ export default function CustomVideoPlayer({
 
                                             {/* Volume Control */}
                                             {showVolumeControl && (
-                                                <div 
+                                                <div
                                                     className="relative"
                                                     onMouseEnter={() => setHoveredControl('volume')}
                                                     onMouseLeave={() => setHoveredControl(null)}
@@ -1002,7 +999,7 @@ export default function CustomVideoPlayer({
 
                                             {/* Fullscreen Button */}
                                             {showFullscreen && (
-                                                <div 
+                                                <div
                                                     className="relative"
                                                     onMouseEnter={() => setHoveredControl('fullscreen')}
                                                     onMouseLeave={() => setHoveredControl(null)}
@@ -1022,7 +1019,7 @@ export default function CustomVideoPlayer({
                                             )}
                                             {/* Settings Menu */}
                                             {showSettings && (
-                                                <div 
+                                                <div
                                                     className="relative"
                                                     onMouseEnter={() => setHoveredControl('settings')}
                                                     onMouseLeave={() => setHoveredControl(null)}
@@ -1071,9 +1068,9 @@ export default function CustomVideoPlayer({
                                         )}
                                     </div>
 
-                                    {/* Loading/Buffering Text */}
+                                    {/* Loading Text */}
                                     <p className="text-lg font-semibold mb-3">
-                                        {isLoading ? 'Loading video...' : 'Buffering...'}
+                                        Loading video...
                                     </p>
 
                                     {/* Video Title */}
