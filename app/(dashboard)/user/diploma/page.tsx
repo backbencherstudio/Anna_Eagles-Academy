@@ -1,9 +1,16 @@
 'use client'
 import React from 'react'
-import { Card, CardContent,  CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { CheckCircle2, Download } from 'lucide-react'
+import { CheckCircle2, Download, Loader2 } from 'lucide-react'
 import ReusableTable from '@/components/Resuable/ReusableTable'
+import { useGetAllCompletedCourseCertificateQuery, useLazyGetSingleCompletedCourseCertificateQuery } from '@/rtk/api/users/diplomaCeritificateApis'
+import type { CourseCertificate, SingleCertificateResponse } from '@/rtk/api/users/diplomaCeritificateApis'
+import CourseCompletionCertificate from '@/app/_components/Certificate/CourseCompletionCertificate'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useGetSeriesWithCoursesQuery } from '@/rtk/api/users/filterSeriesList'
+import ResuablePagination from '@/components/Resuable/ResuablePagination'
+import { DEFAULT_PAGINATION, PAGINATION_LIMITS } from '@/lib/paginationTypes'
 
 type CourseRow = {
   id: string
@@ -12,6 +19,7 @@ type CourseRow = {
   startDate: string
   completionDate?: string
   status: 'COMPLETED' | 'PENDING'
+  certificateId: string
 }
 
 
@@ -29,22 +37,34 @@ const renderStatusPill = (status: CourseRow['status']) => (
 
 const renderDownloadButton = (
   row: CourseRow,
-  onClick: (r: CourseRow) => void
+  onClick: (r: CourseRow) => void,
+  downloadingId?: string,
+  isLoading?: boolean
 ) => {
   const isCompleted = row.status === 'COMPLETED'
+  const isButtonLoading = downloadingId === row.id || isLoading
   return (
     <Button
       size="sm"
-      disabled={!isCompleted}
+      disabled={!isCompleted || isButtonLoading}
       className={
-        (isCompleted
+        (isCompleted && !isButtonLoading
           ? 'bg-[#0F2598] hover:bg-[#0F2598]/90 text-white cursor-pointer '
           : 'bg-gray-200 text-gray-500 cursor-not-allowed hover:bg-gray-200 ') + 'py-5'
       }
       onClick={isCompleted ? () => onClick(row) : undefined}
     >
-      <Download className="size-4" />
-      Download Certificate
+      {isButtonLoading ? (
+        <>
+          <Loader2 className="size-4 animate-spin" />
+          Downloading...
+        </>
+      ) : (
+        <>
+          <Download className="size-4" />
+          Download Certificate
+        </>
+      )}
     </Button>
   )
 }
@@ -59,49 +79,171 @@ const headers = [
   { key: 'download', label: 'Download' },
 ]
 
+// Helper function to format date
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit'
+  });
+};
 
-const rows: CourseRow[] = [
-  {
-    id: '1',
-    seriesName: 'Foundations of Faith',
-    courseName: 'The Kingdom of God is all about Spirit',
-    startDate: '01 Mar 2023',
-    completionDate: '03 Mar 2023',
-    status: 'COMPLETED',
-  },
-  {
-    id: '2',
-    seriesName: 'Foundations of Faith',
-    courseName: 'The Kingdom of God is all about Character',
-    startDate: '01 Mar 2023',
-    completionDate: '-',
-    status: 'PENDING',
-  },
-  {
-    id: '3',
-    seriesName: 'Foundations of Faith',
-    courseName: 'The Kingdom of God is about Psalm 133',
-    startDate: '01 Mar 2023',
-    completionDate: '-',
-    status: 'PENDING',
-  },
-]
+// Transform API data to CourseRow format
+const transformCourseData = (courses: CourseCertificate[]): CourseRow[] => {
+  return courses.map((course) => ({
+    id: course.course_id,
+    seriesName: course.series?.title || 'N/A',
+    courseName: course.course_title,
+    startDate: formatDate(course.course_start_date),
+    certificateId: course.certificate_id || 'N/A',
+    completionDate: course.is_completed && course.course_completion_date
+      ? formatDate(course.course_completion_date)
+      : '-',
+    status: course.is_completed ? 'COMPLETED' : 'PENDING',
+  }));
+};
 
 
 
 export default function Diploma() {
+  const [selectedCourse, setSelectedCourse] = React.useState<CourseCertificate | SingleCertificateResponse['data'] | null>(null)
+  const [downloadingId, setDownloadingId] = React.useState<string | null>(null)
+  const { data: seriesResponse, isLoading: isSeriesLoading } = useGetSeriesWithCoursesQuery()
+  const [selectedSeriesId, setSelectedSeriesId] = React.useState<string>('all')
+  const [currentPage, setCurrentPage] = React.useState<number>(DEFAULT_PAGINATION.page)
+  const [itemsPerPage, setItemsPerPage] = React.useState<number>(DEFAULT_PAGINATION.limit)
 
+  // Fetch all completed courses
+  const { data, isLoading, error } = useGetAllCompletedCourseCertificateQuery({
+    page: currentPage,
+    limit: itemsPerPage,
+    series_id: selectedSeriesId !== 'all' ? selectedSeriesId : undefined,
+  });
 
-  const handleDownloadDiploma = (item: CourseRow) => {
-    console.log('Download diploma clicked')
+  // Lazy fetch for individual certificate data
+  const [getCertificateData, { isLoading: isFetchingCertificate }] = useLazyGetSingleCompletedCourseCertificateQuery();
+
+  // Transform API data to table rows
+  const rows: CourseRow[] = data?.data?.courses
+    ? transformCourseData(data.data.courses)
+    : [];
+
+  // Derive total items/pages robustly
+  const totalItems = (data as any)?.data?.pagination?.total
+    || (data as any)?.data?.total
+    || (data as any)?.data?.total_courses
+    || rows.length
+    || 0
+
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage))
+
+  // Ensure current page stays in bounds when dependencies change
+  React.useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [totalPages, currentPage])
+
+  const handleDownloadDiploma = async (item: CourseRow) => {
+    try {
+      setDownloadingId(item.id);
+
+      // Fetch individual certificate data to get certificate_id
+      const certificateResult = await getCertificateData(item.id).unwrap();
+
+      if (certificateResult?.data) {
+        setSelectedCourse(certificateResult.data);
+      } else {
+        setDownloadingId(null);
+      }
+    } catch (err) {
+      console.error('Error fetching certificate:', err);
+      setDownloadingId(null);
+    }
   }
 
-  return (
+  // Auto-download certificate when selected
+  React.useEffect(() => {
+    if (selectedCourse) {
+      const timer = setTimeout(() => {
+        setSelectedCourse(null);
+        setDownloadingId(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedCourse]);
 
-    <>
+  // Show loading state
+  if (isLoading) {
+    return (
       <div className="space-y-8 bg-white p-4 rounded-lg">
         <div>
           <h1 className="text-xl font-semibold">Course Completion Certificate</h1>
+        </div>
+        <div className="text-center py-10 text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="space-y-8 bg-white p-4 rounded-lg">
+        <div>
+          <h1 className="text-xl font-semibold">Course Completion Certificate</h1>
+        </div>
+        <div className="text-center py-10 text-red-500">
+          Error loading certificates. Please try again later.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div style={{
+        position: 'fixed',
+        left: '0',
+        top: '0',
+        width: '1px',
+        height: '1px',
+        overflow: 'hidden',
+        opacity: '0',
+        pointerEvents: 'none',
+        zIndex: '-9999'
+      }}>
+        {selectedCourse && (
+          <CourseCompletionCertificate key={selectedCourse.course_id} course={selectedCourse} />
+        )}
+      </div>
+
+      <div className="space-y-8 bg-white p-4 rounded-lg">
+        <div className="flex flex-col md:flex-row gap-4 md:gap-0 items-center justify-between">
+          <h1 className="text-xl font-semibold">Course Completion Certificate</h1>
+          <Select
+            value={selectedSeriesId}
+            onValueChange={(val) => {
+              setSelectedSeriesId(val)
+              setCurrentPage(1)
+            }}
+          >
+            <SelectTrigger className="w-52">
+              <SelectValue placeholder="Select Series" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Series</SelectItem>
+              {isSeriesLoading ? (
+                <SelectItem value="loading" disabled>Loading...</SelectItem>
+              ) : (
+                seriesResponse?.data?.map((series) => (
+                  <SelectItem className='cursor-pointer' key={series.id} value={series.id}>{series.title}</SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+
+
         </div>
 
         <ReusableTable
@@ -110,9 +252,19 @@ export default function Diploma() {
           data={rows.map((r) => ({
             ...r,
             status: renderStatusPill(r.status),
-            download: renderDownloadButton(r, handleDownloadDiploma),
+            download: renderDownloadButton(r, handleDownloadDiploma, downloadingId || undefined, isFetchingCertificate),
+            certificateId: r.certificateId,
           }))}
         // itemsPerPage={5}
+        />
+        <ResuablePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+          onPageChange={(p) => setCurrentPage(p)}
+          onItemsPerPageChange={(n) => { setItemsPerPage(n); setCurrentPage(1); }}
+          itemsPerPageOptions={PAGINATION_LIMITS}
         />
       </div>
 
@@ -155,8 +307,13 @@ export default function Diploma() {
 
             {/* Download button */}
             <div className="pt-2">
-              <Button onClick={() => handleDownloadDiploma(rows[0])} className="w-full bg-[#0F2598] hover:bg-[#0F2598]/90 py-5 cursor-pointer text-white">
-                <Download className="size-4" />
+              <Button
+
+
+                className="w-full bg-[#0F2598] hover:bg-[#0F2598]/90 py-5 cursor-pointer text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+
+
                 Download Diploma
               </Button>
             </div>

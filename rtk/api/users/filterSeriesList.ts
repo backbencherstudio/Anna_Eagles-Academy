@@ -33,6 +33,7 @@ export const filterSeriesListApi = createApi({
                 method: 'GET',
             }),
             providesTags: ['FilterSeriesList'],
+            keepUnusedDataFor: 0,
         }),
     }),
 });
