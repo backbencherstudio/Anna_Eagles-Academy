@@ -307,6 +307,7 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
           onNextVideo={handleNextTrack}
           hasPreviousVideo={!isPreviousDisabled}
           hasNextVideo={!isNextDisabled}
+          allowSeeking={true}  // Set to false to disable seeking
         // Optional features - all enabled by default, uncomment to disable
         // showVolumeControl={false}   // Hide volume control
         // showPlaybackSpeed={false}   // Hide playback speed

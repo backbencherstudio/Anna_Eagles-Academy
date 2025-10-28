@@ -7,6 +7,7 @@ interface VideoProgressBarProps {
     buffered: number;
     onSeek: (time: number) => void;
     isCompleted?: boolean;
+    allowSeeking?: boolean;
 }
 
 export default function VideoProgressBar({
@@ -14,7 +15,8 @@ export default function VideoProgressBar({
     duration,
     buffered,
     onSeek,
-    isCompleted = true
+    isCompleted = true,
+    allowSeeking = true
 }: VideoProgressBarProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [hoverTime, setHoverTime] = useState<number | null>(null);
@@ -50,7 +52,7 @@ export default function VideoProgressBar({
     };
 
     const handleClick = (e: React.MouseEvent) => {
-        if (isDragging) return;
+        if (isDragging || !allowSeeking) return;
         const rect = e.currentTarget.getBoundingClientRect();
         const pos = (e.clientX - rect.left) / rect.width;
         const seekTime = pos * duration;
@@ -65,6 +67,8 @@ export default function VideoProgressBar({
     };
 
     const handleMouseDown = (e: React.MouseEvent) => {
+        if (!allowSeeking) return;
+        
         const rect = e.currentTarget.getBoundingClientRect();
         
         const handleMouseMove = (e: MouseEvent) => {
@@ -91,7 +95,7 @@ export default function VideoProgressBar({
 
     return (
         <div
-            className="relative h-2 cursor-pointer group"
+            className={`relative h-2 group ${allowSeeking ? 'cursor-pointer' : 'cursor-not-allowed'}`}
             onClick={handleClick}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
@@ -123,6 +127,7 @@ export default function VideoProgressBar({
                     height: '12px'
                 }}
                 onMouseDown={(e) => {
+                    if (!allowSeeking) return;
                     e.stopPropagation();
                     e.preventDefault();
                     const progressBar = (e.currentTarget as HTMLElement).parentElement;

@@ -99,22 +99,22 @@ export default function ContinueWatching() {
     // Transform API data for display
     const watchedVideos: VideoDisplayData[] = watchedHistoryData?.data?.watchedLessons?.map((item: WatchedHistoryItem) => {
         const videoLengthSeconds = parseVideoLength(item.lesson?.video_length);
-        const watchedSeconds = item.progress.time_spent || 0;
+        const lastPositionSeconds = item.progress.last_position || 0;
         const completionPercentage = item.progress.completion_percentage || 0;
 
-        // Calculate progress percentage based on time spent vs total video length
-        const timeBasedProgress = videoLengthSeconds > 0 ? (watchedSeconds / videoLengthSeconds) * 100 : 0;
+        // Calculate progress percentage based on last position vs total video length
+        const positionBasedProgress = videoLengthSeconds > 0 ? (lastPositionSeconds / videoLengthSeconds) * 100 : 0;
 
         return {
             id: item.lesson.id,
             seriesId: item.series.id,
             videoTitle: item.lesson.title,
             thumbnail: item.series.thumbnail,
-            watchedStr: formatTime(watchedSeconds),
+            watchedStr: formatTime(lastPositionSeconds),
             totalStr: item.lesson?.video_length || "0m 0s",
-            percent: Math.min(timeBasedProgress, 100),
+            percent: Math.min(positionBasedProgress, 100),
             completionPercentage: completionPercentage,
-            viewedAtStr: `Last at ${formatDate(item.progress.viewed_at)}`,
+            viewedAtStr: `Last seen ${formatDate(item.progress.viewed_at)}`,
             seriesTitle: item.series.title,
             courseTitle: item.course.title
         };
@@ -205,7 +205,7 @@ export default function ContinueWatching() {
                     {watchedVideos.map((vid: VideoDisplayData, i) => (
                         <div
                             key={vid.id + i}
-                            className="embla__slide flex-[0_0_280px] min-w-0"
+                            className="embla__slide flex-[0_0_280px] min-w-0 mx-auto"
                         >
                             <div
                                 className="w-full bg-[#F8F9FA] rounded-xl shadow-sm group transition cursor-pointer hover:shadow-md"
