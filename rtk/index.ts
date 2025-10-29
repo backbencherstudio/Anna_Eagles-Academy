@@ -58,7 +58,7 @@ import { filterSeriesListApi } from './api/users/filterSeriesList'
 import { scheduleApi } from './api/users/scheduleApis'
 import { dashboardDataApi } from './api/users/dashboardDataApis'
 import shareFeedbackReducer from '@/rtk/slices/users/shareFeedBackSlice'
-import { getAllCompletedCourseCertificateApi, getSingleCompletedCourseCertificateApi, downloadAcademyDiplomaCertificateApi } from './api/users/diplomaCeritificateApis'
+import { getAllCompletedCourseCertificateApi, getSingleCompletedCourseCertificateApi, getAcademyDiplomaCertificateApi } from './api/users/diplomaCeritificateApis'
 import diplomaCertificateReducer from '@/rtk/slices/users/diplomaCeritificateSlice'
 
 
@@ -134,7 +134,7 @@ export const store = configureStore({
     shareFeedback: shareFeedbackReducer,
     [getAllCompletedCourseCertificateApi.reducerPath]: getAllCompletedCourseCertificateApi.reducer,
     [getSingleCompletedCourseCertificateApi.reducerPath]: getSingleCompletedCourseCertificateApi.reducer,
-    [downloadAcademyDiplomaCertificateApi.reducerPath]: downloadAcademyDiplomaCertificateApi.reducer,
+    [getAcademyDiplomaCertificateApi.reducerPath]: getAcademyDiplomaCertificateApi.reducer,
     diplomaCertificate: diplomaCertificateReducer,
     
     
@@ -207,7 +207,7 @@ export const store = configureStore({
       shareFeedBackApi.middleware,
       getAllCompletedCourseCertificateApi.middleware,
       getSingleCompletedCourseCertificateApi.middleware,
-      downloadAcademyDiplomaCertificateApi.middleware,
+      getAcademyDiplomaCertificateApi.middleware,
     ),
   devTools: process.env.NODE_ENV !== 'production',
 })

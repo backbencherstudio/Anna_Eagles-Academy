@@ -45,6 +45,37 @@ export interface SingleCertificateResponse {
     };
 }
 
+// Diploma certificate response type (series-based)
+export interface DiplomaCertificateResponse {
+    success: boolean;
+    message: string;
+    data: {
+        lms_name: string;
+        student_name: string;
+        student_email: string;
+        series_title: string;
+        series_id: string;
+        enrollment_id: string;
+        enrolled_at: string;
+        completed_at: string | null; 
+        series_start_date: string; 
+        series_end_date: string; 
+        total_courses: number;
+        completed_courses: number;
+        overall_completion_percentage: number;
+        courses: Array<{
+            course_id: string;
+            course_title: string;
+            completion_date: string; 
+            completion_percentage: number;
+        }>;
+        diploma_id: string;
+        generated_at: string;
+        achievement_type: 'Diploma';
+        program_duration: string;
+    };
+}
+
 export interface CompletedCourseCertificateResponse {
     success: boolean;
     message: string;
@@ -93,21 +124,24 @@ export const getSingleCompletedCourseCertificateApi = createApi({
 });
 
 // download Academy Diploma Certificate
-export const downloadAcademyDiplomaCertificateApi = createApi({
-    reducerPath: 'downloadAcademyDiplomaCertificateApi',
+export const getAcademyDiplomaCertificateApi = createApi({
+    reducerPath: 'getAcademyDiplomaCertificateApi',
     baseQuery: createAuthBaseQuery(),
+    tagTypes: ['AcademyDiplomaCertificate'],
 
     endpoints: (builder) => ({
-        // download Academy Diploma Certificate
-        downloadAcademyDiplomaCertificate: builder.mutation({
-            query: (id: string) => ({
-                url: `/api/student/diploma-certificate/${id}/download`,
+        // get Academy Diploma Certificate /api/student/certificate/diploma/:seriesId
+        getAcademyDiplomaCertificate: builder.query<DiplomaCertificateResponse, string>({
+            query: (seriesId: string) => ({
+                url: `/api/student/certificate/diploma/${seriesId}`,
                 method: 'GET',
             }),
+            providesTags: ['AcademyDiplomaCertificate'],
+            keepUnusedDataFor: 0,
         }),
     }),
 });
 
 export const { useGetAllCompletedCourseCertificateQuery } = getAllCompletedCourseCertificateApi;
 export const { useGetSingleCompletedCourseCertificateQuery, useLazyGetSingleCompletedCourseCertificateQuery } = getSingleCompletedCourseCertificateApi;
-export const { useDownloadAcademyDiplomaCertificateMutation } = downloadAcademyDiplomaCertificateApi;
+export const { useGetAcademyDiplomaCertificateQuery, useLazyGetAcademyDiplomaCertificateQuery } = getAcademyDiplomaCertificateApi;

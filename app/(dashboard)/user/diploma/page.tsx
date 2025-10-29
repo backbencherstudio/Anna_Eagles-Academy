@@ -1,16 +1,17 @@
 'use client'
 import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+
 import { Button } from '@/components/ui/button'
-import { CheckCircle2, Download, Loader2 } from 'lucide-react'
+import { Download, Loader2 } from 'lucide-react'
 import ReusableTable from '@/components/Resuable/ReusableTable'
 import { useGetAllCompletedCourseCertificateQuery, useLazyGetSingleCompletedCourseCertificateQuery } from '@/rtk/api/users/diplomaCeritificateApis'
 import type { CourseCertificate, SingleCertificateResponse } from '@/rtk/api/users/diplomaCeritificateApis'
-import CourseCompletionCertificate from '@/app/_components/Certificate/CourseCompletionCertificate'
+import CourseCompletionCertificate from '@/app/_components/Student/Diploma/CourseCertificate/CourseCompletionCertificate'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useGetSeriesWithCoursesQuery } from '@/rtk/api/users/filterSeriesList'
 import ResuablePagination from '@/components/Resuable/ResuablePagination'
 import { DEFAULT_PAGINATION, PAGINATION_LIMITS } from '@/lib/paginationTypes'
+import DiplomaCard from '@/app/_components/Student/Diploma/AcademyDiploma/DiplomaCard'
 
 type CourseRow = {
   id: string
@@ -275,58 +276,7 @@ export default function Diploma() {
         />
       </div>
 
-      {/* Diploma Card */}
-      <Card className="mt-5 max-w-4xl mx-auto rounded-2xl py-10  ">
-        <CardHeader className="">
-          <CardTitle className="text-center text-lg xl:text-2xl  font-semibold">Academy Diploma</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            {/* Top info banner */}
-            <div className="rounded-lg border border-[#F1C27D] bg-amber-50 text-[#4A4C56] p-4 text-center text-sm font-medium">
-              Complete all Series and Courses in the Academy
-              <br />
-              (excluding the Special BootCamp Crash Course) to earn your official diploma.
-            </div>
-
-            {/* Status row */}
-            <div className="text-sm">
-              <div className="mb-2 font-medium text-[#4A4C56]">Status:</div>
-              <div className="flex items-center justify-between">
-                <div className="text-[#12B76A] dark:text-[#12B76A] font-medium">
-                  All standard courses completed
-                </div>
-                <CheckCircle2 className="size-5 text-[#12B76A]" />
-              </div>
-            </div>
-
-            {/* Note box */}
-            <div className="rounded-lg border bg-muted/40 p-4 text-sm leading-6">
-              <div className="mb-1 font-semibold text-[#EB3D4D]">Note:</div>
-              <p className="text-muted-foreground italic font-medium">
-                A diploma will only be generated after completing all available Series
-                and Courses in the Academy (excluding the Special BootCamp Crash Course).
-              </p>
-            </div>
-
-            {/* Divider */}
-            <div className="h-px bg-gray-200" />
-
-            {/* Download button */}
-            <div className="pt-2">
-              <Button
-
-
-                className="w-full bg-[#0F2598] hover:bg-[#0F2598]/90 py-5 cursor-pointer text-white disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-
-
-                Download Diploma
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <DiplomaCard />
     </>
 
   )
