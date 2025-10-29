@@ -38,11 +38,10 @@ const renderStatusPill = (status: CourseRow['status']) => (
 const renderDownloadButton = (
   row: CourseRow,
   onClick: (r: CourseRow) => void,
-  downloadingId?: string,
-  isLoading?: boolean
+  downloadingId?: string
 ) => {
   const isCompleted = row.status === 'COMPLETED'
-  const isButtonLoading = downloadingId === row.id || isLoading
+  const isButtonLoading = downloadingId === row.id
   return (
     <Button
       size="sm"
@@ -122,7 +121,7 @@ export default function Diploma() {
   });
 
   // Lazy fetch for individual certificate data
-  const [getCertificateData, { isLoading: isFetchingCertificate }] = useLazyGetSingleCompletedCourseCertificateQuery();
+  const [getCertificateData] = useLazyGetSingleCompletedCourseCertificateQuery();
 
   // Transform API data to table rows
   const rows: CourseRow[] = data?.data?.courses
@@ -169,10 +168,18 @@ export default function Diploma() {
       const timer = setTimeout(() => {
         setSelectedCourse(null);
         setDownloadingId(null);
-      }, 3000);
+      }, 1600);
       return () => clearTimeout(timer);
     }
   }, [selectedCourse]);
+
+  // Reset downloading state on unmount
+  React.useEffect(() => {
+    return () => {
+      setDownloadingId(null);
+      setSelectedCourse(null);
+    };
+  }, []);
 
   // Show loading state
   if (isLoading) {
@@ -252,7 +259,7 @@ export default function Diploma() {
           data={rows.map((r) => ({
             ...r,
             status: renderStatusPill(r.status),
-            download: renderDownloadButton(r, handleDownloadDiploma, downloadingId || undefined, isFetchingCertificate),
+            download: renderDownloadButton(r, handleDownloadDiploma, downloadingId || undefined),
             certificateId: r.certificateId,
           }))}
         // itemsPerPage={5}

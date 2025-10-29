@@ -5,8 +5,10 @@ import { toPng } from 'html-to-image'
 import { useAppSelector } from '@/rtk/hooks'
 import type { CourseCertificate, SingleCertificateResponse } from '@/rtk/api/users/diplomaCeritificateApis'
 import { jsPDF } from 'jspdf'
-import watermark from '@/public/images/logo/watermark.png'
-import logoo from '@/public/images/logo/logoo.png'
+import watermark from '@/public/images/logo/withoutbg.png'
+// import logoo from '@/public/images/logo/logoo.png'
+import badge from '@/public/images/logo/badge1.png'
+import { LiaCrownSolid } from "react-icons/lia";
 
 interface CourseCompletionCertificateProps {
     course: CourseCertificate | SingleCertificateResponse['data']
@@ -39,8 +41,32 @@ export default function CourseCompletionCertificate({ course }: CourseCompletion
                 element.style.setProperty('background-color', '#FFFFFF', 'important')
                 element.style.setProperty('overflow', 'visible', 'important')
 
-                // Wait for render
-                await new Promise(resolve => setTimeout(resolve, 800))
+                // Wait for images to fully load
+                const images = element.querySelectorAll('img')
+                const imageLoadPromises = Array.from(images).map((img) => {
+                    if (img.complete && img.naturalHeight !== 0) return Promise.resolve()
+                    return new Promise((resolve) => {
+                        const timeout = setTimeout(() => resolve(null), 3000)
+                        const cleanup = () => {
+                            clearTimeout(timeout)
+                            img.removeEventListener('load', handleLoad)
+                            img.removeEventListener('error', handleError)
+                        }
+                        const handleLoad = () => {
+                            cleanup()
+                            resolve(null)
+                        }
+                        const handleError = () => {
+                            cleanup()
+                            resolve(null)
+                        }
+                        img.addEventListener('load', handleLoad)
+                        img.addEventListener('error', handleError)
+                    })
+                })
+
+                await Promise.all(imageLoadPromises)
+                await new Promise(resolve => setTimeout(resolve, 1000))
 
                 // Generate image using html-to-image with exact rendered height
                 const rect = element.getBoundingClientRect()
@@ -93,7 +119,7 @@ export default function CourseCompletionCertificate({ course }: CourseCompletion
             }
         }
 
-        const timer = setTimeout(handleDownload, 100)
+        const timer = setTimeout(handleDownload, 300)
         return () => clearTimeout(timer)
     }, [course])
 
@@ -106,7 +132,7 @@ export default function CourseCompletionCertificate({ course }: CourseCompletion
                 left: '-20000px',
                 width: '1200px',
                 height: 'auto',
-                backgroundColor: '#FAFAFA',
+                backgroundColor: '#FFFFFF',
                 padding: '30px',
                 fontFamily: '"Georgia", "Times New Roman", serif',
                 color: '#000000',
@@ -118,8 +144,8 @@ export default function CourseCompletionCertificate({ course }: CourseCompletion
                 borderRadius: '8px',
                 padding: '0',
                 position: 'relative',
-                background: 'linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 100%)',
-                boxShadow: 'inset 0 0 60px rgba(212, 175, 55, 0.08)'
+                background: '#FFFFFF',
+                boxShadow: 'inset 0 0 60px rgba(15, 37, 152, 0.08)'
             }}>
                 {/* Corner Ornaments */}
                 <div style={{
@@ -175,13 +201,13 @@ export default function CourseCompletionCertificate({ course }: CourseCompletion
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    backgroundImage: `repeating-linear-gradient(
-            45deg,
-            transparent,
-            transparent 2px,
-            rgba(212, 175, 55, 0.1) 2px,
-            rgba(212, 175, 55, 0.1) 4px
-          )`,
+                    //             backgroundImage: `repeating-linear-gradient(
+                    //     45deg,
+                    //     #FFFFFF,
+                    //     #FFFFFF 2px,
+                    //     rgba(15, 37, 152, 0.08) 2px,
+                    //     rgba(15, 37, 152, 0.08) 4px
+                    //   )`,
                     pointerEvents: 'none',
                     zIndex: 1
                 }}></div>
@@ -193,13 +219,13 @@ export default function CourseCompletionCertificate({ course }: CourseCompletion
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    backgroundImage: `radial-gradient(circle at 2px 2px, rgba(212, 175, 55, 0.1) 1px, transparent 0)`,
+                    backgroundImage: `radial-gradient(circle at 2px 2px, rgba(15, 37, 152, 0.08) 1px, transparent 0)`,
                     backgroundSize: '40px 40px',
                     pointerEvents: 'none',
                     zIndex: 1
                 }}></div>
 
-                {/* Layer 3: Centered Watermark Image */}
+                {/* Layer 3: Centered logo Image */}
                 <div style={{
                     position: 'absolute',
                     top: 0,
@@ -209,72 +235,41 @@ export default function CourseCompletionCertificate({ course }: CourseCompletion
                     backgroundImage: `url(${watermark.src})`,
                     backgroundRepeat: 'no-repeat',
                     backgroundPosition: 'center',
-                    backgroundSize: '70%',
-                    opacity: 5,
+                    backgroundSize: '60%',
+                    opacity: 0.70,
                     pointerEvents: 'none',
                     zIndex: 2,
                     mixBlendMode: 'normal',
-                    filter: 'contrast(1.1) brightness(1.05)',
-                    transform: 'rotate(-45deg)',
-                    transformOrigin: 'center'
+                    filter: 'contrast(1.1) brightness(1.05)'
                 }}></div>
 
 
+
+                {/* Badge */}
                 <div style={{
                     position: 'absolute',
                     bottom: '15%',
                     right: '10%',
                     width: '180px',
                     height: '180px',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transform: 'rotate(15deg)',
                     pointerEvents: 'none',
                     zIndex: 1
                 }}>
-                    {/* Outer ring */}
-                    <div style={{
-                        position: 'absolute',
-                        width: '100%',
-                        height: '100%',
-                        borderRadius: '50%',
-                        border: '2px solid rgba(15, 37, 152, 0.35)',
-                        boxShadow: '0 3px 8px rgba(15, 37, 152, 0.08)'
-                    }}></div>
-                    {/* Inner decorative circle */}
-                    <div style={{
-                        position: 'absolute',
-                        width: '80%',
-                        height: '80%',
-                        borderRadius: '50%',
-                        border: '1px solid rgba(15, 37, 152, 0.15)',
-                        background: 'radial-gradient(circle, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.15) 50%, transparent 100%)'
-                    }}></div>
-                    {/* Text container */}
                     <div style={{
                         position: 'relative',
-                        zIndex: 3,
-                        textAlign: 'center',
-                        lineHeight: '1.3',
-                        fontSize: '12px',
-                        fontWeight: '700',
-                        color: 'rgba(15, 37, 152, 0.45)',
-                        letterSpacing: '1.5px',
-                        textTransform: 'uppercase'
+                        width: '100%',
+                        height: '100%'
                     }}>
-                        <div style={{
-                            fontSize: '13px',
-                            marginBottom: '3px',
-                            color: 'rgba(15, 37, 152, 0.5)',
-                            textShadow: '0 1px 0 rgba(255,255,255,0.6)'
-                        }}>✓ VERIFIED</div>
-                        <div style={{
-                            fontSize: '10px',
-                            color: 'rgba(15, 37, 152, 0.4)',
-                            textShadow: '0 1px 0 rgba(255,255,255,0.5)'
-                        }}>CERTIFICATE</div>
+                        <NextImage
+                            src={badge}
+                            alt="Badge"
+                            fill
+                            style={{ objectFit: 'contain', objectPosition: 'center' }}
+                            priority
+                            sizes="180px"
+                            quality={100}
+                            unoptimized
+                        />
                     </div>
                 </div>
 
@@ -302,8 +297,8 @@ export default function CourseCompletionCertificate({ course }: CourseCompletion
                                 width: '100%',
                                 height: '100%',
                                 borderRadius: '50%',
-                                border: '4px solid #0F2598',
-                                boxShadow: '0 4px 20px rgba(15, 37, 152, 0.3)'
+                                border: '4px solid #D4AF37',
+                                boxShadow: '0 4px 20px rgba(212, 175, 55, 0.3)'
                             }}></div>
 
                             {/* Inner Ring with Gradient */}
@@ -312,15 +307,25 @@ export default function CourseCompletionCertificate({ course }: CourseCompletion
                                 width: '85%',
                                 height: '85%',
                                 borderRadius: '50%',
-                                background: 'linear-gradient(135deg, #0F2598 0%, #1E40AF 100%)',
+                                background: 'linear-gradient(135deg, #F4D03F 0%, #D4AF37 100%)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                boxShadow: 'inset 0 2px 8px rgba(255,255,255,0.2), 0 2px 8px rgba(0,0,0,0.2)'
+                                boxShadow: 'inset 0 2px 8px rgba(255,255,255,0.2), 0 2px 8px rgba(0,0,0,0.2)',
+                                top: '50%',
+                                left: '50%',
+                                transform: 'translate(-50%, -50%)'
                             }}>
                                 {/* Academy Logo Image (replacing letter W) */}
-                                <div style={{ position: 'relative', width: '56px', height: '56px' }}>
-                                    <NextImage src={logoo} alt="logo" fill style={{ objectFit: 'contain' }} />
+                                <div style={{
+                                    width: '48px',
+                                    height: '48px',
+                                    position: 'relative',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}>
+                                    <LiaCrownSolid className='text-white text-5xl' />
                                 </div>
                             </div>
 
@@ -331,9 +336,9 @@ export default function CourseCompletionCertificate({ course }: CourseCompletion
                                 right: '12px',
                                 width: '8px',
                                 height: '8px',
-                                background: '#0F2598',
+                                background: '#D4AF37',
                                 borderRadius: '50%',
-                                boxShadow: '0 0 4px rgba(15, 37, 152, 0.5)'
+                                boxShadow: '0 0 4px rgba(212, 175, 55, 0.5)'
                             }}></div>
                             <div style={{
                                 position: 'absolute',
@@ -341,9 +346,9 @@ export default function CourseCompletionCertificate({ course }: CourseCompletion
                                 left: '12px',
                                 width: '8px',
                                 height: '8px',
-                                background: '#0F2598',
+                                background: '#D4AF37',
                                 borderRadius: '50%',
-                                boxShadow: '0 0 4px rgba(15, 37, 152, 0.5)'
+                                boxShadow: '0 0 4px rgba(212, 175, 55, 0.5)'
                             }}></div>
                         </div>
 
