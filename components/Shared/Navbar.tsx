@@ -4,12 +4,13 @@ import { HiMenuAlt3 } from "react-icons/hi";
 import { IoNotificationsOutline } from "react-icons/io5";
 
 import { usePathname, useSearchParams } from 'next/navigation';
-import MainNotification from './MainNotification';
+import MainNotification from './UserNotification';
 import Language from './Laguage';
 import ProfileNav from './ProfileNav';
 import { useNotificationCount } from '@/hooks/useNotificationCount';
 import { useAppSelector } from '@/rtk/hooks';
 import { useGetDashboardDataQuery } from '@/rtk/api/users/dashboardDataApis';
+import UserNotification from './UserNotification';
 
 interface NavbarProps {
     onMobileMenuToggle: () => void;
@@ -243,13 +244,25 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
                             </span>
                         )}
                         <div className='absolute -right-18 sm:-right-0 md:-right-5 top-12'>
-                            {isNotificationOpen && (
+                            {/* {isNotificationOpen && (
                                 <MainNotification
                                     isOpen={isNotificationOpen}
                                     onClose={() => setIsNotificationOpen(false)}
                                     isDropdown={true}
                                 />
-                            )}
+                            )} */}
+
+                            {
+                                userData?.role === 'user' && (
+                                    <UserNotification
+                                        isOpen={isNotificationOpen}
+                                        onClose={() => setIsNotificationOpen(false)}
+                                        isDropdown={true}
+                                    />
+                                )
+                            }
+
+
                         </div>
                     </div>
 

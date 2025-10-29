@@ -6,7 +6,7 @@ export default function LoginLoading({ isLoading }: LoginLoadingProps) {
     if (!isLoading) return null;
 
     return (
-        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
             <div className="relative bg-white rounded-xl p-8 flex flex-col items-center gap-6 shadow-lg">
                 {/* Loading Spinner */}
                 <div className="w-12 h-12 relative">

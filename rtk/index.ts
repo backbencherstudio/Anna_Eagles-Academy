@@ -59,7 +59,9 @@ import { scheduleApi } from './api/users/scheduleApis'
 import { dashboardDataApi } from './api/users/dashboardDataApis'
 import shareFeedbackReducer from '@/rtk/slices/users/shareFeedBackSlice'
 import { getAllCompletedCourseCertificateApi, getSingleCompletedCourseCertificateApi, getAcademyDiplomaCertificateApi } from './api/users/diplomaCeritificateApis'
+import { notificationsApi } from '@/rtk/api/users/notificationsApis'
 import diplomaCertificateReducer from '@/rtk/slices/users/diplomaCeritificateSlice'
+import notificationsReducer from '@/rtk/slices/users/notificationsSlice'
 
 
 export const store = configureStore({
@@ -135,7 +137,9 @@ export const store = configureStore({
     [getAllCompletedCourseCertificateApi.reducerPath]: getAllCompletedCourseCertificateApi.reducer,
     [getSingleCompletedCourseCertificateApi.reducerPath]: getSingleCompletedCourseCertificateApi.reducer,
     [getAcademyDiplomaCertificateApi.reducerPath]: getAcademyDiplomaCertificateApi.reducer,
+    [notificationsApi.reducerPath]: notificationsApi.reducer,
     diplomaCertificate: diplomaCertificateReducer,
+    notifications: notificationsReducer,
     
     
   },
@@ -208,6 +212,7 @@ export const store = configureStore({
       getAllCompletedCourseCertificateApi.middleware,
       getSingleCompletedCourseCertificateApi.middleware,
       getAcademyDiplomaCertificateApi.middleware,
+      notificationsApi.middleware,
     ),
   devTools: process.env.NODE_ENV !== 'production',
 })
