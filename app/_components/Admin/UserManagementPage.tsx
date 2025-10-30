@@ -63,7 +63,7 @@ export default function UserManagementPage() {
         if (search !== searchInput) {
             setSearchInput(search)
         }
-    }, [search])
+    }, [search, searchInput])
 
 
     // download details

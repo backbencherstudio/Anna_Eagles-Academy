@@ -13,9 +13,9 @@ interface PublishedAssignmentProps {
 }
 
 export default function PublishedAssignment({ assignments, onCardClick, onEditAssignment, onDeleteAssignment }: PublishedAssignmentProps) {
-    const formatDueDate = (remainingTime: string) => {
-        if (!remainingTime) return 'No time remaining'
-        return `Due in ${remainingTime}`
+    const formatDueDate = (remainingTime?: number | string) => {
+        if (remainingTime === undefined || remainingTime === null || remainingTime === '') return 'No time remaining'
+        return `Due in ${typeof remainingTime === 'number' ? String(remainingTime) : remainingTime}`
     }
 
     return (

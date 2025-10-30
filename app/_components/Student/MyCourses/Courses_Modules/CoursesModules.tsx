@@ -2,7 +2,9 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react";
 import Modules_Sidebar from "./Modules_Sidebar";
 import CustomVideoPlayer from "@/components/Resuable/VideoPlayer/CustomVideoPlayer";
-import { useLazyGetSingleEnrolledCourseQuery, useLazyGetSingleLessonQuery, useLazyGetSingleEnrolledSeriesQuery } from "@/rtk/api/users/myCoursesApis";
+import { useLazyGetSingleEnrolledCourseQuery, useLazyGetSingleLessonQuery, useLazyGetSingleEnrolledSeriesQuery, usePostLessonIdTokenMutation, useLazyGetDrmLessonVideoPlaybackQuery } from "@/rtk/api/users/myCoursesApis";
+import { setCookie } from "@/lib/tokenUtils";
+import axiosClient from "@/lib/axisoClients";
 
 interface CoursesModulesProps {
   seriesId: string;
@@ -22,10 +24,13 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
     video_type: "lesson" as 'intro' | 'end' | 'lesson'
   });
   const [videoKey, setVideoKey] = useState(0);
+  const drmRefreshTimerRef = React.useRef<number | null>(null);
 
   const [fetchCourse, { data: courseResponse }] = useLazyGetSingleEnrolledCourseQuery();
   const [fetchLesson, { data: lessonResponse }] = useLazyGetSingleLessonQuery();
   const [fetchSeries, { data: seriesResponse }] = useLazyGetSingleEnrolledSeriesQuery();
+  const [postLessonIdToken] = usePostLessonIdTokenMutation();
+  const [triggerDrmPlaylist] = useLazyGetDrmLessonVideoPlaybackQuery();
 
   const handleLessonSelect = useCallback((lessonId: string) => {
     // Prevent double click - if same lesson already selected, ignore
@@ -59,9 +64,71 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
       setActiveCourseId(courseId);
       fetchCourse(courseId);
     } else {
+      // Fetch metadata for header display
       fetchLesson(lessonId);
+
+      // DRM flow: get token, store in cookie, warm playlist, then set DRM URL to play
+      (async () => {
+        try {
+          const tokenResp: any = await postLessonIdToken({ lesson_id: lessonId }).unwrap();
+          const token: string | undefined = tokenResp?.data?.token;
+          const expiresIn: number | undefined = tokenResp?.data?.expiresIn;
+          if (token) {
+            // store DRM token in cookie and localStorage for Shaka request headers
+            const maxAge = typeof expiresIn === 'number' ? Math.max(1, expiresIn - 5) : 55;
+            setCookie('drm_token', token, { maxAgeSeconds: maxAge });
+            try {
+              if (typeof window !== 'undefined') {
+                window.localStorage.setItem('drm_token', token);
+              }
+            } catch { /* no-op */ }
+
+            // Fire playlist request to validate token (response not used for play)
+            try {
+              triggerDrmPlaylist({ lessonId: lessonId, token });
+            } catch (_) { }
+
+            // Build DRM playlist URL for player
+            const base = (axiosClient.defaults.baseURL || '').replace(/\/$/, '');
+            const playlistUrl = `${base}/api/student/series/lessons/${lessonId}/drm/playlist`;
+
+            setCurrentVideo((prev) => {
+              const newData = {
+                ...prev,
+                video_id: lessonId,
+                video_url: encodeURI(playlistUrl),
+                video_type: 'lesson' as const,
+              };
+              setVideoKey(Date.now());
+              return newData;
+            });
+
+            // Setup periodic DRM token refresh slightly before expiry
+            try {
+              if (drmRefreshTimerRef.current) {
+                window.clearInterval(drmRefreshTimerRef.current);
+              }
+              const intervalMs = Math.max(10000, ((expiresIn || 60) - 10) * 1000);
+              drmRefreshTimerRef.current = window.setInterval(async () => {
+                try {
+                  const refreshResp: any = await postLessonIdToken({ lesson_id: lessonId }).unwrap();
+                  const newToken: string | undefined = refreshResp?.data?.token;
+                  const newExpires: number | undefined = refreshResp?.data?.expiresIn;
+                  if (newToken) {
+                    const newMaxAge = typeof newExpires === 'number' ? Math.max(1, newExpires - 5) : 55;
+                    setCookie('drm_token', newToken, { maxAgeSeconds: newMaxAge });
+                    try { if (typeof window !== 'undefined') { window.localStorage.setItem('drm_token', newToken); } } catch { }
+                  }
+                } catch { /* ignore refresh errors */ }
+              }, intervalMs) as unknown as number;
+            } catch { /* no-op */ }
+          }
+        } catch (_) {
+          // ignore token errors, player will show error if needed
+        }
+      })();
     }
-  }, [fetchCourse, fetchLesson, selectedItemId]);
+  }, [fetchCourse, fetchLesson, postLessonIdToken, triggerDrmPlaylist, selectedItemId]);
 
   useEffect(() => {
     if (!courseResponse?.data || !selectedItemId) return;
@@ -112,7 +179,7 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
     const lesson = lessonResponse.data as any;
     const [kind] = selectedItemId.split("-", 2);
     if (kind !== "intro" && kind !== "end") {
-      if (lesson.file_url) {
+      {
         // Get series title from the series data if available
         const seriesTitle = seriesResponse?.data?.title || lesson.series?.title || "";
         const courseTitle = lesson.course?.title || "";
@@ -121,7 +188,8 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
         const newVideoData = {
           video_id: lesson.id,
           video_title: lesson.title,
-          video_url: encodeURI(lesson.file_url),
+          // Always use DRM playlist URL for playback
+          video_url: encodeURI(`${(axiosClient.defaults.baseURL || '').replace(/\/$/, '')}/api/student/series/lessons/${lesson.id}/drm/playlist`),
           video_duration: lesson.video_length || "",
           module: moduleText,
           video_type: "lesson" as 'lesson',
@@ -174,6 +242,12 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
     if (seriesId) {
       fetchSeries(seriesId);
     }
+    return () => {
+      if (drmRefreshTimerRef.current) {
+        window.clearInterval(drmRefreshTimerRef.current);
+        drmRefreshTimerRef.current = null;
+      }
+    };
   }, [seriesId, fetchSeries]);
 
   const toggleTheaterMode = useCallback(() => {

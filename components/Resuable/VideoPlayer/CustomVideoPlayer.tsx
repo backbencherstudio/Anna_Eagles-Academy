@@ -4,6 +4,7 @@ import 'shaka-player/dist/controls.css';
 import './CustomVideoPlayer.css';
 import { useVideoProgress } from "@/hooks/useVideoProgress";
 import VideoControls from "./VideoControls";
+import { getCookie } from "@/lib/tokenUtils";
 
 interface VideoData {
     video_id: string;
@@ -323,10 +324,6 @@ export default function CustomVideoPlayer({
     }, [videoData.video_url]);
 
     // Shaka Player error handlers
-    const onShakaErrorEvent = useCallback((event: any) => {
-        onShakaError(event.detail);
-    }, []);
-
     const onShakaError = useCallback((error: any) => {
         let errorMessage = 'Video playback error';
         if (error && error.code) {
@@ -360,18 +357,30 @@ export default function CustomVideoPlayer({
         setIsBuffering(false);
     }, [videoData.video_url]);
 
+    const onShakaErrorEvent = useCallback((event: any) => {
+        onShakaError(event.detail);
+    }, [onShakaError]);
+
     // Check if URL is a manifest file (DASH/HLS) or regular video
     const isManifestUrl = useCallback((url: string) => {
-        return url.includes('.mpd') || url.includes('.m3u8');
+        // Recognize DASH/HLS by extension or known DRM playlist route
+        if (!url) return false;
+        return (
+            url.includes('.mpd') ||
+            url.includes('.m3u8') ||
+            url.includes('/drm/playlist') ||
+            /\/playlist(\?.*)?$/.test(url)
+        );
     }, []);
 
     // Initialize Shaka Player or Native Video
     useEffect(() => {
         let destroyed = false;
+        const videoEl = videoRef.current;
 
         async function initVideo() {
             try {
-                if (!videoRef.current || !videoContainerRef.current) return;
+                if (!videoEl || !videoContainerRef.current) return;
 
                 // Don't initialize if no video URL
                 if (!videoData.video_url) {
@@ -398,43 +407,75 @@ export default function CustomVideoPlayer({
                     }
 
                     // Initialize Shaka Player
-                    const player = new shaka.Player(videoRef.current);
+                    const player = new shaka.Player(videoEl);
                     shakaPlayerRef.current = player;
 
                     // Listen for error events
                     player.addEventListener('error', onShakaErrorEvent);
 
-                    // Track progress for Shaka Player
+                    // Attach Authorization and DRM token headers to all requests (manifest, segments, keys)
+                    try {
+                        const engine = player.getNetworkingEngine?.();
+                        if (engine) {
+                            engine.registerRequestFilter((_type: any, request: any) => {
+                                // Try to obtain auth token from multiple sources
+                                let authToken = getCookie('token');
+                                if (!authToken && typeof window !== 'undefined') {
+                                    try {
+                                        authToken = window.localStorage.getItem('token') || window.localStorage.getItem('authToken') || '';
+                                    } catch { /* no-op */ }
+                                }
+                                let drmToken = getCookie('drm_token');
+                                if (!drmToken && typeof window !== 'undefined') {
+                                    try {
+                                        drmToken = window.localStorage.getItem('drm_token') || '';
+                                    } catch { /* no-op */ }
+                                }
+                                if (!request.headers) request.headers = {};
+                                if (authToken) {
+                                    const prefixed = authToken.startsWith('Bearer ') ? authToken : `Bearer ${authToken}`;
+                                    request.headers['Authorization'] = prefixed;
+                                }
+                                if (drmToken) {
+                                    request.headers['x-drm-token'] = drmToken;
+                                }
+                            });
+                        }
+                    } catch (_) {
+                        // ignore header attachment failures
+                    }
+
+                    // Track progress during Shaka playback using the HTMLVideoElement timeupdate
                     const timeupdateListener = () => {
                         const video = videoRef.current;
-                        if (video) {
-                            const current = video.currentTime;
-                            const dur = video.duration;
-                            if (dur > 0 && current > 0) {
-                                setDuration(dur);
-                                setCurrentTime(current);
-                                setIsPlaying(!video.paused);
+                        if (!video) return;
+                        const current = video.currentTime;
+                        const dur = video.duration;
+                        if (dur > 0) {
+                            setDuration(dur);
+                            setCurrentTime(current);
+                            setIsPlaying(!video.paused);
 
-                                // Track buffering
-                                if (video.buffered.length > 0 && dur > 0) {
-                                    const bufferedEnd = video.buffered.end(video.buffered.length - 1);
-                                    const bufferedPercentage = (bufferedEnd / dur) * 100;
-                                    setBuffered(bufferedPercentage);
-                                }
+                            if (video.buffered.length > 0) {
+                                const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+                                const bufferedPercentage = (bufferedEnd / dur) * 100;
+                                setBuffered(bufferedPercentage);
+                            }
 
-                                if (videoData.video_type) {
-                                    throttledSaveProgressRef.current(
-                                        videoData.video_id,
-                                        current,
-                                        dur,
-                                        videoData.video_type
-                                    );
-                                }
+                            if (videoData.video_type && current > 0) {
+                                throttledSaveProgressRef.current(
+                                    videoData.video_id,
+                                    current,
+                                    dur,
+                                    videoData.video_type
+                                );
                             }
                         }
                     };
-                    player.addEventListener('timeupdate', timeupdateListener);
-                    shakaEventListenersRef.current.push({ type: 'timeupdate', listener: timeupdateListener });
+                    if (videoEl) {
+                        videoEl.addEventListener('timeupdate', timeupdateListener);
+                        videoEventListenersRef.current.push({ type: 'timeupdate', listener: timeupdateListener });
+                    }
 
                     // Track buffering for Shaka Player
                     const progressListener = () => {
@@ -445,7 +486,7 @@ export default function CustomVideoPlayer({
                             setBuffered(bufferedPercentage);
                         }
                     };
-                    videoRef.current.addEventListener('progress', progressListener);
+                    videoEl.addEventListener('progress', progressListener);
                     videoEventListenersRef.current.push({ type: 'progress', listener: progressListener });
 
                     // Track play/pause for Shaka Player
@@ -457,7 +498,7 @@ export default function CustomVideoPlayer({
                             setIsMuted(video.muted);
                         }
                     };
-                    videoRef.current.addEventListener('play', playListener);
+                    videoEl.addEventListener('play', playListener);
                     videoEventListenersRef.current.push({ type: 'play', listener: playListener });
 
                     const pauseListener = () => {
@@ -466,7 +507,7 @@ export default function CustomVideoPlayer({
                             setIsPlaying(false);
                         }
                     };
-                    videoRef.current.addEventListener('pause', pauseListener);
+                    videoEl.addEventListener('pause', pauseListener);
                     videoEventListenersRef.current.push({ type: 'pause', listener: pauseListener });
 
                     const volumeChangeListener = () => {
@@ -476,27 +517,28 @@ export default function CustomVideoPlayer({
                             setIsMuted(video.muted);
                         }
                     };
-                    videoRef.current.addEventListener('volumechange', volumeChangeListener);
+                    videoEl.addEventListener('volumechange', volumeChangeListener);
                     videoEventListenersRef.current.push({ type: 'volumechange', listener: volumeChangeListener });
 
-                    // Track when video metadata is loaded
-                    const loadListener = () => {
+                    // Ensure seeking to last position when metadata becomes available (Shaka path)
+                    const seekOnLoadedMetadata = () => {
                         const video = videoRef.current;
-                        if (video) {
-                            const dur = video.duration;
-                            if (dur > 0) {
-                                setDuration(dur);
-                                // Load saved progress and seek to it
-                                const savedProgress = loadVideoProgressRef.current(videoData.video_id);
-                                const lastPosition = videoData.last_position || (savedProgress && savedProgress.currentTime > 0 ? savedProgress.currentTime : 0);
-                                if (lastPosition > 0 && lastPosition < dur) {
-                                    video.currentTime = lastPosition;
-                                }
+                        if (!video) return;
+                        const dur = video.duration;
+                        if (dur > 0) {
+                            setDuration(dur);
+                            const savedProgress = loadVideoProgressRef.current(videoData.video_id);
+                            const lastPosition = videoData.last_position || (savedProgress && savedProgress.currentTime > 0 ? savedProgress.currentTime : 0);
+                            if (lastPosition > 0 && lastPosition < dur) {
+                                video.currentTime = lastPosition;
                             }
                         }
                     };
-                    player.addEventListener('load', loadListener);
-                    shakaEventListenersRef.current.push({ type: 'load', listener: loadListener });
+                    // Some Shaka builds may not emit a custom 'load' event; rely on video element
+                    if (videoEl) {
+                        videoEl.addEventListener('loadedmetadata', seekOnLoadedMetadata);
+                        videoEventListenersRef.current.push({ type: 'loadedmetadata', listener: seekOnLoadedMetadata });
+                    }
 
                     // Track when video ends for auto-play next
                     const endedListener = () => {
@@ -519,19 +561,19 @@ export default function CustomVideoPlayer({
                         }
                     };
                     // Use video element's ended event for Shaka Player
-                    videoRef.current.addEventListener('ended', endedListener);
+                    videoEl.addEventListener('ended', endedListener);
 
                     // Try to load the manifest
                     await player.load(videoData.video_url);
                 } else {
                     // Use native HTML5 video for regular files (MP4, WebM, etc.)
-                    videoRef.current.src = videoData.video_url;
-                    await videoRef.current.load();
+                    videoEl.src = videoData.video_url;
+                    await videoEl.load();
                 }
 
                 // Autoplay behavior
-                if (autoPlay && videoRef.current && videoRef.current.paused) {
-                    await videoRef.current.play().catch(() => {
+                if (autoPlay && videoEl && videoEl.paused) {
+                    await videoEl.play().catch(() => {
                         // Autoplay failed, that's okay
                     });
                 }
@@ -558,13 +600,13 @@ export default function CustomVideoPlayer({
             }
 
             // Clean up video element event listeners
-            if (videoRef.current) {
+            if (videoEl) {
                 videoEventListenersRef.current.forEach(({ type, listener }) => {
-                    videoRef.current?.removeEventListener(type, listener);
+                    videoEl.removeEventListener(type, listener);
                 });
                 videoEventListenersRef.current = [];
-                videoRef.current.removeAttribute('src');
-                videoRef.current.load?.();
+                videoEl.removeAttribute('src');
+                videoEl.load?.();
             }
 
             if (shakaPlayerRef.current && typeof shakaPlayerRef.current.destroy === 'function') {
@@ -635,9 +677,9 @@ export default function CustomVideoPlayer({
         };
     }, [videoData.video_url, isManifestUrl]);
 
-    // Reset component when video URL changes
+    // Reset component when video URL changes (avoid flashing loader twice)
     useEffect(() => {
-        setIsLoading(true);
+        // Do not set isLoading(true) here; initVideo() / loadstart will handle it
         setIsBuffering(false);
         setVideoError(null);
         setHasEnded(false);
@@ -727,7 +769,7 @@ export default function CustomVideoPlayer({
                 video.removeEventListener('waiting', handleProgress);
             };
         }
-    }, [videoData.video_id, videoData.video_type]);
+    }, [videoData.video_id, videoData.video_type, videoData.video_url, videoData.last_position, isManifestUrl]);
 
     // Save final progress when video ends and trigger next video
     useEffect(() => {

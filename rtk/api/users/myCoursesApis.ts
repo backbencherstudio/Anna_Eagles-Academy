@@ -101,17 +101,31 @@ export const myCoursesApi = createApi({
 
 
 
+        // ================drm Lesson Video Playback=================\
 
-        // strimming lesson video play  /api/student/series/lessons/cmh76f98f0006wsz4uhpijmiq/stream
-        // headers range: bytes=0-10
 
-        useSetStrimmingLessonVideoPlayMutation: builder.mutation({
-            query: ({ lesson_id, strimming_video_url }: { lesson_id: string, strimming_video_url: string }) => ({
-                url: `/api/student/series/lessons/${lesson_id}/stream`,
-                method: 'GET',
-                body: { strimming_video_url },
+        // post lesson id token  /api/student/series/lessons/:lessonId/drm/token
+        postLessonIdToken: builder.mutation({
+            query: ({ lesson_id }: { lesson_id: string }) => ({
+                url: `/api/student/series/lessons/${lesson_id}/drm/token`,
+                method: 'POST',
             }),
             invalidatesTags: ['MyCourses'],
+        }),
+
+
+        // get drm lesson video playback /api/student/series/lessons/:lessonId/drm/playlist pass body as token x-drm-token
+        getDrmLessonVideoPlayback: builder.query({
+            query: ({ lessonId, token }: { lessonId: string, token: string }) => ({
+                url: `/api/student/series/lessons/${lessonId}/drm/playlist`,
+                method: 'GET',
+                headers: {
+                    'x-drm-token': token,
+                },
+                body: { token },
+            }),
+            providesTags: ['MyCourses'],
+            keepUnusedDataFor: 0,
         }),
 
 
@@ -129,6 +143,10 @@ export const {
     useGetWatchedHistoryQuery,
     useSetIntroVideoProgressMutation,
     useSetEndVideoProgressMutation,
-    useSetLessonVideoProgressMutation
-  
+    useSetLessonVideoProgressMutation,
+    // DRM hooks
+    usePostLessonIdTokenMutation,
+    useGetDrmLessonVideoPlaybackQuery,
+   	useLazyGetDrmLessonVideoPlaybackQuery
+
 } = myCoursesApi;

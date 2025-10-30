@@ -313,10 +313,7 @@ export default function SideBarMenuAdmin({ role: _role, isCollapsed, onMobileMen
     const { user: userData } = useAppSelector((state) => state.auth)
     const userType = (userData?.type || (userData as any)?.role || 'user') as 'user' | 'student' | 'admin'
 
-    // Only render for admin users
-    if (userType !== 'admin') {
-        return null
-    }
+    const isAdmin = userType === 'admin'
 
     const getAllowedRoles = (item: any): string[] => {
         if (Array.isArray(item.role)) return item.role
@@ -378,6 +375,10 @@ export default function SideBarMenuAdmin({ role: _role, isCollapsed, onMobileMen
             ...prev,
             [itemTitle]: !prev[itemTitle]
         }))
+    }
+
+    if (!isAdmin) {
+        return null
     }
 
     return (

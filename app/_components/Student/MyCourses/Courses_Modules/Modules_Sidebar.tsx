@@ -178,7 +178,7 @@ export default function Modules_Sidebar({
     if (seriesData && modules.length > 0 && openModules.length === 0 && !selectedLessonId) {
       setOpenModules([modules[0].module_id]);
     }
-  }, [modules.length, openModules.length, selectedLessonId, seriesData]);
+  }, [modules, openModules.length, selectedLessonId, seriesData]);
 
   // Auto-select the first available intro video when nothing is selected
   useEffect(() => {

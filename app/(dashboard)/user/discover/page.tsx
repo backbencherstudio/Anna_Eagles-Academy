@@ -13,6 +13,8 @@ import { useGetAllCourseListQuery } from '@/rtk/api/users/allCourseListApis'
 import ResuablePagination from '@/components/Resuable/ResuablePagination'
 import { DEFAULT_PAGINATION, PAGINATION_LIMITS, PaginationResponse } from '@/lib/paginationTypes'
 
+const COURSE_TYPES = ['all', 'bootcamp', 'regular'] as const
+
 interface Course {
     id: string
     title: string
@@ -48,7 +50,6 @@ export default function CourseListStudent() {
     const [currentPage, setCurrentPage] = useState(DEFAULT_PAGINATION.page)
     const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_PAGINATION.limit)
     const [isInitialized, setIsInitialized] = useState(false)
-    const courseTypes = ['all', 'bootcamp', 'regular']
 
     // Use API query with debounced search
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
@@ -88,7 +89,7 @@ export default function CourseListStudent() {
         }
 
         const typeParam = searchParams.get('type')
-        if (typeParam && courseTypes.includes(typeParam)) {
+        if (typeParam && COURSE_TYPES.includes(typeParam as any)) {
             setSelectedType(typeParam)
         }
 
@@ -175,7 +176,7 @@ export default function CourseListStudent() {
                                         <SelectValue placeholder="Type" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {courseTypes.map(type => (
+                                        {COURSE_TYPES.map(type => (
                                             <SelectItem key={type} value={type}>
                                                 {type === 'all' ? 'All Types' : type.charAt(0).toUpperCase() + type.slice(1)}
                                             </SelectItem>

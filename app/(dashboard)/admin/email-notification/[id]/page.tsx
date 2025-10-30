@@ -1,11 +1,12 @@
 import EmailNotification from '@/app/_components/Admin/EmailNotification'
 
-interface PageProps {
-    params: {
+export interface PageProps {
+    params: Promise<{
         id: string
-    }
+    }>
 }
 
-export default function EmailNotificationWithStudent({ params }: PageProps) {
-    return <EmailNotification studentId={params.id} />
+export default async function EmailNotificationWithStudent({ params }: PageProps) {
+    const { id } = await params
+    return <EmailNotification studentId={id} />
 }

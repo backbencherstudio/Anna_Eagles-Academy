@@ -35,7 +35,7 @@ export default function StudentFeedback() {
 
     React.useEffect(() => {
         refetch()
-    }, [activeTab])
+    }, [activeTab, refetch])
 
     return (
         <div className="bg-white rounded-2xl p-4 border border-[#ECEFF3] mb-4">
