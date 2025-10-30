@@ -11,6 +11,7 @@ import { useNotificationCount } from '@/hooks/useNotificationCount';
 import { useAppSelector } from '@/rtk/hooks';
 import { useGetDashboardDataQuery } from '@/rtk/api/users/dashboardDataApis';
 import UserNotification from './UserNotification';
+import AdminNotification from './AdminNotification';
 
 interface NavbarProps {
     onMobileMenuToggle: () => void;
@@ -20,6 +21,7 @@ interface NavbarProps {
 
 export default function Navbar({ onMobileMenuToggle, notificationCount }: NavbarProps) {
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+    const [isAdminNotificationOpen, setIsAdminNotificationOpen] = useState(false);
     const currentNotificationCount = useNotificationCount();
     const searchParams = useSearchParams();
     const { data: dashboardData } = useGetDashboardDataQuery({});
@@ -234,7 +236,15 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
                     <div className="relative notification-dropdown">
                         <button
                             className="flex cursor-pointer items-center p-2 bg-[#F3F3F4] rounded-full hover:bg-gray-100 border border-gray-200"
-                            onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                            onClick={() => {
+                                if (userData?.role === 'admin') {
+                                    setIsAdminNotificationOpen(!isAdminNotificationOpen)
+                                    setIsNotificationOpen(false)
+                                } else {
+                                    setIsNotificationOpen(!isNotificationOpen)
+                                    setIsAdminNotificationOpen(false)
+                                }
+                            }}
                         >
                             <IoNotificationsOutline className="text-xl text-[#070707]" />
                         </button>
@@ -252,17 +262,21 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
                                 />
                             )} */}
 
-                            {
-                                userData?.role === 'user' && (
-                                    <UserNotification
-                                        isOpen={isNotificationOpen}
-                                        onClose={() => setIsNotificationOpen(false)}
-                                        isDropdown={true}
-                                    />
-                                )
-                            }
+                            {userData?.role === 'user' && (
+                                <UserNotification
+                                    isOpen={isNotificationOpen}
+                                    onClose={() => setIsNotificationOpen(false)}
+                                    isDropdown={true}
+                                />
+                            )}
 
-
+                            {userData?.role === 'admin' && (
+                                <AdminNotification
+                                    isOpen={isAdminNotificationOpen}
+                                    onClose={() => setIsAdminNotificationOpen(false)}
+                                    isDropdown={true}
+                                />
+                            )}
                         </div>
                     </div>
 
