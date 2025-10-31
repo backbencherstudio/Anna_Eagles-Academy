@@ -77,51 +77,6 @@ export default function CoursesModules({ seriesId, initialLessonId }: CoursesMod
             // store DRM token in cookie and localStorage for Shaka request headers
             const maxAge = typeof expiresIn === 'number' ? Math.max(1, expiresIn - 5) : 55;
             setCookie('drm_token', token, { maxAgeSeconds: maxAge });
-            try {
-              if (typeof window !== 'undefined') {
-                window.localStorage.setItem('drm_token', token);
-              }
-            } catch { /* no-op */ }
-
-            // Fire playlist request to validate token (response not used for play)
-            try {
-              triggerDrmPlaylist({ lessonId: lessonId, token });
-            } catch (_) { }
-
-            // Build DRM playlist URL for player
-            const base = (axiosClient.defaults.baseURL || '').replace(/\/$/, '');
-            const playlistUrl = `${base}/api/student/series/lessons/${lessonId}/drm/playlist`;
-
-            setCurrentVideo((prev) => {
-              const newData = {
-                ...prev,
-                video_id: lessonId,
-                video_url: encodeURI(playlistUrl),
-                video_type: 'lesson' as const,
-              };
-              setVideoKey(Date.now());
-              return newData;
-            });
-
-            // Setup periodic DRM token refresh slightly before expiry
-            try {
-              if (drmRefreshTimerRef.current) {
-                window.clearInterval(drmRefreshTimerRef.current);
-              }
-              const intervalMs = Math.max(10000, ((expiresIn || 60) - 10) * 1000);
-              drmRefreshTimerRef.current = window.setInterval(async () => {
-                try {
-                  const refreshResp: any = await postLessonIdToken({ lesson_id: lessonId }).unwrap();
-                  const newToken: string | undefined = refreshResp?.data?.token;
-                  const newExpires: number | undefined = refreshResp?.data?.expiresIn;
-                  if (newToken) {
-                    const newMaxAge = typeof newExpires === 'number' ? Math.max(1, newExpires - 5) : 55;
-                    setCookie('drm_token', newToken, { maxAgeSeconds: newMaxAge });
-                    try { if (typeof window !== 'undefined') { window.localStorage.setItem('drm_token', newToken); } } catch { }
-                  }
-                } catch { /* ignore refresh errors */ }
-              }, intervalMs) as unknown as number;
-            } catch { /* no-op */ }
           }
         } catch (_) {
           // ignore token errors, player will show error if needed
