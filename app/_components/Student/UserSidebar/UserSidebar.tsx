@@ -8,6 +8,7 @@ import LoadingOverlay from '@/components/Resuable/LoadingOverlay';
 import Logo from '@/components/Icons/Logo';
 import USerSidebarMenu from './USerSidebarMenu';
 import { useLogoutMutation } from '@/rtk/api/authApi';
+import { useAppSelector } from '@/rtk/hooks';
 
 // Menu configuration and item rendering are encapsulated in SideBarMenu
 
@@ -20,12 +21,12 @@ export default function UserSidebar({ isMobileMenuOpen, onMobileMenuClose }: Sid
   const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [logout, { isLoading }] = useLogoutMutation();
-  const data = {
-    name: 'John Doe',
-    role: 'user'
-  }
+  const { user } = useAppSelector((state) => state.auth);
+  
+  // Get user role from Redux store
+  const userRole = (user?.role || (user as any)?.type || 'user') as 'user' | 'student' | 'admin';
 
-  if (!data?.role) {
+  if (!userRole) {
     return null;
   }
 
@@ -106,7 +107,7 @@ export default function UserSidebar({ isMobileMenuOpen, onMobileMenuClose }: Sid
 
         {/* Main Navigation - Scrollable */}
         <div className="flex-1 overflow-y-auto">
-          <USerSidebarMenu role={data?.role as 'user'} isCollapsed={isCollapsed} onMobileMenuClose={onMobileMenuClose} />
+          <USerSidebarMenu role={userRole} isCollapsed={isCollapsed} onMobileMenuClose={onMobileMenuClose} />
         </div>
 
         {/* Bottom Navigation - Logout - Fixed */}

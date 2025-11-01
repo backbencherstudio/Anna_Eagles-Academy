@@ -60,7 +60,7 @@ export const MENU_CONFIG = {
 } as const
 
 export interface SideBarMenuProps {
-    role: 'user'
+    role: 'user' | 'student' | 'admin'
     isCollapsed: boolean
     onMobileMenuClose: () => void
 }
