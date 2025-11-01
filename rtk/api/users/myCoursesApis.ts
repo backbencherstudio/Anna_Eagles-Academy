@@ -114,7 +114,7 @@ export const myCoursesApi = createApi({
         }),
 
 
-        // get drm lesson video playback /api/student/series/lessons/:lessonId/drm/playlist pass body as token x-drm-token
+        // get drm lesson video playback 
         getDrmLessonVideoPlayback: builder.query({
             query: ({ lessonId, token }: { lessonId: string, token: string }) => ({
                 url: `/api/student/series/lessons/${lessonId}/drm/playlist`,

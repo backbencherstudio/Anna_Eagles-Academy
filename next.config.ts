@@ -42,7 +42,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'http',
-        hostname: 'localhost',
+        hostname: 'christmas-inside-workstation-irrigation.trycloudflare.com',
         port: '4000',
         pathname: '/**',
       },
