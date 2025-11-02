@@ -64,7 +64,7 @@ export default function ProfileNav({ className = "" }: ProfileNavProps) {
                         <div>
                             <div className="relative">
                                 {user?.avatar_url && user?.avatar_url !== 'null' && user?.avatar_url !== '' && !imageError ? (
-                                    <img
+                                    <Image
                                         src={user.avatar_url}
                                         alt="Profile picture"
                                         width={40}

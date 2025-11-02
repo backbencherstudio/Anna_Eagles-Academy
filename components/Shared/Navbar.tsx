@@ -4,7 +4,7 @@ import { HiMenuAlt3 } from "react-icons/hi";
 import { IoNotificationsOutline } from "react-icons/io5";
 
 import { usePathname, useSearchParams } from 'next/navigation';
-import MainNotification from './UserNotification';
+// import MainNotification from './UserNotification';
 import Language from './Laguage';
 import ProfileNav from './ProfileNav';
 import { useNotificationCount } from '@/hooks/useNotificationCount';
@@ -24,10 +24,14 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
     const [isAdminNotificationOpen, setIsAdminNotificationOpen] = useState(false);
     const currentNotificationCount = useNotificationCount();
     const searchParams = useSearchParams();
-    const { data: dashboardData } = useGetDashboardDataQuery({});
+    const pathname = usePathname();
 
     // Get user data from Redux store
     const { user: userData, isAuthenticated } = useAppSelector((state) => state.auth);
+
+
+    const shouldFetchDashboardData = isAuthenticated && userData?.role !== 'admin' && pathname?.startsWith('/user');
+    const { data: dashboardData } = useGetDashboardDataQuery({}, { skip: !shouldFetchDashboardData });
 
     const handleLanguageChange = (languageCode: string) => {
         // Here you can add logic to change the app language
@@ -35,8 +39,7 @@ export default function Navbar({ onMobileMenuToggle, notificationCount }: Navbar
         // console.log('Language changed to:', languageCode);
     };
 
-    // Dynamic title system - handles all route types including dynamic routes with query parameters
-    const pathname = usePathname();
+
     const pathSegments = pathname.split('/').filter(segment => segment !== '');
     const currentPath = pathSegments[pathSegments.length - 1] || 'dashboard';
 

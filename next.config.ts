@@ -1,8 +1,20 @@
 import type { NextConfig } from "next";
 
+// Get backend URL from environment or use default
+const backendUrl = process.env.NEXT_PUBLIC_API_ENDPOINT || 'https://www.backend.thewhiteeaglesacademy.com';
+
 const nextConfig: NextConfig = {
   productionBrowserSourceMaps: true,
   allowedDevOrigins: ['http://31.97.209.156', 'https://31.97.209.156'],
+  // Rewrite API requests to backend to avoid CORS issues
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${backendUrl}/api/:path*`,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
