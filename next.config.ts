@@ -25,7 +25,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'nirob.signalsmind.com',
+        hostname: 'www.backend.thewhiteeaglesacademy.com',
         port: '',
         pathname: '/**',
       },
