@@ -194,9 +194,9 @@ export default function DiscoverCourses({ courseId, courseData }: DiscoverCourse
                         <Image
                             src={course.thumbnail_url}
                             alt={course.title}
-                            className="w-full  object-cover rounded-2xl mb-6"
-                            width={1000}
-                            height={1000}
+                            className="w-full object-cover rounded-2xl mb-6"
+                            width={500}
+                            height={500}
                             priority
                         />
                     )}

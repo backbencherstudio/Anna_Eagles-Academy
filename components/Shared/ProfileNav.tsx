@@ -67,8 +67,8 @@ export default function ProfileNav({ className = "" }: ProfileNavProps) {
                                     <Image
                                         src={user.avatar_url}
                                         alt="Profile picture"
-                                        width={40}
-                                        height={40}
+                                        width={100}
+                                        height={100}
                                         className='rounded-full w-10 h-10 object-cover'
                                         onError={() => {
                                             console.error('Image failed to load:', user.avatar_url);
