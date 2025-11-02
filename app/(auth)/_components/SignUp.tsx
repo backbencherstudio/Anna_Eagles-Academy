@@ -183,8 +183,8 @@ export default function SignUp() {
                 <Image
                     src="/images/login_regisiter/img.png"
                     alt="login"
-                    width={1200}
-                    height={1200}
+                    width={500}
+                    height={500}
                     className="w-full h-full object-contain rounded-3xl"
                     priority
                 />

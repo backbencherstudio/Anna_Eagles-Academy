@@ -62,7 +62,7 @@ export default function LoginPage() {
         try {
             const result = await loginUser(data).unwrap();
             toast.success(result.message || 'Login successful!');
-            
+
             // After successful login, check auth to get full user data
             try {
                 await checkAuth();
@@ -195,8 +195,8 @@ export default function LoginPage() {
                 <Image
                     src="/images/login_regisiter/img.png"
                     alt="login"
-                    width={1200}
-                    height={1200}
+                    width={500}
+                    height={500}
                     className="w-full h-full object-contain rounded-3xl"
                     priority
                 />

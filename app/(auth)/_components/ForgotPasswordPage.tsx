@@ -96,8 +96,8 @@ export default function ForgotPassword() {
                 <Image
                     src="/images/login_regisiter/img.png"
                     alt="forgot password"
-                    width={1200}
-                    height={1200}
+                    width={500}
+                    height={500}
                     className="w-full h-full object-contain rounded-3xl"
                     priority
                 />
