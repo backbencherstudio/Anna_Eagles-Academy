@@ -4,11 +4,12 @@ import { handleLogout } from './logoutUtils';
 
 const axiosClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_ENDPOINT,
+  withCredentials: true, // This allows cookies to be sent/received in cross-origin requests
 });
 
 const getCookie = (name: string): string | null => {
   if (typeof document === 'undefined') return null;
-  
+
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
   if (parts.length === 2) {
@@ -105,7 +106,7 @@ export const createBaseQuery = () => {
         if (isMultipart) {
           api?.dispatch?.(errorUpload(error?.message));
         }
-      } catch (_) {}
+      } catch (_) { }
       return {
         error: {
           status,
@@ -125,19 +126,19 @@ export const createAuthBaseQuery = () => {
       let response;
       switch (method.toUpperCase()) {
         case 'POST':
-          response = await axiosClient.post(url, body, { headers });
+          response = await axiosClient.post(url, body, { headers, withCredentials: true });
           break;
         case 'GET':
-          response = await axiosClient.get(url, { params, headers });
+          response = await axiosClient.get(url, { params, headers, withCredentials: true });
           break;
         case 'PATCH':
-          response = await axiosClient.patch(url, body, { headers });
+          response = await axiosClient.patch(url, body, { headers, withCredentials: true });
           break;
         case 'DELETE':
-          response = await axiosClient.delete(url, { params, headers });
+          response = await axiosClient.delete(url, { params, headers, withCredentials: true });
           break;
         default:
-          response = await axiosClient.get(url, { params, headers });
+          response = await axiosClient.get(url, { params, headers, withCredentials: true });
       }
 
       return { data: response.data };

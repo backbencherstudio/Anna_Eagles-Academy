@@ -69,7 +69,14 @@ export interface MeResponse {
 // Helper function to set token in cookies
 const setToken = (token: string) => {
   if (typeof document !== 'undefined') {
-    document.cookie = `token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; secure; samesite=strict`;
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+    
+    // Use 'secure' only if in production and using HTTPS
+    const secureFlag = isProduction && isSecure ? 'secure;' : '';
+    // Use 'lax' instead of 'strict' for better cross-domain support
+    const cookieString = `token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; ${secureFlag} samesite=lax`;
+    document.cookie = cookieString;
   }
 };
 
