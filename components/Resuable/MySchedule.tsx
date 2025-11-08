@@ -30,15 +30,8 @@ const TIME_SLOTS = [
     '09:00 PM',
     '10:00 PM',
     '11:00 PM',
-    '12:00 AM',
-    '01:00 AM',
-    '02:00 AM',
-    '03:00 AM',
-    '04:00 AM',
-    '05:00 AM',
-    '06:00 AM',
-    '07:00 AM',
-    '08:00 AM',
+
+
 ];
 
 const parseTime = (timeStr: string) => {
@@ -55,7 +48,7 @@ const parseTime = (timeStr: string) => {
     return hours * 60 + minutes;
 };
 
-const   MySchedule: React.FC<MyScheduleProps> = ({ scheduleData, isLoading = false }) => {
+const MySchedule: React.FC<MyScheduleProps> = ({ scheduleData, isLoading = false }) => {
 
     const slotTaskMap: Record<string, { task: ScheduleItem; isFirst: boolean; isLast: boolean } | null> = {};
     TIME_SLOTS.forEach((slot) => {
@@ -86,45 +79,50 @@ const   MySchedule: React.FC<MyScheduleProps> = ({ scheduleData, isLoading = fal
 
     if (isLoading) {
         return <ScheduleShimmerEffect />;
-    }   
+    }
 
     return (
-        <div className='max-h-[900px] border border-[#ECEFF3] bg-white rounded-2xl p-6 overflow-y-auto font-spline-sans'>
-            <h3 className='text-[#1D1F2C] font-bold text-xl lg:text-xl pb-4 font-spline-sans sticky top-0 bg-white z-10'>My Schedule</h3>
-            {TIME_SLOTS.map((slot, idx) => {
-                const slotInfo = slotTaskMap[slot];
+        <div className=' border border-[#ECEFF3] bg-white rounded-2xl p-6 font-spline-sans'>
+            <h3 className='text-[#1D1F2C] font-bold text-xl lg:text-xl pb-4 sticky top-0 bg-white z-10'>My Schedule</h3>
 
-                const bgClass = slotInfo ? 'bg-[#FFF7ED]' : 'bg-[#F7F8FA]';
-                const roundedClass = 'rounded-2xl';
+            <div className='max-h-[500px] overflow-y-auto'>
 
-                return (
-                    <div key={slot} className={`flex items-stretch gap-4 mb-3`}>
-                        {/* Time column - LEFT SIDE */}
-                        <div className='w-[90px] text-[#F5A623] font-bold min-h-[48px] flex items-center'>
-                            {slot}
+                {TIME_SLOTS.map((slot, idx) => {
+                    const slotInfo = slotTaskMap[slot];
+
+                    const bgClass = slotInfo ? 'bg-[#FFF7ED]' : 'bg-[#F7F8FA]';
+                    const roundedClass = 'rounded-2xl';
+
+                    return (
+                        <div key={slot} className={`flex items-stretch gap-4 mb-3`}>
+                            {/* Time column - LEFT SIDE */}
+                            <div className='w-[90px] text-[#F5A623] font-bold min-h-[48px] flex items-center'>
+                                {slot}
+                            </div>
+
+                            {/* Slot box */}
+                            <div className={`min-h-[48px] flex flex-col justify-center w-full p-4 ${bgClass} ${roundedClass}`}>
+                                {slotInfo ? (
+                                    <>
+                                        <div className='text-[#E6A23C] font-semibold text-[16px]'>
+                                            {slotInfo.task.subject}
+                                        </div>
+                                        <div className='text-[#E6A23C] font-bold'>
+                                            {slotInfo.task.task}
+                                        </div>
+                                        <div className='text-[#E6A23C] font-normal text-[13px]'>
+                                            {slotInfo.task.time}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className='text-[#A0A6AD] text-center'>N/A</div>
+                                )}
+                            </div>
                         </div>
+                    );
+                })}
+            </div>
 
-                        {/* Slot box */}
-                        <div className={`min-h-[48px] flex flex-col justify-center w-full p-4 ${bgClass} ${roundedClass}`}>
-                            {slotInfo ? (
-                                <>
-                                    <div className='text-[#E6A23C] font-semibold text-[16px]'>
-                                        {slotInfo.task.subject}
-                                    </div>
-                                    <div className='text-[#E6A23C] font-bold'>
-                                        {slotInfo.task.task}
-                                    </div>
-                                    <div className='text-[#E6A23C] font-normal text-[13px]'>
-                                        {slotInfo.task.time}
-                                    </div>
-                                </>
-                            ) : (
-                                <div className='text-[#A0A6AD] text-center'>N/A</div>
-                            )}
-                        </div>
-                    </div>
-                );
-            })}
         </div>
     );
 };

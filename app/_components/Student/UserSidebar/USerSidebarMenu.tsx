@@ -33,7 +33,7 @@ export const MENU_CONFIG = {
             header: 'GENERAL',
             items: [
                 { title: 'Dashboard', icon: DashboardIcon, activeIcon: DashboardIconAc, href: '/user/dashboard', role: ['user', 'student'] },
-                { title: 'Calander', icon: CalanderIcon, activeIcon: CalanderIconAt, href: '/user/schedule', role: 'student' },
+                { title: 'Calendar', icon: CalanderIcon, activeIcon: CalanderIconAt, href: '/user/schedule', role: 'student' },
             ],
         },
         {

@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import React, { useMemo } from 'react'
 import CourseAnnouncement from './CourseAnnouncement';
 import WatchWelcomeVideo from './WatchWelcomeVideo';
 import StudentFeedback from './StudentFeedback/StudentFeedback';
@@ -13,6 +13,42 @@ import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import StudentDashboardShimmer from './MyCoursesSection/StudentDashboardShimmer';
 import { useAppSelector } from '@/rtk/hooks';
+import CalanderPage from '@/components/Resuable/CalanderPage';
+
+interface ScheduleItem {
+    id: number;
+    task: string;
+    subject: string;
+    date: string;
+    time: string;
+    link?: string;
+    link_label?: string;
+}
+
+interface ScheduleEvent {
+    id: string;
+    title: string;
+    description?: string;
+    start_at: string;
+    end_at: string;
+    type: string;
+    assignment?: {
+        id: string;
+        title: string;
+    };
+    quiz?: {
+        id: string;
+        title: string;
+    };
+    course?: {
+        id: string;
+        title: string;
+    };
+    series?: {
+        id: string;
+        title: string;
+    };
+}
 
 
 export default function StudentDashboard() {
@@ -21,6 +57,54 @@ export default function StudentDashboard() {
     const isStudent = userData?.type === 'student'
     // Fetch dashboard data from API
     const { data: dashboardData, isLoading, error } = useGetDashboardDataQuery({});
+
+    // Transform schedule_events to match CalanderPage expected format
+    const scheduleData: ScheduleItem[] = useMemo(() => {
+        const scheduleEvents: ScheduleEvent[] = dashboardData?.data?.schedule_events || [];
+        return scheduleEvents.map((event, index) => {
+            // Extract date from start_at (format: "2025-10-11T00:00:00.000Z")
+            const startDate = new Date(event.start_at);
+            const endDate = new Date(event.end_at);
+
+            // Format date as YYYY-MM-DD for CalanderPage
+            const dateStr = startDate.toISOString().split('T')[0];
+
+            // Format time range
+            const startTime = startDate.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+            const endTime = endDate.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+            const timeStr = `${startTime} - ${endTime}`;
+
+            // Determine subject based on type and related data
+            let subject = '';
+            if (event.type === 'ASSIGNMENT' && event.assignment) {
+                subject = event.assignment.title;
+            } else if (event.type === 'QUIZ' && event.quiz) {
+                subject = event.quiz.title;
+            } else if (event.course) {
+                subject = event.course.title;
+            } else {
+                subject = event.type;
+            }
+
+            return {
+                id: index + 1, // Use index as id since API uses string ids
+                task: event.title,
+                subject: subject,
+                date: dateStr,
+                time: timeStr,
+                link: event.description || undefined,
+                link_label: event.type
+            };
+        });
+    }, [dashboardData?.data?.schedule_events]);
 
     // handle view all courses
     const handleViewAllCourses = () => {
@@ -68,7 +152,7 @@ export default function StudentDashboard() {
                         </div>
                         {/* right side */}
                         <div className='w-full lg:w-5/12 mt-2'>
-                            {/* <CalanderPage scheduleData={scheduleData} /> */}
+                            <CalanderPage scheduleData={scheduleData} isLoading={isLoading} />
                             <StudentFeedback />
                             <TeacherVideo encouragement={dashboardData?.data?.teacher_sections?.encouragement || []}/>
                         </div>
