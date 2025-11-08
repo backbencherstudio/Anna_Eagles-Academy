@@ -1,5 +1,6 @@
 import React from 'react'
-import { BookOpen, PlayCircle, Globe2, GraduationCap, Timer } from 'lucide-react'
+import { BookOpen, PlayCircle, GraduationCap, Timer } from 'lucide-react'
+import { TfiWorld } from "react-icons/tfi";
 
 interface SeriesCount { courses?: number }
 interface EnrolledSeries {
@@ -10,6 +11,7 @@ interface EnrolledSeries {
 
 interface CurrentCourseCardProps {
     series?: EnrolledSeries | null
+    language?: string | null
 }
 
 export default function CurrentCourseCard({ series }: CurrentCourseCardProps) {
@@ -20,21 +22,29 @@ export default function CurrentCourseCard({ series }: CurrentCourseCardProps) {
         <>
             {/* Current Course Card */}
             <div className="w-full rounded-2xl border border-[#F2E6D6] bg-[#FFFCF8] p-4 sm:p-6">
+                <div className="flex items-start gap-3 mb-4">
+                    <span className="text-[#E2A93B]"><BookOpen className="h-5 w-5" /></span>
+                    <div className="flex flex-col gap-1">
+                        <p className="text-sm text-[#4A4C56] font-medium">Series</p>
+                        <h3 className="text-base lg:text-lg font-semibold text-[#0F2598]">{seriesTitle}</h3>
+                    </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Left column */}
                     <div className="space-y-5">
-                        <div className="flex items-start gap-3">
-                            <span className="text-[#E2A93B]"><BookOpen className="h-5 w-5" /></span>
-                            <div className="flex flex-col gap-1">
-                                <p className="text-sm text-[#4A4C56] font-medium">Series</p>
-                                <h3 className="text-base lg:text-lg font-semibold text-[#0F2598]">{seriesTitle}</h3>
-                            </div>
-                        </div>
+
 
                         <div className="flex items-start gap-3">
                             <span className="text-[#E2A93B]"><PlayCircle className="h-5 w-5" /></span>
                             <div className="flex flex-col gap-1">
                                 <p className="text-sm text-[#4A4C56] font-medium">Current course</p>
+                                <p className="text-base lg:text-lg font-semibold text-[#161721]">—</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                            <span className="text-[#E2A93B]"><TfiWorld className="h-5 w-5" /></span>
+                            <div className="flex flex-col gap-1">
+                                <p className="text-sm text-[#4A4C56] font-medium">language</p>
                                 <p className="text-base lg:text-lg font-semibold text-[#161721]">—</p>
                             </div>
                         </div>

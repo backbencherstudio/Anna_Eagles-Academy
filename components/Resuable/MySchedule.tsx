@@ -83,9 +83,9 @@ const MySchedule: React.FC<MyScheduleProps> = ({ scheduleData, isLoading = false
 
     return (
         <div className=' border border-[#ECEFF3] bg-white rounded-2xl p-6 font-spline-sans'>
-            <h3 className='text-[#1D1F2C] font-bold text-xl lg:text-xl pb-4 sticky top-0 bg-white z-10'>My Schedule</h3>
+            <h3 className='text-[#1D1F2C] font-bold text-xl lg:text-xl pb-4  bg-white z-10'>My Schedule</h3>
 
-            <div className='max-h-[500px] overflow-y-auto'>
+            <div className='max-h-[450px] overflow-y-auto'>
 
                 {TIME_SLOTS.map((slot, idx) => {
                     const slotInfo = slotTaskMap[slot];
