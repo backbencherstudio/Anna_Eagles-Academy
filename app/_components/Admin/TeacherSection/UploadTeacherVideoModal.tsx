@@ -19,6 +19,7 @@ import { TeacherSectionData } from '@/rtk/slices/admin/teacherSectionSlice'
 
 // Types for teacher section upload
 type UploadType = 'Encouragement' | 'Scripture' | 'Announcement'
+type EncouragementCategory = 'motivational' | 'teaching' | 'administrative'
 
 interface UploadTeacherVideoModalProps {
     open: boolean
@@ -46,6 +47,7 @@ export default function UploadTeacherVideoModal({
     const [releaseDate, setReleaseDate] = React.useState<Date | undefined>(undefined)
     const [releaseTime, setReleaseTime] = React.useState<string>('')
     const [file, setFile] = React.useState<File | null>(null)
+    const [encouragementCategory, setEncouragementCategory] = React.useState<EncouragementCategory | ''>('')
 
     // Refs for time input
     const timeInputRef = React.useRef<HTMLInputElement | null>(null)
@@ -92,6 +94,11 @@ export default function UploadTeacherVideoModal({
                     setReleaseDate(date)
                     setReleaseTime(date.toTimeString().slice(0, 5))
                 }
+
+                // Set category if it exists and type is Encouragement
+                if (data.section_type?.toUpperCase() === 'ENCOURAGEMENT' && (data as any).category) {
+                    setEncouragementCategory((data as any).category as EncouragementCategory)
+                }
             }
         } else if (singleData?.data) {
             // Use single data from API if available
@@ -105,6 +112,11 @@ export default function UploadTeacherVideoModal({
                 setReleaseDate(date)
                 setReleaseTime(date.toTimeString().slice(0, 5))
             }
+
+            // Set category if it exists and type is Encouragement
+            if (data.section_type?.toUpperCase() === 'ENCOURAGEMENT' && (data as any).category) {
+                setEncouragementCategory((data as any).category as EncouragementCategory)
+            }
         }
     }, [editData, viewData, singleData])
 
@@ -116,6 +128,7 @@ export default function UploadTeacherVideoModal({
             setReleaseTime('')
             setFile(null)
             setType(defaultType || 'Encouragement')
+            setEncouragementCategory('')
         }
     }, [open, editData, viewData, readOnly, defaultType])
 
@@ -129,6 +142,7 @@ export default function UploadTeacherVideoModal({
         setReleaseTime('')
         setFile(null)
         setType(defaultType || 'Encouragement')
+        setEncouragementCategory('')
         onOpenChange(false)
     }
 
@@ -162,6 +176,11 @@ export default function UploadTeacherVideoModal({
         formData.append('title', title)
         formData.append('description', description)
         formData.append('release_date', releaseDateTime)
+
+        // Add encouragement category if type is Encouragement
+        if (type === 'Encouragement' && encouragementCategory) {
+            formData.append('category', encouragementCategory)
+        }
 
         // Add file if present
         if (file) {
@@ -245,7 +264,7 @@ export default function UploadTeacherVideoModal({
      * Check if form is valid for submission
      */
     const isFormValid = title && description && releaseDate && releaseTime &&
-        (type !== 'Encouragement' || file || (isEditMode && (editData?.file_url || singleData?.data?.file_url)))
+        (type !== 'Encouragement' || (encouragementCategory && (file || (isEditMode && (editData?.file_url || singleData?.data?.file_url)))))
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -267,7 +286,13 @@ export default function UploadTeacherVideoModal({
                     {/* Section Type Selection */}
                     <div className="flex flex-col gap-2">
                         <Label>Video / Announcement Type</Label>
-                        <Select value={type} onValueChange={(v) => setType(v as UploadType)} disabled={isViewMode}>
+                        <Select value={type} onValueChange={(v) => {
+                            setType(v as UploadType)
+                            // Reset encouragement category when type changes
+                            if (v !== 'Encouragement') {
+                                setEncouragementCategory('')
+                            }
+                        }} disabled={isViewMode}>
                             <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select type" />
                             </SelectTrigger>
@@ -287,6 +312,36 @@ export default function UploadTeacherVideoModal({
                             </SelectContent>
                         </Select>
                     </div>
+
+                    {/* Encouragement Category Selection (only shown when Encouragement is selected) */}
+                    {type === 'Encouragement' && (
+                        <div className="flex flex-col gap-2">
+                            <Label>Category</Label>
+                            <Select 
+                                value={encouragementCategory} 
+                                onValueChange={(v) => setEncouragementCategory(v as EncouragementCategory)} 
+                                disabled={isViewMode}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectLabel>Category</SelectLabel>
+                                        <SelectItem className='cursor-pointer' value="motivational">
+                                            Motivational
+                                        </SelectItem>
+                                        <SelectItem className='cursor-pointer' value="teaching">
+                                            Teaching
+                                        </SelectItem>
+                                        <SelectItem className='cursor-pointer' value="administrative">
+                                            Administrative
+                                        </SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
 
                     {/* Title Input */}
                     <div className="flex flex-col gap-2">

@@ -2423,6 +2423,7 @@ __metadata:
     html-to-image: "npm:^1.11.11"
     html2canvas: "npm:^1.4.1"
     i: "npm:^0.3.7"
+    iso-639-1: "npm:^3.1.5"
     jspdf: "npm:^3.0.3"
     lucide-react: "npm:^0.525.0"
     next: "npm:15.4.2"
@@ -4622,6 +4623,13 @@ __metadata:
   version: 2.0.0
   resolution: "isexe@npm:2.0.0"
   checksum: 10c0/228cfa503fadc2c31596ab06ed6aa82c9976eec2bfd83397e7eaf06d0ccf42cd1dfd6743bf9aeb01aebd4156d009994c5f76ea898d2832c1fe342da923ca457d
+  languageName: node
+  linkType: hard
+
+"iso-639-1@npm:^3.1.5":
+  version: 3.1.5
+  resolution: "iso-639-1@npm:3.1.5"
+  checksum: 10c0/04739478e55313f2badd4b1db80b3fb61a326cb9df639a05098ccbbac2b52e60458707d9c4834f5a0cddd133dc71f5f5554e99b16d8f26f86e359b3a0e91da0d
   languageName: node
   linkType: hard
 

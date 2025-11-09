@@ -95,7 +95,7 @@ export default function StudentDashboard() {
             }
 
             return {
-                id: index + 1, // Use index as id since API uses string ids
+                id: index + 1, 
                 task: event.title,
                 subject: subject,
                 date: dateStr,

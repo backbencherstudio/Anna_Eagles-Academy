@@ -89,7 +89,7 @@ export default function LoginPage() {
                     <div className="flex flex-col items-center mb-8">
                         <div className="flex items-center gap-4">
                             <Logo />
-                            <h2 className="text-xl font-bold text-[#1D1F2C] font-sans">The White <br /> Eagles Academy</h2>
+                            <h2 className="text-xl font-bold text-[#1D1F2C] font-sans">The White  Eagles Academy</h2>
                         </div>
                         <p className=" text-center text-lg mt-4 font-medium font-sans">Let's sign in to your account</p>
                     </div>

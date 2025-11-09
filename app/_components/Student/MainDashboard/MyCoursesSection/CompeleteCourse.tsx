@@ -1,12 +1,11 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Play, Clock, Lock } from 'lucide-react'
-import VideoModal from '@/components/Resuable/VideoModal'
 import Link from 'next/link'
 
-// Removed demo/sample data. All content renders from props now.
+
 
 interface CourseItem {
     id: string
@@ -18,6 +17,7 @@ interface CourseItem {
 }
 
 interface EnrolledSeries {
+    id?: string
     title?: string
     enrollment?: { progress_percentage?: number | null }
     courses?: CourseItem[]
@@ -28,9 +28,8 @@ interface CompleteCourseProps {
 }
 
 export default function CompleteCourse({ enrolledSeries }: CompleteCourseProps) {
-    const [openIntro, setOpenIntro] = useState(false)
-    const [openEnd, setOpenEnd] = useState(false)
     const seriesTitle = enrolledSeries?.title || '—'
+    const seriesId = enrolledSeries?.id || ''
     const course: CourseItem | null = enrolledSeries?.courses?.[0] || null
     const progressPercentage = enrolledSeries?.enrollment?.progress_percentage ?? 0
     const lessons = (course?.lesson_files || []).map((f) => ({
@@ -41,6 +40,10 @@ export default function CompleteCourse({ enrolledSeries }: CompleteCourseProps) 
     }))
     // lessons length available via lessons.length if needed
     const progress = Math.max(0, Math.min(100, progressPercentage ?? 0))
+    
+    // Generate URLs for navigation
+    const introVideoUrl = seriesId && course?.id ? `/user/courses-modules/${seriesId}?watch=intro-${course.id}` : '#'
+    const endVideoUrl = seriesId && course?.id ? `/user/courses-modules/${seriesId}?watch=end-${course.id}` : '#'
     return (
         <div className="w-full bg-white rounded-2xl p-4 sm:p-6 shadow mb-5">
             {/* Smart Accordion - Click to show/hide full course content */}
@@ -74,10 +77,12 @@ export default function CompleteCourse({ enrolledSeries }: CompleteCourseProps) 
                                         <p className="text-xs sm:text-base text-[#1D1F2C] font-medium leading-relaxed break-words">Introduction to what this lesson covers.</p>
                                     </div>
                                 </div>
-                                <Button onClick={() => setOpenIntro(true)} disabled={!course?.intro_video_url} variant="outline" size="sm" className="flex items-center gap-2 bg-blue-50 border-blue-200 text-[#0F2598] hover:bg-[#ECEFF3] cursor-pointer text-xs sm:text-sm px-3 py-2 w-full sm:w-auto justify-center disabled:opacity-60">
-                                    <Play className="w-3 h-3 sm:w-4 sm:h-4" />
-                                    <span className="">Watch a Video</span>
-                                </Button>
+                                <Link href={introVideoUrl} className={!course?.intro_video_url ? 'pointer-events-none' : ''}>
+                                    <Button disabled={!course?.intro_video_url} variant="outline" size="sm" className="flex items-center gap-2 bg-blue-50 border-blue-200 text-[#0F2598] hover:bg-[#ECEFF3] cursor-pointer text-xs sm:text-sm px-3 py-2 w-full sm:w-auto justify-center disabled:opacity-60">
+                                        <Play className="w-3 h-3 sm:w-4 sm:h-4" />
+                                        <span className="">Watch a Video</span>
+                                    </Button>
+                                </Link>
                             </div>
                         </div>
 
@@ -115,7 +120,7 @@ export default function CompleteCourse({ enrolledSeries }: CompleteCourseProps) 
                                 <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Course Lessons</h3>
                                 {lessons.map((lesson, index) => (
                                     lesson.isUnlocked ? (
-                                        <Link key={lesson.id} href={`/user/courses-modules/${lesson.id}`} className="block">
+                                        <Link key={lesson.id} href={seriesId ? `/user/courses-modules/${seriesId}?watch=${lesson.id}` : '#'} className="block">
                                             <Card
                                                 className={`border transition-all duration-200 hover:shadow-md bg-[#FFFCF8] border-[#F2E6D6] hover:border-[#F0D9BF] cursor-pointer`}
                                             >
@@ -175,15 +180,15 @@ export default function CompleteCourse({ enrolledSeries }: CompleteCourseProps) 
                                             <p className="text-xs sm:text-sm text-gray-700 font-medium leading-relaxed break-words">Here's a quick recap of the lesson's highlights!</p>
                                         </div>
                                     </div>
-                                    <Button onClick={() => setOpenEnd(true)} disabled={!course?.end_video_url} variant="outline" size="sm" className="flex items-center gap-2 bg-blue-50 border-blue-200 text-[#0F2598] hover:bg-[#ECEFF3] cursor-pointer text-xs sm:text-sm px-3 py-2 w-full sm:w-auto justify-center disabled:opacity-60">
-                                        <Play className="w-3 h-3 sm:w-4 sm:h-4" />
-                                        <span className="">Watch a Video</span>
-                                    </Button>
+                                    <Link href={endVideoUrl} className={!course?.end_video_url ? 'pointer-events-none' : ''}>
+                                        <Button disabled={!course?.end_video_url} variant="outline" size="sm" className="flex items-center gap-2 bg-blue-50 border-blue-200 text-[#0F2598] hover:bg-[#ECEFF3] cursor-pointer text-xs sm:text-sm px-3 py-2 w-full sm:w-auto justify-center disabled:opacity-60">
+                                            <Play className="w-3 h-3 sm:w-4 sm:h-4" />
+                                            <span className="">Watch a Video</span>
+                                        </Button>
+                                    </Link>
                                 </div>
                             </CardContent>
                         </Card>
-                        <VideoModal open={openIntro} onOpenChange={setOpenIntro} videoSrc={course?.intro_video_url || ''} title={course?.title || 'Intro Video'} autoPlay={!!course?.intro_video_url} />
-                        <VideoModal open={openEnd} onOpenChange={setOpenEnd} videoSrc={course?.end_video_url || ''} title={course?.title || 'End Video'} autoPlay={!!course?.end_video_url} />
                     </AccordionContent>
                 </AccordionItem>
             </Accordion>

@@ -43,6 +43,12 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'outlets-shortcuts-toxic-defence.trycloudflare.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'nirob.signalsmind.com',
         port: '',
         pathname: '/**',
