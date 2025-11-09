@@ -43,7 +43,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'outlets-shortcuts-toxic-defence.trycloudflare.com',
+        hostname: 'logs-philadelphia-extract-anything.trycloudflare.com',
         port: '',
         pathname: '/**',
       },

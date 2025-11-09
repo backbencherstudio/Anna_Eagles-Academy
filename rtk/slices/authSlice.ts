@@ -152,16 +152,24 @@ const authSlice = createSlice({
           state.isAuthenticated = false;
           state.user = null;
           state.token = null;
-          
+
           let errorMessage = 'Login failed';
+
           if (action.payload?.data?.message?.message) {
             errorMessage = action.payload.data.message.message;
           } else if (action.payload?.data?.message) {
-            errorMessage = action.payload.data.message;
+
+            if (typeof action.payload.data.message === 'string') {
+              errorMessage = action.payload.data.message;
+            } else if (action.payload.data.message?.error) {
+              errorMessage = action.payload.data.message.error;
+            }
+          } else if (action.payload?.data?.error) {
+            errorMessage = action.payload.data.error;
           } else if (action.error?.message) {
             errorMessage = action.error.message;
           }
-          
+
           state.error = errorMessage;
           state.isInitialized = true;
         }
@@ -246,7 +254,7 @@ const authSlice = createSlice({
         (state, action) => {
           state.changePasswordLoading = false;
           const response = action.payload;
-          
+
           if (response.success) {
             state.changePasswordSuccess = response.message || 'Password updated successfully';
             state.changePasswordError = null;
@@ -261,14 +269,14 @@ const authSlice = createSlice({
         (state, action) => {
           state.changePasswordLoading = false;
           state.changePasswordSuccess = null;
-          
+
           let errorMessage = 'Failed to change password';
           if (action.payload?.data?.message) {
             errorMessage = action.payload.data.message;
           } else if (action.error?.message) {
             errorMessage = action.error.message;
           }
-          
+
           state.changePasswordError = errorMessage;
         }
       );

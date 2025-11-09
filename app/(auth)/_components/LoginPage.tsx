@@ -17,7 +17,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
 import { clearError } from '@/rtk/slices/authSlice'
-import { useLoginMutation, useCheckAuthQuery } from '@/rtk/api/authApi'
+import { useLoginMutation } from '@/rtk/api/authApi'
 import LoginLoading from '@/components/Resuable/LoginLoading'
 
 
@@ -34,7 +34,6 @@ export default function LoginPage() {
 
     const { error, isAuthenticated, user } = useAppSelector((state) => state.auth);
     const [loginUser, { isLoading }] = useLoginMutation();
-    const { refetch: checkAuth } = useCheckAuthQuery(undefined, { skip: true });
 
     useEffect(() => {
         dispatch(clearError());
@@ -50,27 +49,27 @@ export default function LoginPage() {
         }
     }, [isAuthenticated, user, router]);
 
-    // Show error messages
-    useEffect(() => {
-        if (error) {
-            const errorMessage = typeof error === 'string' ? error : 'An error occurred';
-            toast.error(errorMessage);
-        }
-    }, [error]);
 
     const onSubmit = async (data: LoginFormData) => {
         try {
             const result = await loginUser(data).unwrap();
             toast.success(result.message || 'Login successful!');
-
-            // After successful login, check auth to get full user data
-            try {
-                await checkAuth();
-            } catch (authError) {
-                // If /me fails, we still have basic user info from login response
-            }
         } catch (error: any) {
-            // Error handling is done by RTK Query and auth slice
+            let errorMessage = 'Login failed. Please try again.';
+            
+            if (error?.data?.message?.message) {
+                errorMessage = error.data.message.message;
+            } else if (error?.data?.message) {
+                if (typeof error.data.message === 'string') {
+                    errorMessage = error.data.message;
+                } else if (error.data.message?.error) {
+                    errorMessage = error.data.message.error;
+                }
+            } else if (error?.message) {
+                errorMessage = error.message;
+            }
+            
+            toast.error(errorMessage);
         }
     };
 

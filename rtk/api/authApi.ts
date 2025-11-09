@@ -107,6 +107,15 @@ export const authApi = createApi({
         }
         return response;
       },
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          // After successful login, automatically refetch user data
+          dispatch(authApi.endpoints.checkAuth.initiate(undefined, { forceRefetch: true }));
+        } catch (error) {
+          // Login failed, do nothing
+        }
+      },
       invalidatesTags: ['User', 'Auth'],
     }),
 
@@ -124,6 +133,15 @@ export const authApi = createApi({
           setToken(token);
         }
         return response;
+      },
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          // After successful login, automatically refetch user data
+          dispatch(authApi.endpoints.checkAuth.initiate(undefined, { forceRefetch: true }));
+        } catch (error) {
+          // Login failed, do nothing
+        }
       },
       invalidatesTags: ['User', 'Auth'],
     }),
@@ -143,6 +161,15 @@ export const authApi = createApi({
         }
         return response;
       },
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          // After successful registration, automatically refetch user data
+          dispatch(authApi.endpoints.checkAuth.initiate(undefined, { forceRefetch: true }));
+        } catch (error) {
+          // Registration failed, do nothing
+        }
+      },
       invalidatesTags: ['User', 'Auth'],
     }),
 
@@ -152,7 +179,7 @@ export const authApi = createApi({
         url: '/api/auth/me',
         method: 'GET',
       }),
-      // providesTags: ['User'],
+      providesTags: ['User'],
     }),
 
     // Forgot password endpoint
@@ -189,7 +216,7 @@ export const authApi = createApi({
         method: 'PATCH',
         body: data,
       }),
-
+      invalidatesTags: ['User', 'Auth'],
     }),
 
     // change password
