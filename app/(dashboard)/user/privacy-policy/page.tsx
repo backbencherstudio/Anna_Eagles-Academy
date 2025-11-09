@@ -7,25 +7,32 @@ export default function PrivacyPolicy() {
     const router = useRouter()
     const pathname = usePathname()
     const searchParams = useSearchParams()
-    const initialTab = searchParams.get('tab') || 'privacy'
-    const [activeTab, setActiveTab] = React.useState<string>(initialTab)
+    const urlTab = searchParams.get('tab') || 'privacy'
+    const [activeTab, setActiveTab] = React.useState<string>(urlTab)
+    const isInternalUpdate = React.useRef(false)
 
+    // Sync URL to state when URL changes externally (e.g., browser back/forward)
     React.useEffect(() => {
-        const urlTab = searchParams.get('tab') || 'privacy'
-        if (urlTab !== activeTab) {
-            setActiveTab(urlTab)
+        if (isInternalUpdate.current) {
+            isInternalUpdate.current = false
+            return
         }
-    }, [searchParams, activeTab])
+        const currentUrlTab = searchParams.get('tab') || 'privacy'
+        setActiveTab(currentUrlTab)
+    }, [searchParams])
 
-    React.useEffect(() => {
+    // Handle tab change from user interaction
+    const handleTabChange = React.useCallback((value: string) => {
+        setActiveTab(value)
+        isInternalUpdate.current = true
         const sp = new URLSearchParams(searchParams.toString())
-        sp.set('tab', activeTab)
+        sp.set('tab', value)
         router.replace(`${pathname}?${sp.toString()}`, { scroll: false })
-    }, [activeTab, pathname, router, searchParams])
+    }, [pathname, router, searchParams])
 
     return (
         <div className="mx-auto w-full  p-4 rounded-lg space-y-6 py-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <TabsList className="w-full justify-start rounded-lg bg-white p-2">
                     <TabsTrigger value="privacy" className="data-[state=active]:bg-[#0F2598]/5 cursor-pointer data-[state=active]:text-[#0F2598]">
                         Privacy Policy
