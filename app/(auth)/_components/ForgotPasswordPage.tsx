@@ -7,29 +7,41 @@ import { MdEmail } from 'react-icons/md';
 import Image from 'next/image';
 import { Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useForgotPasswordMutation } from '@/rtk/api/authApi';
 import OtpVerifyPage from './OtpVerify';
 
 export default function ForgotPassword() {
     const [email, setEmail] = useState('');
     const [step, setStep] = useState<'email' | 'otp'>('email');
     const [error, setError] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+    const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
 
-
-    const handleEmailSubmit = (e: React.FormEvent) => {
+    const handleEmailSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!email) {
             setError('Email is required');
             return;
         }
-        setError('');
-        setIsLoading(true);
-        setTimeout(() => {
-            setIsLoading(false);
-            setStep('otp');
-            toast.success('OTP sent to your email');
-        }, 2000);
+        
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            setError('Please enter a valid email address');
+            return;
+        }
 
+        setError('');
+        
+        try {
+            const response = await forgotPassword({ email }).unwrap();
+            setStep('otp');
+            // Show the exact message from API response
+            toast.success(response.message || 'OTP sent to your email');
+        } catch (error: any) {
+            const errorMessage = error?.data?.message || error?.message || 'Failed to send OTP. Please try again.';
+            setError(errorMessage);
+            toast.error(errorMessage);
+        }
     };
 
     const handleBackToEmail = () => {

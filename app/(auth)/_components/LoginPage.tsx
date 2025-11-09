@@ -74,6 +74,12 @@ export default function LoginPage() {
         }
     };
 
+    const handleGoogleLogin = () => {
+        const baseURL = process.env.NEXT_PUBLIC_API_ENDPOINT || '';
+        const googleAuthUrl = `${baseURL}/api/auth/google`;
+        window.location.href = googleAuthUrl;
+    };
+
     if (isAuthenticated && user) {
         return null;
     }
@@ -98,6 +104,7 @@ export default function LoginPage() {
                             type="button"
                             variant="outline"
                             className="w-full cursor-pointer border-none bg-[#F1F3F4] py-6 flex items-center gap-2 text-2xl"
+                            onClick={handleGoogleLogin}
                         >
                             <FcGoogle className="text-2xl" />
                             <span className="text-base font-medium">Google</span>

@@ -71,7 +71,7 @@ const setToken = (token: string) => {
   if (typeof document !== 'undefined') {
     const isProduction = process.env.NODE_ENV === 'production';
     const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
-    
+
     // Use 'secure' only if in production and using HTTPS
     const secureFlag = isProduction && isSecure ? 'secure;' : '';
     // Use 'lax' instead of 'strict' for better cross-domain support
@@ -98,6 +98,24 @@ export const authApi = createApi({
         url: '/api/auth/login',
         method: 'POST',
         body: credentials,
+      }),
+      transformResponse: (response: any) => {
+        // Set token in cookie after successful login
+        const token = response.authorization?.token || response.token || response.data?.token || response.data?.authorization?.token;
+        if (token) {
+          setToken(token);
+        }
+        return response;
+      },
+      invalidatesTags: ['User', 'Auth'],
+    }),
+
+
+    // login with google
+    loginWithGoogle: builder.mutation<AuthResponse, void>({
+      query: () => ({
+        url: '/api/auth/google',
+        method: 'GET',
       }),
       transformResponse: (response: any) => {
         // Set token in cookie after successful login
@@ -144,6 +162,23 @@ export const authApi = createApi({
         method: 'POST',
         body: data,
       }),
+      transformResponse: (response: any) => {
+        return response;
+      },
+      invalidatesTags: ['User', 'Auth'],
+    }),
+
+    // reset password pass body: { email: string, token: string, password: string }
+    resetPassword: builder.mutation<{ success: boolean, message: string }, { email: string, token: string, password: string }>({
+      query: ({ email, token, password }) => ({
+        url: '/api/auth/reset-password',
+        method: 'POST',
+        body: { email, token, password },
+      }),
+      transformResponse: (response: any) => {
+        return response;
+      },
+      invalidatesTags: ['User', 'Auth'],
     }),
 
 
@@ -164,7 +199,7 @@ export const authApi = createApi({
         method: 'POST',
         body: data,
       }),
-   
+
     }),
 
     // Logout 
@@ -183,7 +218,9 @@ export const {
   useRegisterMutation,
   useCheckAuthQuery,
   useForgotPasswordMutation,
+  useResetPasswordMutation,
   useUpdateProfileMutation,
   useLogoutMutation,
   useChangePasswordMutation,
+  useLoginWithGoogleMutation,
 } = authApi;
