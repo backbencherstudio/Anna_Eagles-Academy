@@ -13,12 +13,12 @@ interface CourseCardProps {
         summary: string | null
         description: string
         visibility: string
-        video_length: string
-        duration: string
-        start_date: string
-        end_date: string
+        video_length: string | null
+        duration: string | null
+        start_date: string | null
+        end_date: string | null
         thumbnail: string
-        total_price: string
+        total_price: string | null
         course_type: string
         note: string
         available_site: number
@@ -133,11 +133,11 @@ export default function CourseCardStudent({ course, viewMode = 'grid' }: CourseC
                             <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 text-xs sm:text-sm text-gray-600 mb-3">
                                 <div className="flex items-center gap-1">
                                     <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-600" />
-                                    <span>{course.duration}</span>
+                                    <span>{course.duration || ''}</span>
                                 </div>
                                 <div className="flex items-center gap-1">
                                     <Play className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
-                                    <span>{course.video_length}</span>
+                                    <span>{course.video_length || ''}</span>
                                 </div>
                                 <div className="flex items-center gap-1">
                                     <FileText className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600" />
@@ -155,7 +155,11 @@ export default function CourseCardStudent({ course, viewMode = 'grid' }: CourseC
                         {/* Bottom Section */}
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div className="flex items-center gap-3">
-                                <span className="text-xl font-semibold text-[#0F2598]">${course.total_price}</span>
+                                {course.total_price ? (
+                                    <span className="text-xl font-semibold text-[#0F2598]">${course.total_price}</span>
+                                ) : (
+                                    <span className="text-xl font-semibold text-[#0F2598]"></span>
+                                )}
                             </div>
                             <button
                                 onClick={(e) => {
@@ -230,7 +234,7 @@ export default function CourseCardStudent({ course, viewMode = 'grid' }: CourseC
                             <Clock className="w-4 h-4" />
                             Duration:
                         </span>
-                        <span className="text-emerald-600 font-medium">{course.duration}</span>
+                        <span className="text-emerald-600 font-medium">{course.duration || ''}</span>
                     </div>
 
                     <div className="flex items-center justify-between">
@@ -238,7 +242,7 @@ export default function CourseCardStudent({ course, viewMode = 'grid' }: CourseC
                             <Play className="w-4 h-4" />
                             Videos:
                         </span>
-                        <span className="text-gray-700">{course.video_length}</span>
+                        <span className="text-gray-700">{course.video_length || ''}</span>
                     </div>
 
                     <div className="flex items-center justify-between">
@@ -264,7 +268,7 @@ export default function CourseCardStudent({ course, viewMode = 'grid' }: CourseC
                             <Calendar className="w-4 h-4" />
                             Start:
                         </span>
-                        <span className="text-gray-700">{new Date(course.start_date).toLocaleDateString()}</span>
+                        <span className="text-gray-700">{course.start_date ? new Date(course.start_date).toLocaleDateString() : ''}</span>
                     </div>
                 </div>
 
@@ -273,7 +277,11 @@ export default function CourseCardStudent({ course, viewMode = 'grid' }: CourseC
                 {/* Price and Action */}
                 <div className="flex items-center justify-between gap-2 sm:gap-3">
                     <div className="flex flex-col min-w-0">
-                        <span className="text-lg font-semibold text-[#0F2598]">${course.total_price}</span>
+                        {course.total_price ? (
+                            <span className="text-lg font-semibold text-[#0F2598]">${course.total_price}</span>
+                        ) : (
+                            <span className="text-lg font-semibold text-[#0F2598]"></span>
+                        )}
                     </div>
                     <button
                         onClick={(e) => {

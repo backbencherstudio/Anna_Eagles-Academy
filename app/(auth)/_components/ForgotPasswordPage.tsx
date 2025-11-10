@@ -34,6 +34,16 @@ export default function ForgotPassword() {
         
         try {
             const response = await forgotPassword({ email }).unwrap();
+            
+            // Check if the response indicates success
+            if (response.success === false) {
+                const errorMessage = response.message || 'Failed to send OTP. Please try again.';
+                setError(errorMessage);
+                toast.error(errorMessage);
+                return; // Don't proceed to OTP step
+            }
+            
+            // Only proceed if success is true or not explicitly false
             setStep('otp');
             // Show the exact message from API response
             toast.success(response.message || 'OTP sent to your email');

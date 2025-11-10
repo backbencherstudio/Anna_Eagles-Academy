@@ -22,12 +22,12 @@ interface Course {
     summary: string | null
     description: string
     visibility: string
-    video_length: string
-    duration: string
-    start_date: string
-    end_date: string
+    video_length: string | null
+    duration: string | null
+    start_date: string | null
+    end_date: string | null
     thumbnail: string
-    total_price: string
+    total_price: string | null
     course_type: string
     note: string
     available_site: number
