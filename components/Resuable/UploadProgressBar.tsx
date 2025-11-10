@@ -3,12 +3,17 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import type { RootState } from '@/rtk'
-import { hideUpload } from '@/rtk/slices/admin/uploadProgressSlice'
+import { hideUpload, requestAbort } from '@/rtk/slices/admin/uploadProgressSlice'
+import { Button } from '@/components/ui/button'
+import { useAbortChunkUploadMutation } from '@/rtk/api/admin/managementCourseApis'
+import toast from 'react-hot-toast'
 
 export default function UploadProgressBar() {
   const dispatch = useDispatch()
-  const { isVisible, percent, status } = useSelector((s: RootState) => s.uploadProgress)
+  const { isVisible, percent, status, message, currentFileName, canCancel } = useSelector((s: RootState) => s.uploadProgress)
   const [localShow, setLocalShow] = useState(false)
+  const [abortChunk] = useAbortChunkUploadMutation()
+  const [isCancelling, setIsCancelling] = useState(false)
 
   // Smooth mount animation
   useEffect(() => {
@@ -17,10 +22,10 @@ export default function UploadProgressBar() {
     }
   }, [isVisible])
 
-  // Auto hide a bit after success with a smooth fade
+  // Auto hide a bit after success or cancel with a smooth fade
   useEffect(() => {
     if (!isVisible) return
-    if (status === 'success') {
+    if (status === 'success' || (status === 'error' && message === 'Upload aborted')) {
       const t = setTimeout(() => {
         setLocalShow(false)
         const t2 = setTimeout(() => dispatch(hideUpload()), 250)
@@ -28,7 +33,7 @@ export default function UploadProgressBar() {
       }, 900)
       return () => clearTimeout(t)
     }
-  }, [isVisible, status, dispatch])
+  }, [isVisible, status, message, dispatch])
 
   const radius = 26
   const stroke = 6
@@ -41,7 +46,33 @@ export default function UploadProgressBar() {
 
   const isError = status === 'error'
   const isSuccess = status === 'success'
-  const color = isError ? '#EF4444' : '#27A376'
+  const isCancelled = isError && message === 'Upload aborted'
+  const color = isCancelled ? '#F59E0B' : isError ? '#EF4444' : '#27A376'
+  const label = isSuccess ? 'Done' : isCancelled ? 'Cancelled' : isError ? 'Failed' : 'Uploading...'
+  const showPercent = status === 'uploading'
+
+  const handleCancel = async () => {
+    try {
+      setIsCancelling(true)
+      // signal hook to stop after current in-flight chunk
+      dispatch(requestAbort())
+      if (currentFileName) {
+        const res: any = await abortChunk({ fileName: currentFileName }).unwrap()
+        const message =
+          res?.data?.message ||
+          res?.message ||
+          res?.data ||
+          'Upload aborted'
+        toast.success(message)
+      } else {
+        toast.success('Upload aborted')
+      }
+    } catch (e: any) {
+      toast.error(e?.data?.message || e?.message || 'Failed to abort upload')
+    } finally {
+      setIsCancelling(false)
+    }
+  }
 
   if (!isVisible) return null
 
@@ -94,9 +125,9 @@ export default function UploadProgressBar() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-700 truncate">
-                {isSuccess ? 'Done' : isError ? 'Failed' : 'Uploading...'}
+                {label}
               </span>
-              {!isSuccess && !isError && (
+              {showPercent && (
                 <span className="text-xs font-semibold text-gray-900">{progress}%</span>
               )}
             </div>
@@ -106,6 +137,20 @@ export default function UploadProgressBar() {
                 style={{ width: `${progress}%` }}
               />
             </div>
+            {/* Cancel button while uploading */}
+            {status === 'uploading' && canCancel && (
+              <div className="mt-3 flex justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-7 px-2 cursor-pointer py-0 text-xs border-red-500 text-red-600 hover:bg-red-50"
+                  onClick={handleCancel}
+                  disabled={isCancelling}
+                >
+                  {isCancelling ? 'Cancelling...' : 'Cancel Upload'}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

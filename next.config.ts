@@ -43,7 +43,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'logs-philadelphia-extract-anything.trycloudflare.com',
+        hostname: 'controlled-grown-salmon-seeks.trycloudflare.com',
         port: '',
         pathname: '/**',
       },

@@ -63,7 +63,9 @@ export const createBaseQuery = () => {
           response = await axiosClient.get(url, { params });
           break;
         case 'POST':
-          if (typeof FormData !== 'undefined' && data instanceof FormData) {
+          // Skip auto progress tracking for chunk uploads (handled manually)
+          const isChunkUpload = url.includes('/upload/chunk') && !url.includes('/merge') && !url.includes('/abort');
+          if (typeof FormData !== 'undefined' && data instanceof FormData && !isChunkUpload) {
             api?.dispatch?.(startUpload());
           }
           response = await axiosClient.post(url, data, {
@@ -71,7 +73,7 @@ export const createBaseQuery = () => {
               'Content-Type': 'multipart/form-data',
             },
             onUploadProgress: (progressEvent) => {
-              if (!progressEvent.total) return;
+              if (!progressEvent.total || isChunkUpload) return;
               const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
               api?.dispatch?.(setUploadProgress(percent));
             },
@@ -99,8 +101,9 @@ export const createBaseQuery = () => {
           throw new Error(`Unsupported method: ${method}`);
       }
 
-      // mark success when uploading FormData
-      if (typeof FormData !== 'undefined' && (args.data instanceof FormData)) {
+      // mark success when uploading FormData (skip for chunk uploads)
+      const isChunkUpload = args.url?.includes('/upload/chunk') && !args.url?.includes('/merge') && !args.url?.includes('/abort');
+      if (typeof FormData !== 'undefined' && (args.data instanceof FormData) && !isChunkUpload) {
         api?.dispatch?.(finishUpload());
       }
 

@@ -1,5 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
-import { createBaseQuery } from '@/lib/axisoClients';
+import { createBaseQuery, createAuthBaseQuery } from '@/lib/axisoClients';
 
 
 export const managementCourseApi = createApi({
@@ -30,7 +30,7 @@ export const managementCourseApi = createApi({
             invalidatesTags: ['ManagementCourse'],
         }),
 
-        // create lesson
+        // create lesson (deprecated - use chunk upload instead)
         createLesson: builder.mutation({
             query: (formData: FormData) => ({
                 url: '/api/admin/series/lesson-file',
@@ -38,6 +38,30 @@ export const managementCourseApi = createApi({
                 data: formData,
             }),
             invalidatesTags: ['ManagementCourse'],
+        }),
+
+        // Chunk upload endpoints for lesson videos
+        uploadChunk: builder.mutation({
+            query: (formData: FormData) => ({
+                url: '/api/admin/upload/chunk',
+                method: 'POST',
+                data: formData,
+            }),
+        }),
+
+        mergeChunks: builder.mutation({
+            queryFn: async (body: { fileName: string; courseId: string; fileType: string; fileSize: number; title?: string; lessonFileId?: string }, api) => {
+                const baseQuery = createAuthBaseQuery();
+                return baseQuery({ url: '/api/admin/upload/chunk/merge', method: 'POST', body }, api, {});
+            },
+            invalidatesTags: ['ManagementCourse'],
+        }),
+
+        abortChunkUpload: builder.mutation({
+            queryFn: async (body: { fileName: string }, api) => {
+                const baseQuery = createAuthBaseQuery();
+                return baseQuery({ url: '/api/admin/upload/chunk/abort', method: 'POST', body }, api, {});
+            },
         }),
 
 
@@ -192,4 +216,24 @@ export const managementCourseApi = createApi({
     }),
 });
 
-export const { useCreateSeriesMutation, useCreateModuleMutation, useGetAllCoursesQuery, useGetAllModulesTitleQuery, useGetAllModulesQuery, useGetSingleSeriesQuery, useGetSingleModuleQuery, useGetSingleLessonQuery, useUpdateSingleSeriesMutation, useUpdateSingleModuleMutation, useUpdateSingleLessonMutation, useCreateLessonMutation, useDeleteSingleModuleMutation, useGetAllLessonsQuery, useDeleteSingleLessonMutation, useDeleteSingleSeriesMutation } = managementCourseApi;
+export const { 
+    useCreateSeriesMutation, 
+    useCreateModuleMutation, 
+    useGetAllCoursesQuery, 
+    useGetAllModulesTitleQuery, 
+    useGetAllModulesQuery, 
+    useGetSingleSeriesQuery, 
+    useGetSingleModuleQuery, 
+    useGetSingleLessonQuery, 
+    useUpdateSingleSeriesMutation, 
+    useUpdateSingleModuleMutation, 
+    useUpdateSingleLessonMutation, 
+    useCreateLessonMutation, 
+    useDeleteSingleModuleMutation, 
+    useGetAllLessonsQuery, 
+    useDeleteSingleLessonMutation, 
+    useDeleteSingleSeriesMutation,
+    useUploadChunkMutation,
+    useMergeChunksMutation,
+    useAbortChunkUploadMutation
+} = managementCourseApi;

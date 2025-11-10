@@ -18,12 +18,14 @@ import type { RootState } from '@/rtk'
 
 // API Hooks
 import {
-    useCreateLessonMutation,
     useGetAllLessonsQuery,
     useGetAllModulesQuery,
     useGetSingleLessonQuery,
     useUpdateSingleLessonMutation
 } from '@/rtk/api/admin/managementCourseApis'
+
+// Custom Hooks
+import { useChunkUpload } from '@/hooks/useChunkUpload'
 
 // Components
 import LessonList from './LessonList'
@@ -51,6 +53,7 @@ export default function AddLeesionCourse({ seriesId, onLessonsAdded }: AddLeesio
     const [docFiles, setDocFiles] = useState<File[]>([])
     const [existingVideoUrl, setExistingVideoUrl] = useState<string | null>(null)
     const [existingDocUrl, setExistingDocUrl] = useState<string | null>(null)
+    const [lessonFileId, setLessonFileId] = useState<string | null>(null)
     const [fileTouched, setFileTouched] = useState(false)
     const [submitting, setSubmitting] = useState(false)
     const [editingId, setEditingId] = useState<string | null>(null)
@@ -76,10 +79,12 @@ export default function AddLeesionCourse({ seriesId, onLessonsAdded }: AddLeesio
 
     // ==================== API HOOKS ====================
     const { data: modulesResp, isLoading: modulesLoading } = useGetAllModulesQuery(activeSeriesId, { skip: !activeSeriesId })
-    const [createLesson] = useCreateLessonMutation()
     const [updateLesson] = useUpdateSingleLessonMutation()
     const { data: lessonsResp } = useGetAllLessonsQuery(selectedModule, { skip: !selectedModule })
     const { data: singleLessonResp } = useGetSingleLessonQuery(editingId as string, { skip: !editingId })
+
+    // Chunk upload hook for videos
+    const { uploadFileInChunks, isUploading: isChunkUploading } = useChunkUpload()
 
     // ==================== DATA PROCESSING ====================
     const modules = useMemo(() => {
@@ -122,6 +127,14 @@ export default function AddLeesionCourse({ seriesId, onLessonsAdded }: AddLeesio
         setValue('title', d.title || '')
         setExistingVideoUrl(d.file_url || d.video_url || null)
         setExistingDocUrl(d.doc_url || null)
+        const extractedLessonFileId =
+            d.lesson_file_id ||
+            d.lessonFileId ||
+            d.lesson_file?.id ||
+            d.lessonFile?.id ||
+            (Array.isArray(d.lesson_files) ? d.lesson_files[0]?.id : undefined) ||
+            null
+        setLessonFileId(extractedLessonFileId ?? null)
     }, [singleLessonResp, setValue, editingId])
 
     useEffect(() => {
@@ -141,6 +154,7 @@ export default function AddLeesionCourse({ seriesId, onLessonsAdded }: AddLeesio
         setEditingId(null)
         setExistingVideoUrl(null)
         setExistingDocUrl(null)
+        setLessonFileId(null)
     }
 
     const handleModuleChange = (val: string) => {
@@ -174,30 +188,78 @@ export default function AddLeesionCourse({ seriesId, onLessonsAdded }: AddLeesio
 
         setSubmitting(true)
 
-        const form = new FormData()
-        form.append('course_id', selectedModule)
-        form.append('title', getValues('title') || '')
-        if (videoFile) form.append('videoFile', videoFile)
-        for (const f of docFiles) {
-            form.append('docFile', f)
-        }
-
         try {
+            const title = getValues('title') || ''
+
+            // If editing, use chunk upload for new video or fallback to form for metadata/doc updates
             if (editingId) {
+                if (videoFile) {
+                    await uploadFileInChunks(videoFile, {
+                        courseId: selectedModule,
+                        title,
+                        chunkSizeMB: 5,
+                        lessonFileId: lessonFileId || undefined,
+                        onSuccess: (result) => {
+                            const successMessage = typeof result?.message === 'string'
+                                ? result.message
+                                : 'Lesson video updated successfully!'
+                            toast.success(successMessage)
+                            resetForm()
+                            setSubmitting(false)
+                            onLessonsAdded?.()
+                        },
+                        onError: () => {
+                            setSubmitting(false)
+                        }
+                    })
+                    return
+                }
+
+                const form = new FormData()
+                form.append('course_id', selectedModule)
+                form.append('title', title)
+                for (const f of docFiles) {
+                    form.append('docFile', f)
+                }
                 const res: any = await updateLesson({ lesson_id: editingId, formData: form }).unwrap()
-                toast.success(res?.message || 'Lesson updated successfully')
-            } else {
-                const res: any = await createLesson(form).unwrap()
-                toast.success(res?.message || 'Lesson created successfully')
+                const successMessage = typeof res?.message === 'string' ? res.message : 'Lesson updated successfully'
+                toast.success(successMessage)
+                resetForm()
+                setSubmitting(false)
+                onLessonsAdded?.()
+                return
             }
-            resetForm()
+
+            // For new lessons: use chunk upload for videos only
+            if (videoFile) {
+                // Upload video using chunk upload (documents are not supported in chunk upload)
+                await uploadFileInChunks(videoFile, {
+                    courseId: selectedModule,
+                    title,
+                    chunkSizeMB: 5,
+                    onSuccess: (result) => {
+                        const successMessage = typeof result?.message === 'string'
+                            ? result.message
+                            : 'Lesson video uploaded successfully!'
+                        toast.success(successMessage)
+                        resetForm()
+                        setSubmitting(false)
+                        onLessonsAdded?.()
+                    },
+                    onError: (error) => {
+                        setSubmitting(false)
+                    }
+                })
+            } else if (docFiles.length > 0) {
+                // Documents are not supported via chunk upload - only videos
+                toast.error('Please upload a video file. Document-only uploads are not supported via chunk upload.')
+                setSubmitting(false)
+            }
         } catch (e: any) {
             const errorMessage = e?.data?.message || e?.message || (editingId ? 'Failed to update lesson' : 'Failed to create lesson')
             toast.error(typeof errorMessage === 'string' ? errorMessage : (editingId ? 'Failed to update lesson' : 'Failed to create lesson'))
+            setSubmitting(false)
         }
-
-        setSubmitting(false)
-        onLessonsAdded?.()
     }
 
     return (
@@ -382,18 +444,16 @@ export default function AddLeesionCourse({ seriesId, onLessonsAdded }: AddLeesio
                     </div>
                 </div>
 
-                {/* Right side buttons */}
+                {/* Right side button */}
                 <div className='flex items-center justify-end'>
-                    <div className='flex items-center gap-2'>
-                        <Button
-                            disabled={submitting}
-                            onClick={onSaveLesson}
-                            className='bg-[#0F2598] w-fit hover:bg-[#0F2598]/80 cursor-pointer text-white inline-flex items-center gap-2'
-                        >
-                            {submitting && <ButtonSpring loading variant='spinner' size={16} color='#ffffff' />}
-                            {submitting ? (editingId ? 'Updating...' : 'Saving...') : (editingId ? 'Update Lesson' : 'Save Lesson')}
-                        </Button>
-                    </div>
+                    <Button
+                        disabled={submitting || isChunkUploading}
+                        onClick={onSaveLesson}
+                        className='bg-[#0F2598] w-fit hover:bg-[#0F2598]/80 cursor-pointer text-white inline-flex items-center gap-2'
+                    >
+                        {(submitting || isChunkUploading) && <ButtonSpring loading variant='spinner' size={16} color='#ffffff' />}
+                        {(submitting || isChunkUploading) ? (editingId ? 'Updating...' : 'Uploading...') : (editingId ? 'Update Lesson' : 'Save Lesson')}
+                    </Button>
                 </div>
 
                 {/* Saved lessons list */}

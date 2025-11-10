@@ -40,12 +40,10 @@ export default function ForgotPassword() {
                 const errorMessage = response.message || 'Failed to send OTP. Please try again.';
                 setError(errorMessage);
                 toast.error(errorMessage);
-                return; // Don't proceed to OTP step
+                return; 
             }
             
-            // Only proceed if success is true or not explicitly false
             setStep('otp');
-            // Show the exact message from API response
             toast.success(response.message || 'OTP sent to your email');
         } catch (error: any) {
             const errorMessage = error?.data?.message || error?.message || 'Failed to send OTP. Please try again.';
