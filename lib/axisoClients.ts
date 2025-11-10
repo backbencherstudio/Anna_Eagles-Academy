@@ -16,6 +16,8 @@ const axiosClient = axios.create({
   withCredentials: true,
 });
 
+
+// get cookie
 const getCookie = (name: string): string | null => {
   if (typeof document === 'undefined') return null;
 
@@ -49,7 +51,7 @@ axiosClient.interceptors.response.use(
   }
 );
 
-// Common base query for APIs that handle FormData (materials, courses)
+// Common base
 export const createBaseQuery = () => {
   return async (args: { url: string; method: string; data?: any; params?: any }, api?: any) => {
     try {
@@ -61,7 +63,6 @@ export const createBaseQuery = () => {
           response = await axiosClient.get(url, { params });
           break;
         case 'POST':
-          // Dispatch start upload if payload is FormData (file upload)
           if (typeof FormData !== 'undefined' && data instanceof FormData) {
             api?.dispatch?.(startUpload());
           }
@@ -107,7 +108,12 @@ export const createBaseQuery = () => {
     } catch (error: any) {
       const status = error.response?.status;
       if (status === 401) {
-        handleLogout(api);
+        // Only call handleLogout if token exists (user is still logged in)
+        // If token doesn't exist, we're already logged out, so don't call handleLogout again
+        const token = getCookie('token');
+        if (token) {
+          handleLogout(api);
+        }
       }
       // mark error only if was uploading
       try {
@@ -132,6 +138,20 @@ export const createAuthBaseQuery = () => {
     try {
       const { url, method = 'GET', body, params, headers } = args;
 
+      // Prevent /api/auth/me request if there's no token (already logged out)
+      if (url === '/api/auth/me' || url.includes('/api/auth/me')) {
+        const token = getCookie('token');
+        if (!token) {
+          // Return error without making the request
+          return {
+            error: {
+              status: 401,
+              data: 'Unauthorized - No token found',
+            },
+          };
+        }
+      }
+
       let response;
       switch (method.toUpperCase()) {
         case 'POST':
@@ -154,7 +174,12 @@ export const createAuthBaseQuery = () => {
     } catch (error: any) {
       const status = error.response?.status || 500;
       if (status === 401) {
-        handleLogout(api);
+        // Only call handleLogout if token exists (user is still logged in)
+        // If token doesn't exist, we're already logged out, so don't call handleLogout again
+        const token = getCookie('token');
+        if (token) {
+          handleLogout(api);
+        }
       }
       return {
         error: {
