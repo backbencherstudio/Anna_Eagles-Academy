@@ -34,6 +34,7 @@ export default function LoginPage() {
 
     const { error, isAuthenticated, user } = useAppSelector((state) => state.auth);
     const [loginUser, { isLoading }] = useLoginMutation();
+    const [isRedirecting, setIsRedirecting] = useState(false);
 
     useEffect(() => {
         dispatch(clearError());
@@ -41,11 +42,16 @@ export default function LoginPage() {
 
     useEffect(() => {
         if (isAuthenticated && user) {
-            if (user.role === 'admin') {
-                router.push('/admin/dashboard');
-            } else {
-                router.push('/user/dashboard');
-            }
+            setIsRedirecting(true);
+            // Small delay to ensure smooth transition
+            const timer = setTimeout(() => {
+                if (user.role === 'admin') {
+                    router.push('/admin/dashboard');
+                } else {
+                    router.push('/user/dashboard');
+                }
+            }, 100);
+            return () => clearTimeout(timer);
         }
     }, [isAuthenticated, user, router]);
 
@@ -79,17 +85,16 @@ export default function LoginPage() {
         window.location.href = googleAuthUrl;
     };
 
-    if (isAuthenticated && user) {
-        return null;
-    }
+    // Show loading screen during login or redirect
+    const showLoading = isLoading || isRedirecting;
 
     return (
         <div className="min-h-screen flex flex-col lg:flex-row items-center justify-center bg-white relative">
             {/* Custom Loading Overlay */}
-            <LoginLoading isLoading={isLoading} />
+            <LoginLoading isLoading={showLoading} />
 
             {/* left side login form */}
-            <div className="flex-1 flex items-center justify-center py-12 w-full px-5">
+            <div className={`flex-1 flex items-center justify-center py-12 w-full px-5 transition-opacity duration-300 ${isRedirecting ? 'opacity-0 pointer-events-none' : ''}`}>
                 <div className="w-full lg:max-w-lg shadow-md border lg:border-none lg:shadow-none rounded-lg p-8 lg:p-0">
                     <div className="flex flex-col items-center mb-8">
                         <div className="flex items-center gap-4">
