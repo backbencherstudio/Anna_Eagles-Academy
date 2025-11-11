@@ -14,18 +14,66 @@ import { Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { FaUser } from 'react-icons/fa'
 import { useRegister } from '@/hooks/useRegister'
+import { useVerifyEmailMutation, useResendEmailVerificationMutation } from '@/rtk/api/authApi'
+import toast from 'react-hot-toast'
+import { useRouter } from 'next/navigation'
+import EmailVerificationModal from './EmailVerificationModal'
 
 export default function SignUp() {
     const { register, handleSubmit, formState: { errors }, watch, reset } = useForm();
     const { register: registerUser, isLoading, error } = useRegister();
+    const [verifyEmail, { isLoading: isVerifying }] = useVerifyEmailMutation();
+    const [resendEmailVerification, { isLoading: isResending }] = useResendEmailVerificationMutation();
+    const router = useRouter();
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [showVerificationModal, setShowVerificationModal] = useState(false);
+    const [verificationEmail, setVerificationEmail] = useState('');
 
     const password = watch('password');
 
     const onSubmit = async (data: any) => {
-        await registerUser(data, reset);
+        const result = await registerUser(data, reset);
+        if (result?.success && result?.email) {
+            setVerificationEmail(result.email);
+            setShowVerificationModal(true);
+        }
+    };
+
+    const handleVerifyEmail = async (token: string) => {
+        const response = await verifyEmail({
+            email: verificationEmail,
+            token: token
+        }).unwrap();
+
+        if (response.success) {
+            toast.success(response.message || 'Email verified successfully!');
+            setShowVerificationModal(false);
+            // Redirect to login after successful verification
+            setTimeout(() => {
+                router.push('/login');
+            }, 1000);
+        } else {
+            throw new Error(response.message || 'Verification failed. Please try again.');
+        }
+    };
+
+    const handleResendVerification = async () => {
+        if (!verificationEmail) {
+            toast.error('Email address is required');
+            return;
+        }
+
+        const response = await resendEmailVerification({
+            email: verificationEmail
+        }).unwrap();
+
+        if (response.success) {
+            toast.success(response.message || 'Verification code resent successfully!');
+        } else {
+            throw new Error(response.message || 'Failed to resend verification code');
+        }
     };
 
     const handleGoogleLogin = () => {
@@ -181,7 +229,7 @@ export default function SignUp() {
                         </Button>
                     </form>
                     <div className="flex justify-center items-center mt-4">
-                        <p className="text-sm text-gray-500">already have an account?<Link href="/login" className="text-[#F1C27D] hover:underline font-medium ml-1"> Sign in</Link></p>
+                        <p className="text-sm text-gray-500">Already have an account?<Link href="/login" className="text-[#F1C27D] hover:underline font-medium ml-1"> Sign in</Link></p>
                     </div>
                 </div>
             </div>
@@ -196,6 +244,17 @@ export default function SignUp() {
                     priority
                 />
             </div>
+
+            {/* Email Verification Modal */}
+            <EmailVerificationModal
+                open={showVerificationModal}
+                email={verificationEmail}
+                onClose={() => setShowVerificationModal(false)}
+                onVerify={handleVerifyEmail}
+                onResend={handleResendVerification}
+                isVerifying={isVerifying}
+                isResending={isResending}
+            />
         </div>
     )
 }

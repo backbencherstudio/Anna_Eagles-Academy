@@ -165,7 +165,7 @@ export default function DiscoverCourses({ courseId, courseData }: DiscoverCourse
 
         try {
             const result = await checkout({ series_id: course.id }).unwrap();
-            
+
             if (result.success && result.data) {
                 dispatch(setCheckoutData(result.data));
                 router.push(`/user/checkout/${result.data.id}`);

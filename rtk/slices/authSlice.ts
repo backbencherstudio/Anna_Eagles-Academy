@@ -19,8 +19,8 @@ export interface AuthState {
 function normalizeUserData(input: any): User {
   return {
     id: input?.id || input?._id || 'unknown',
-    name: input?.name || input?.username || 'User',
-    email: input?.email || 'unknown@example.com',
+    name: input?.name || input?.username || '',
+    email: input?.email || '',
     role: (input?.type === 'admin' || input?.role === 'admin') ? 'admin' : 'user',
     avatar: input?.avatar || input?.profileImage || undefined,
     avatar_url: input?.avatar_url || undefined,

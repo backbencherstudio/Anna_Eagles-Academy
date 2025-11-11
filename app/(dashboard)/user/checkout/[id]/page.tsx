@@ -63,7 +63,8 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
         });
         
         // Use window.location.href for full page reload
-        window.location.href = `/user/payment-success/${currentCheckout?.id}?${params.toString()}`;
+        // window.location.href = `/user/payment-success/${currentCheckout?.id}?${params.toString()}`;
+        router.push(`/user/payment-success/${currentCheckout?.id}?${params.toString()}`);
     };
 
     const handleStripePaymentError = (error: string) => {

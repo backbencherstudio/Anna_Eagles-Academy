@@ -17,8 +17,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAppDispatch, useAppSelector } from '@/rtk/hooks'
 import { clearError } from '@/rtk/slices/authSlice'
-import { useLoginMutation } from '@/rtk/api/authApi'
+import { useLoginMutation, useVerifyEmailMutation, useResendEmailVerificationMutation } from '@/rtk/api/authApi'
 import LoginLoading from '@/components/Resuable/LoginLoading'
+import EmailVerificationModal from './EmailVerificationModal'
 
 
 interface LoginFormData {
@@ -27,14 +28,21 @@ interface LoginFormData {
 }
 
 export default function LoginPage() {
-    const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>();
+    const { register, handleSubmit, formState: { errors }, watch } = useForm<LoginFormData>();
     const dispatch = useAppDispatch();
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
 
     const { error, isAuthenticated, user } = useAppSelector((state) => state.auth);
     const [loginUser, { isLoading }] = useLoginMutation();
+    const [verifyEmail, { isLoading: isVerifying }] = useVerifyEmailMutation();
+    const [resendEmailVerification, { isLoading: isResending }] = useResendEmailVerificationMutation();
     const [isRedirecting, setIsRedirecting] = useState(false);
+
+    // Email verification modal states
+    const [showVerificationModal, setShowVerificationModal] = useState(false);
+    const [verificationEmail, setVerificationEmail] = useState('');
+    const [storedPassword, setStoredPassword] = useState('');
 
     useEffect(() => {
         dispatch(clearError());
@@ -56,13 +64,56 @@ export default function LoginPage() {
     }, [isAuthenticated, user, router]);
 
 
+
     const onSubmit = async (data: LoginFormData) => {
         try {
             const result = await loginUser(data).unwrap();
+
+            // Check if response has success: false (API might return 200 with success: false)
+            if (result && result.success === false) {
+                // Check if email verification is required
+                // Type assertion to access data property that might exist in the response
+                const responseData = result as any;
+                if (responseData.data?.requires_verification || responseData.requires_verification) {
+                    const errorMessage = result.message || 'Your email is not verified.';
+                    toast.error(errorMessage);
+                    // Show verification modal
+                    setVerificationEmail(data.email);
+                    setStoredPassword(data.password);
+                    setShowVerificationModal(true);
+                    return;
+                }
+
+                // Other error with success: false
+                toast.error(result.message || 'Login failed. Please try again.');
+                return;
+            }
+
             toast.success(result.message || 'Login successful!');
         } catch (error: any) {
+            // Debug: Log error structure to understand the format
+            console.log('Login error:', error);
+            console.log('Error data:', error?.data);
+
+            // Check if email verification is required
+            // Try multiple possible paths for the error structure
+            const requiresVerification =
+                error?.data?.data?.requires_verification ||
+                error?.data?.requires_verification ||
+                (error?.data?.data && typeof error.data.data === 'object' && error.data.data.requires_verification);
+
+            if (requiresVerification) {
+                const errorMessage = error?.data?.message || error?.data?.data?.message || 'Your email is not verified.';
+                toast.error(errorMessage);
+                // Show verification modal
+                setVerificationEmail(data.email);
+                setStoredPassword(data.password); // Store password for re-login after verification
+                setShowVerificationModal(true);
+                return;
+            }
+
             let errorMessage = 'Login failed. Please try again.';
-            
+
             if (error?.data?.message?.message) {
                 errorMessage = error.data.message.message;
             } else if (error?.data?.message) {
@@ -74,8 +125,51 @@ export default function LoginPage() {
             } else if (error?.message) {
                 errorMessage = error.message;
             }
-            
+
             toast.error(errorMessage);
+        }
+    };
+
+    const handleVerifyEmail = async (token: string) => {
+        const response = await verifyEmail({
+            email: verificationEmail,
+            token: token
+        }).unwrap();
+
+        if (response.success) {
+            toast.success(response.message || 'Email verified successfully!');
+            setShowVerificationModal(false);
+            // Try to login again after verification
+            try {
+                const loginData = { email: verificationEmail, password: storedPassword };
+                await loginUser(loginData).unwrap();
+                toast.success('Login successful!');
+            } catch (loginError: any) {
+                let loginErrorMessage = 'Login failed. Please try again.';
+                if (loginError?.data?.message) {
+                    loginErrorMessage = loginError.data.message;
+                }
+                toast.error(loginErrorMessage);
+            }
+        } else {
+            throw new Error(response.message || 'Verification failed. Please try again.');
+        }
+    };
+
+    const handleResendVerification = async () => {
+        if (!verificationEmail) {
+            toast.error('Email address is required');
+            return;
+        }
+
+        const response = await resendEmailVerification({
+            email: verificationEmail
+        }).unwrap();
+
+        if (response.success) {
+            toast.success(response.message || 'Verification code resent successfully!');
+        } else {
+            throw new Error(response.message || 'Failed to resend verification code');
         }
     };
 
@@ -189,7 +283,7 @@ export default function LoginPage() {
                         </Button>
                     </form>
                     <div className="flex justify-center items-center mt-4">
-                        <p className="text-sm text-gray-500">doesn't have an account?<Link href="/sign-up" className="text-[#F1C27D] hover:underline font-medium ml-1"> Sign Up</Link></p>
+                        <p className="text-sm text-gray-500">Don't have an account?<Link href="/sign-up" className="text-[#F1C27D] hover:underline font-medium ml-1"> Sign Up</Link></p>
                     </div>
                     {/* Demo credentials info */}
                     {/* <div className="mt-6 p-4 bg-gray-50 rounded-lg">
@@ -212,6 +306,18 @@ export default function LoginPage() {
                     priority
                 />
             </div>
+
+            {/* Email Verification Modal */}
+            <EmailVerificationModal
+                open={showVerificationModal}
+                email={verificationEmail}
+                onClose={() => setShowVerificationModal(false)}
+                onVerify={handleVerifyEmail}
+                onResend={handleResendVerification}
+                isVerifying={isVerifying}
+                isResending={isResending}
+                autoResendOnOpen={true}
+            />
         </div>
     )
 }

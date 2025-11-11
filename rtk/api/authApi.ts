@@ -164,14 +164,41 @@ export const authApi = createApi({
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
-          // After successful registration, automatically refetch user data
           dispatch(authApi.endpoints.checkAuth.initiate(undefined, { forceRefetch: true }));
         } catch (error) {
-          // Registration failed, do nothing
         }
       },
       invalidatesTags: ['User', 'Auth'],
+      
     }),
+
+      // verify email
+        verifyEmail: builder.mutation<AuthResponse, { email: string, token: string }>({
+          query: ({ email, token }) => ({
+            url: '/api/auth/verify-email',
+            method: 'GET',
+            params: { email, token },
+          }),
+          transformResponse: (response: any) => {
+            return response;
+          },
+          invalidatesTags: ['User', 'Auth'],
+          
+        
+        }),
+
+          // resend email verification
+          resendEmailVerification: builder.mutation<AuthResponse, { email: string }>({
+            query: ({ email }) => ({
+              url: '/api/auth/resend-verification-email',
+              method: 'POST',
+              body: { email },
+            }),
+          transformResponse: (response: any) => {
+            return response;
+          },
+          invalidatesTags: ['User', 'Auth'],
+        }),
 
     // Check authentication (me) endpoint
     checkAuth: builder.query<MeResponse, void>({
@@ -250,4 +277,6 @@ export const {
   useLogoutMutation,
   useChangePasswordMutation,
   useLoginWithGoogleMutation,
+  useVerifyEmailMutation,
+  useResendEmailVerificationMutation,
 } = authApi;

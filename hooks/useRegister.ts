@@ -15,7 +15,7 @@ export const useRegister = () => {
                 // This is an error response
                 const errorMessage = response.message || 'Registration failed. Please try again.';
                 toast.error(errorMessage);
-                return null;
+                return { success: false, email: null };
             }
             
             // Check if response has the expected success structure
@@ -25,12 +25,11 @@ export const useRegister = () => {
                 if (resetForm) {
                     resetForm();
                 }
-                // Redirect to login after successful registration
-                router.push('/login');
-                return response;
+                // Return success with email for verification modal
+                return { success: true, email: data.email };
             } else {
                 toast.error('Registration failed. Please try again.');
-                return null;
+                return { success: false, email: null };
             }
         } catch (err: any) {
             let errorMessage = 'Registration failed. Please try again.';
@@ -49,7 +48,7 @@ export const useRegister = () => {
             }
 
             toast.error(errorMessage);
-            return null;
+            return { success: false, email: null };
         }
     };
 
