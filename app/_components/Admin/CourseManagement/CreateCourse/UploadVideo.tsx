@@ -116,7 +116,7 @@ export default function UploadVideo({
             </div>
 
             <p className="text-xs text-gray-500">
-                Accepted formats: Video (MP4) - Max 300MB
+                Accepted formats: Video (MP4)
             </p>
 
             {previewUrl && (

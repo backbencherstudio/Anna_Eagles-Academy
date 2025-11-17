@@ -110,7 +110,7 @@ export default function RouteGuard({
   }, [requireAuth, isAuthenticated, hasToken, dispatch, router, logout]);
 
   if (isAuthInProgress) {
-    return <LoadingOverlay loadingText="Loading..." delay={500} />;
+    return <LoadingOverlay loadingText="Loading..." delay={200} />;
   }
 
   if (error && requireAuth && isInitialized && !isAuthInProgress) {
@@ -142,5 +142,5 @@ export default function RouteGuard({
     return null;
   }
 
-  return <LoadingOverlay loadingText="Loading..." delay={300} />;
+  return <LoadingOverlay loadingText="Loading..." delay={200} />;
 }

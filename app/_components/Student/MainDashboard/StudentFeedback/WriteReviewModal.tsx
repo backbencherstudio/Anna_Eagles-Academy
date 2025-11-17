@@ -146,7 +146,7 @@ export default function WriteReviewModal({ open, onOpenChange }: WriteReviewModa
                                     accept="video/mp4"
                                     onChange={(e) => setFileLocal(e.target.files?.[0] ?? null)}
                                 />
-                                <p className="text-xs text-muted-foreground mt-1">Accepted formats: Video (MP4) - Max 300MB</p>
+                                <p className="text-xs text-muted-foreground mt-1">Accepted formats: Video (MP4)</p>
                             </div>
                         </div>
                     ) : (
@@ -182,7 +182,7 @@ export default function WriteReviewModal({ open, onOpenChange }: WriteReviewModa
                                     accept="video/mp4"
                                     onChange={(e) => setFileLocal(e.target.files?.[0] ?? null)}
                                 />
-                                <p className="text-xs text-muted-foreground mt-1">Accepted formats: Video (MP4) - Max 300MB</p>
+                                <p className="text-xs text-muted-foreground mt-1">Accepted formats: Video (MP4)</p>
                             </div>
                         </div>
                     )}

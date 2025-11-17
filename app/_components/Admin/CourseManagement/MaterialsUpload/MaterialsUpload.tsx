@@ -41,7 +41,7 @@ interface UploadConfig {
 }
 
 const FILE_SIZE_LIMITS = {
-    'video-lectures': 300 * 1024 * 1024, // 300MB
+    'video-lectures': 10 * 1024 * 1024 * 1024, // 10GB (effectively no limit)
     'audio-lessons': 100 * 1024 * 1024,  // 100MB
     'lecture-slides': 50 * 1024 * 1024,   // 50MB
     'other-document': 50 * 1024 * 1024    // 50MB
@@ -56,7 +56,7 @@ const UPLOAD_CONFIGS: Record<string, UploadConfig> = {
     'video-lectures': {
         label: 'Upload Video',
         accept: 'video/mp4,video/avi,video/mov',
-        description: 'Accepted formats: Video (MP4, AVI, MOV) - Max 300MB'
+        description: 'Accepted formats: Video (MP4, AVI, MOV)'
     },
     'audio-lessons': {
         label: 'Upload Audio',
@@ -383,14 +383,17 @@ export default function MaterialsUpload({ activeTab, editingMaterial, onCancelEd
                                 if (!value || value.length === 0) {
                                     return 'Please select a file to upload';
                                 }
-                                const file = value[0];
-                                const maxSize = FILE_SIZE_LIMITS[activeTab as keyof typeof FILE_SIZE_LIMITS] || FILE_SIZE_LIMITS['lecture-slides'];
-                                if (file.size > maxSize) {
-                                    return `File size must be less than ${maxSize / (1024 * 1024)}MB`;
+                                // Skip size validation for video-lectures (no limit)
+                                if (activeTab !== 'video-lectures') {
+                                    const file = value[0];
+                                    const maxSize = FILE_SIZE_LIMITS[activeTab as keyof typeof FILE_SIZE_LIMITS] || FILE_SIZE_LIMITS['lecture-slides'];
+                                    if (file.size > maxSize) {
+                                        return `File size must be less than ${maxSize / (1024 * 1024)}MB`;
+                                    }
                                 }
                             } else {
-                                // For editing, file is optional but if provided, validate size
-                                if (value && value.length > 0) {
+                                // For editing, file is optional but if provided, validate size (except video-lectures)
+                                if (value && value.length > 0 && activeTab !== 'video-lectures') {
                                     const file = value[0];
                                     const maxSize = FILE_SIZE_LIMITS[activeTab as keyof typeof FILE_SIZE_LIMITS] || FILE_SIZE_LIMITS['lecture-slides'];
                                     if (file.size > maxSize) {

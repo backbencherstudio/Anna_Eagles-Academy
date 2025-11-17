@@ -62,14 +62,9 @@ export default function StudentDashboard() {
     const scheduleData: ScheduleItem[] = useMemo(() => {
         const scheduleEvents: ScheduleEvent[] = dashboardData?.data?.schedule_events || [];
         return scheduleEvents.map((event, index) => {
-            // Extract date from start_at (format: "2025-10-11T00:00:00.000Z")
             const startDate = new Date(event.start_at);
             const endDate = new Date(event.end_at);
-
-            // Format date as YYYY-MM-DD for CalanderPage
             const dateStr = startDate.toISOString().split('T')[0];
-
-            // Format time range
             const startTime = startDate.toLocaleTimeString('en-US', {
                 hour: '2-digit',
                 minute: '2-digit',
@@ -82,7 +77,6 @@ export default function StudentDashboard() {
             });
             const timeStr = `${startTime} - ${endTime}`;
 
-            // Determine subject based on type and related data
             let subject = '';
             if (event.type === 'ASSIGNMENT' && event.assignment) {
                 subject = event.assignment.title;

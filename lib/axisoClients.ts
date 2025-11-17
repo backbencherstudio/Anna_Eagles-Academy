@@ -14,6 +14,7 @@ const getBaseURL = () => {
 const axiosClient = axios.create({
   baseURL: getBaseURL(),
   withCredentials: true,
+  timeout: 60000, // Default 60 seconds timeout
 });
 
 
@@ -65,6 +66,9 @@ export const createBaseQuery = () => {
         case 'POST':
           // Skip auto progress tracking for chunk uploads (handled manually)
           const isChunkUpload = url.includes('/upload/chunk') && !url.includes('/merge') && !url.includes('/abort');
+          // Extended timeout for chunk uploads (5 minutes per chunk)
+          const chunkUploadTimeout = isChunkUpload ? 300000 : undefined; // 5 minutes for chunk uploads
+          
           if (typeof FormData !== 'undefined' && data instanceof FormData && !isChunkUpload) {
             api?.dispatch?.(startUpload());
           }
@@ -72,6 +76,7 @@ export const createBaseQuery = () => {
             headers: {
               'Content-Type': 'multipart/form-data',
             },
+            timeout: chunkUploadTimeout,
             onUploadProgress: (progressEvent) => {
               if (!progressEvent.total || isChunkUpload) return;
               const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -155,30 +160,130 @@ export const createAuthBaseQuery = () => {
         }
       }
 
-      let response;
-      switch (method.toUpperCase()) {
-        case 'POST':
-          response = await axiosClient.post(url, body, { headers, withCredentials: true });
-          break;
-        case 'GET':
-          response = await axiosClient.get(url, { params, headers, withCredentials: true });
-          break;
-        case 'PATCH':
-          response = await axiosClient.patch(url, body, { headers, withCredentials: true });
-          break;
-        case 'DELETE':
-          response = await axiosClient.delete(url, { params, headers, withCredentials: true });
-          break;
-        default:
-          response = await axiosClient.get(url, { params, headers, withCredentials: true });
+      // Extended timeout for merge operation (1 hour for large video files)
+      const isMergeOperation = url.includes('/upload/chunk/merge');
+      const timeout = isMergeOperation ? 3600000 : 60000; // 60 minutes (1 hour) for merge, 60 seconds default
+
+      // For merge operations, bypass Next.js proxy and use direct backend URL
+      // This avoids Next.js proxy timeout (30-60s) which causes ECONNRESET errors
+      let clientToUse = axiosClient;
+      if (isMergeOperation && typeof window !== 'undefined') {
+        const backendUrl = process.env.NEXT_PUBLIC_API_ENDPOINT || '';
+        if (backendUrl) {
+          // Create a separate axios instance with direct backend URL (bypasses proxy)
+          clientToUse = axios.create({
+            baseURL: backendUrl,
+            withCredentials: true,
+            timeout: 60000, // Default timeout for client creation
+          });
+
+          // Add auth token interceptor
+          const token = getCookie('token');
+          if (token) {
+            clientToUse.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          }
+
+          // Add request interceptor for token
+          clientToUse.interceptors.request.use(
+            (config) => {
+              const currentToken = getCookie('token');
+              if (currentToken) {
+                config.headers.Authorization = `Bearer ${currentToken}`;
+              }
+              return config;
+            },
+            (error) => {
+              return Promise.reject(error);
+            }
+          );
+        }
       }
 
-      return { data: response.data };
-    } catch (error: any) {
-      const status = error.response?.status || 500;
+      // Retry logic for merge operations (only retry on connection errors)
+      const maxRetries = isMergeOperation ? 3 : 1;
+      let lastError: any = null;
+
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          let response;
+          const requestConfig = {
+            headers,
+            withCredentials: true,
+            timeout,
+            // Add signal for potential cancellation
+            signal: extraOptions?.signal,
+          };
+
+          switch (method.toUpperCase()) {
+            case 'POST':
+              response = await clientToUse.post(url, body, requestConfig);
+              break;
+            case 'GET':
+              response = await clientToUse.get(url, { ...requestConfig, params });
+              break;
+            case 'PATCH':
+              response = await clientToUse.patch(url, body, requestConfig);
+              break;
+            case 'DELETE':
+              response = await clientToUse.delete(url, { ...requestConfig, params });
+              break;
+            default:
+              response = await clientToUse.get(url, { ...requestConfig, params });
+          }
+
+          return { data: response.data };
+        } catch (error: any) {
+          lastError = error;
+          
+          // Only retry on connection errors (ECONNRESET, ETIMEDOUT, etc.)
+          const isConnectionError = 
+            error.code === 'ECONNRESET' || 
+            error.code === 'ETIMEDOUT' || 
+            error.code === 'ECONNREFUSED' ||
+            error.message?.includes('socket hang up') ||
+            error.message?.includes('timeout');
+
+          // Don't retry on last attempt or if it's not a connection error
+          if (attempt < maxRetries - 1 && isConnectionError && isMergeOperation) {
+            // Wait before retrying (exponential backoff)
+            const delay = Math.min(1000 * Math.pow(2, attempt), 10000);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            continue;
+          }
+
+          // If it's not a connection error or last attempt, break and handle error
+          break;
+        }
+      }
+
+      // Handle error after all retries
+      const status = lastError?.response?.status || 500;
       if (status === 401) {
         // Only call handleLogout if token exists (user is still logged in)
         // If token doesn't exist, we're already logged out, so don't call handleLogout again
+        const token = getCookie('token');
+        if (token) {
+          handleLogout(api);
+        }
+      }
+
+      // Provide more helpful error message for connection errors
+      let errorMessage = lastError?.response?.data || lastError?.message || 'An error occurred';
+      if (lastError?.code === 'ECONNRESET' || lastError?.message?.includes('socket hang up')) {
+        errorMessage = isMergeOperation 
+          ? 'Connection lost while merging video. Please try again. If the problem persists, the video may be too large.'
+          : 'Connection lost. Please try again.';
+      }
+
+      return {
+        error: {
+          status,
+          data: errorMessage,
+        },
+      };
+    } catch (error: any) {
+      const status = error.response?.status || 500;
+      if (status === 401) {
         const token = getCookie('token');
         if (token) {
           handleLogout(api);
