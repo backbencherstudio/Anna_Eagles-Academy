@@ -3,11 +3,6 @@ import { startUpload, setUploadProgress, finishUpload, errorUpload } from '@/rtk
 import { handleLogout } from './logoutUtils';
 
 const getBaseURL = () => {
-  if (typeof window !== 'undefined') {
-    const shouldUseProxy = process.env.NODE_ENV === 'production' &&
-      process.env.NEXT_PUBLIC_API_ENDPOINT?.includes('backend.thewhiteeaglesacademy.com');
-    return shouldUseProxy ? '' : (process.env.NEXT_PUBLIC_API_ENDPOINT || '');
-  }
   return process.env.NEXT_PUBLIC_API_ENDPOINT || '';
 };
 
