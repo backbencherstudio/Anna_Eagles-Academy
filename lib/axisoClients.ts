@@ -61,9 +61,13 @@ export const createBaseQuery = () => {
         case 'POST':
           // Skip auto progress tracking for chunk uploads (handled manually)
           const isChunkUpload = url.includes('/upload/chunk') && !url.includes('/merge') && !url.includes('/abort');
-          // Extended timeout for chunk uploads (5 minutes per chunk)
+
           const chunkUploadTimeout = isChunkUpload ? 300000 : undefined; // 5 minutes for chunk uploads
-          
+
+          const formUploadTimeout = (!isChunkUpload && typeof FormData !== 'undefined' && data instanceof FormData)
+            ? 600000
+            : undefined;
+
           if (typeof FormData !== 'undefined' && data instanceof FormData && !isChunkUpload) {
             api?.dispatch?.(startUpload());
           }
@@ -71,7 +75,7 @@ export const createBaseQuery = () => {
             headers: {
               'Content-Type': 'multipart/form-data',
             },
-            timeout: chunkUploadTimeout,
+            timeout: chunkUploadTimeout ?? formUploadTimeout,
             onUploadProgress: (progressEvent) => {
               if (!progressEvent.total || isChunkUpload) return;
               const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -229,11 +233,11 @@ export const createAuthBaseQuery = () => {
           return { data: response.data };
         } catch (error: any) {
           lastError = error;
-          
+
           // Only retry on connection errors (ECONNRESET, ETIMEDOUT, etc.)
-          const isConnectionError = 
-            error.code === 'ECONNRESET' || 
-            error.code === 'ETIMEDOUT' || 
+          const isConnectionError =
+            error.code === 'ECONNRESET' ||
+            error.code === 'ETIMEDOUT' ||
             error.code === 'ECONNREFUSED' ||
             error.message?.includes('socket hang up') ||
             error.message?.includes('timeout');
@@ -265,7 +269,7 @@ export const createAuthBaseQuery = () => {
       // Provide more helpful error message for connection errors
       let errorMessage = lastError?.response?.data || lastError?.message || 'An error occurred';
       if (lastError?.code === 'ECONNRESET' || lastError?.message?.includes('socket hang up')) {
-        errorMessage = isMergeOperation 
+        errorMessage = isMergeOperation
           ? 'Connection lost while merging video. Please try again. If the problem persists, the video may be too large.'
           : 'Connection lost. Please try again.';
       }
